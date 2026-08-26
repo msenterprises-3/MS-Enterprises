@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy | MS Furniture Gallery{% endblock %}
+
+{% block content %}
+<section class="section-padding" style="background-color: var(--bg-warm);">
+    <div class="container" style="max-width: 900px; margin: 40px auto;">
+        <div class="admin-panel-card" style="padding: 40px 50px; background: var(--bg-white); border-radius: 16px; box-shadow: var(--box-shadow); border: 1px solid var(--border-color); line-height: 1.8; color: var(--primary-color);">
+            
+            <div style="text-align: center; margin-bottom: 40px; border-bottom: 1px solid var(--border-color); padding-bottom: 25px;">
+                <span class="section-subtitle">Data Protection</span>
+                <h1 style="font-size: 28px; font-weight: 800; color: var(--primary-color); margin-top: 8px;">Privacy Policy</h1>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">Last Updated: July 2026</p>
+            </div>
+
+            <div style="font-size: 15px;">
+                <p>At <strong>MS Furniture Gallery</strong> (est. 2016), we respect your privacy and are committed to protecting any personal information you share with us. This policy details how we collect, store, and utilize data across our website and catalogue.</p>
+
+                <h3 style="font-size: 18px; font-weight: 700; margin-top: 30px; margin-bottom: 12px; border-left: 3px solid var(--accent-color); padding-left: 10px;">1. Information We Collect</h3>
+                <p>We collect minimal personal data. This is gathered in the following ways:</p>
+                <ul>
+                    <li><strong>Cart & Wishlist Synchronization:</strong> In order to allow you to save your wishlists and shopping carts across different visits, our database creates a session index and saves your selections on our secure Firestore database.</li>
+                    <li><strong>Testimonials & Reviews:</strong> If you write a store review or a product review on our website, we save your name, city, review details, and rating in our Firestore database.</li>
+                    <li><strong>Bulk Enquiry Details:</strong> When you submit our commercial order form, we record your name, company details, phone number, email address, and order specifics.</li>
+                </ul>
+
+                <h3 style="font-size: 18px; font-weight: 700; margin-top: 30px; margin-bottom: 12px; border-left: 3px solid var(--accent-color); padding-left: 10px;">2. How We Use Your Data</h3>
+                <p>We strictly use the collected data to process your catalog enquiries, personalize your browsing experience, display approved customer testimonies, and coordinate bulk project orders. We will never sell, rent, or distribute your email addresses, names, or phone numbers to third-party advertising companies.</p>
+
+                <h3 style="font-size: 18px; font-weight: 700; margin-top: 30px; margin-bottom: 12px; border-left: 3px solid var(--accent-color); padding-left: 10px;">3. Cookies & Session Storage</h3>
+                <p>Our website utilizes local storage and session variables to cache your active tabs, remember your recently viewed products, and store temporary authentication details. You may disable cookies in your browser settings, though some catalog features (like recently viewed lists) may fail to refresh.</p>
+
+                <h3 style="font-size: 18px; font-weight: 700; margin-top: 30px; margin-bottom: 12px; border-left: 3px solid var(--accent-color); padding-left: 10px;">4. Security & Cloud Safeguards</h3>
+                <p>Your session settings and form submissions are saved in a secured cloud Firestore database using the Google Cloud platform, backed by strict security access rules. Our administrator interface is restricted using session authentication and secure password encryption protocols.</p>
+
+                <h3 style="font-size: 18px; font-weight: 700; margin-top: 30px; margin-bottom: 12px; border-left: 3px solid var(--accent-color); padding-left: 10px;">5. Revisions and Contact</h3>
+                <p>We may modify this Privacy Policy as features expand. If you have questions regarding your data privacy, please contact us at <strong>{{ settings.contact_email }}</strong> or call us at <strong>+91 96766 67998</strong>.</p>
+            </div>
+            
+        </div>
+    </div>
+</section>
+{% endblock %}

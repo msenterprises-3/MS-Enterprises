@@ -1,0 +1,38 @@
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment secrets (Never commit live credentials)
+.env
+.env.*
+!.env.example
+
+# Sensitive credentials
+*-firebase-adminsdk-*.json
+
+# IDE / Editor folders
+.vscode/
+.idea/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Logs & temp scratch files
+*.log
+scratch/
+wincerts.pem
+
+# Databases & local credentials
+*.db
+*.sqlite
+*.sqlite3
+instance/
+firebase-credentials.json

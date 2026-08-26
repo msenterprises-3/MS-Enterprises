@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ settings.seo_meta_title }}{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}{{ settings.seo_meta_description }}{% endblock %}">
+    
+    <!-- Open Graph tags for SEO / Social sharing -->
+    <meta property="og:title" content="{% block og_title %}{{ settings.seo_meta_title }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ settings.seo_meta_description }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}/static/uploads/gallery/logo_meta.jpg{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    
+    <!-- Premium Style Files -->
+    <link rel="stylesheet" href="/static/css/styles.css?v=20260825_v5">
+    
+    <!-- Mobile Header Precision Styling (< 992px) -->
+    <style id="mobileHeaderStyles">
+    @media (max-width: 991px) {
+        header {
+            background-color: #ffffff !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 9990 !important;
+        }
+
+        .nav-container {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            height: 50px !important;
+            min-height: 46px !important;
+            padding: 0 8px !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+            gap: 6px !important;
+            flex-wrap: nowrap !important;
+        }
+
+        /* 1. Ultra-Compact Business Logo for Mobile */
+        .logo {
+            display: inline-flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: flex-start !important;
+            text-decoration: none !important;
+            flex-shrink: 0 !important;
+            min-width: fit-content !important;
+            max-width: fit-content !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            line-height: 1 !important;
+        }
+
+        .logo-main {
+            font-family: var(--font-heading) !important;
+            font-size: 8.5px !important;
+            font-weight: 800 !important;
+            color: #111827 !important;
+            letter-spacing: -0.15px !important;
+            text-transform: uppercase !important;
+            white-space: nowrap !important;
+            line-height: 1.05 !important;
+            display: block !important;
+            text-align: left !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .logo-sub {
+            font-family: var(--font-body) !important;
+            font-size: 3.8px !important;
+            letter-spacing: 0.1px !important;
+            color: #c5a028 !important;
+            font-weight: 700 !important;
+            margin-top: 1px !important;
+            white-space: nowrap !important;
+            line-height: 1 !important;
+            display: block !important;
+            text-align: left !important;
+            text-transform: uppercase !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* 2. Beside Logo: Cart | Wishlist | Account | Search on SAME line */
+        .header-actions {
+            display: inline-flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            gap: 8px !important;
+            flex-shrink: 0 !important;
+            flex-wrap: nowrap !important;
+            height: 32px !important;
+        }
+
+        /* 3. Unclipped Action Links: Cart, Wishlist, Account */
+        .cart-header-link,
+        .wishlist-header-link,
+        .profile-header-link {
+            display: inline-flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 3px !important;
+            text-decoration: none !important;
+            color: #1f2937 !important;
+            padding: 3px 2px !important;
+            height: 30px !important;
+            position: relative !important;
+            flex-shrink: 0 !important;
+            white-space: nowrap !important;
+            overflow: visible !important;
+            vertical-align: middle !important;
+            line-height: 1 !important;
+            box-sizing: border-box !important;
+        }
+
+        .cart-header-link i,
+        .cart-header-link svg,
+        .wishlist-header-link i,
+        .wishlist-header-link svg,
+        .profile-header-link i,
+        .profile-header-link svg {
+            width: 14px !important;
+            height: 14px !important;
+            stroke-width: 1.8 !important;
+            color: #1f2937 !important;
+            display: inline-block !important;
+            vertical-align: middle !important;
+            flex-shrink: 0 !important;
+        }
+
+        .nav-icon-text {
+            display: inline-block !important;
+            font-size: 10.5px !important;
+            font-weight: 600 !important;
+            color: #1f2937 !important;
+            line-height: 1 !important;
+            white-space: nowrap !important;
+            vertical-align: middle !important;
+            flex-shrink: 0 !important;
+        }
+
+        .icon-badge-wrapper {
+            position: relative !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
+        }
+
+        .icon-badge-wrapper .badge-count {
+            position: absolute !important;
+            top: -4px !important;
+            right: -6px !important;
+            font-size: 7px !important;
+            width: 12px !important;
+            height: 12px !important;
+            border-radius: 50% !important;
+            display: none;
+            align-items: center !important;
+            justify-content: center !important;
+            font-weight: 700 !important;
+            background-color: var(--accent-color) !important;
+            color: #ffffff !important;
+        }
+
+        .wishlist-header-link .badge-count {
+            background-color: #e11d48 !important;
+        }
+
+        /* 4. Compact Search Bar beside Account */
+        .search-container {
+            display: inline-flex !important;
+            position: relative !important;
+            align-items: center !important;
+            flex-shrink: 0 !important;
+            width: 65px !important;
+            max-width: 85px !important;
+            height: 28px !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .search-container form {
+            display: flex !important;
+            position: relative !important;
+            align-items: center !important;
+            width: 100% !important;
+            height: 28px !important;
+            margin: 0 !important;
+        }
+
+        .search-container .search-input {
+            width: 100% !important;
+            height: 28px !important;
+            padding: 2px 20px 2px 7px !important;
+            border-radius: 14px !important;
+            border: 1px solid #d1d5db !important;
+            background-color: #f9fafb !important;
+            font-size: 9.5px !important;
+            color: #111827 !important;
+            outline: none !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            box-sizing: border-box !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .search-container .search-input::placeholder {
+            color: #9ca3af !important;
+            font-size: 9px !important;
+        }
+
+        .search-container .search-input:focus {
+            border-color: #c5a028 !important;
+            background-color: #ffffff !important;
+            box-shadow: 0 0 0 2px rgba(197, 160, 40, 0.15) !important;
+        }
+
+        .search-container .search-icon-btn {
+            position: absolute !important;
+            right: 4px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            width: 16px !important;
+            height: 16px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: transparent !important;
+            border: none !important;
+            color: #6b7280 !important;
+            padding: 0 !important;
+            cursor: pointer !important;
+        }
+
+        .search-container .search-icon-btn svg,
+        .search-container .search-icon-btn i {
+            width: 11px !important;
+            height: 11px !important;
+            stroke-width: 2 !important;
+            color: #6b7280 !important;
+        }
+
+        .nav-menu,
+        .hamburger,
+        .search-mobile-toggle,
+        .mobile-dropdown-menu,
+        .mobile-bottom-nav {
+            display: none !important;
+        }
+
+        body {
+            padding-bottom: 0 !important;
+        }
+    }
+
+    /* Super Narrow Viewports (<= 340px) */
+    @media (max-width: 340px) {
+        .nav-container {
+            padding: 0 4px !important;
+            gap: 4px !important;
+        }
+
+        .logo-main {
+            font-size: 7.5px !important;
+        }
+
+        .logo-sub {
+            font-size: 3.2px !important;
+        }
+
+        .header-actions {
+            gap: 4px !important;
+        }
+
+        .nav-icon-text {
+            font-size: 9px !important;
+        }
+
+        .cart-header-link i,
+        .cart-header-link svg,
+        .wishlist-header-link i,
+        .wishlist-header-link svg,
+        .profile-header-link i,
+        .profile-header-link svg {
+            width: 12px !important;
+            height: 12px !important;
+        }
+
+        .search-container {
+            width: 48px !important;
+        }
+
+        .search-container .search-input {
+            font-size: 8.5px !important;
+            padding: 2px 14px 2px 4px !important;
+        }
+    }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if not session.get('user_role') %}
+    <!-- Full screen welcome role selection modal -->
+    <div id="welcomeRoleModal" class="welcome-role-modal-overlay">
+        <div class="welcome-role-modal-card">
+            <div class="welcome-role-modal-header">
+                <h2>Welcome to Our Store</h2>
+            </div>
+            <div class="welcome-role-modal-body">
+                <p>Please select how you would like to continue browsing our catalog:</p>
+                <div class="role-selection-buttons">
+                    <button class="role-btn btn-customer" onclick="selectUserRole('customer')">
+                        <span class="role-icon">🛒</span>
+                        <span class="role-title">Customer</span>
+                        <span class="role-subtitle">View retail catalogue &amp; prices</span>
+                    </button>
+                    <button class="role-btn btn-dealer" onclick="selectUserRole('dealer')">
+                        <span class="role-icon">🏪</span>
+                        <span class="role-title">Dealer / Wholesale Buyer</span>
+                        <span class="role-subtitle">Wholesale catalogue &amp; ordering</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+        .welcome-role-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .welcome-role-modal-card {
+            background: #ffffff;
+            border-radius: 12px;
+            max-width: 550px;
+            width: 100%;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            border: 2px solid var(--accent-color, #d4af37);
+        }
+        .welcome-role-modal-header h2 {
+            font-size: 28px;
+            color: #111111;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        .welcome-role-modal-body p {
+            color: #666666;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        .role-selection-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media(max-width: 480px) {
+            .role-selection-buttons {
+                grid-template-columns: 1fr;
+            }
+            .welcome-role-modal-card {
+                padding: 25px;
+            }
+        }
+        .role-btn {
+            background: #fdfdfd;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 25px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        .role-btn:hover {
+            border-color: var(--accent-color, #d4af37);
+            background: #fdfaf2;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(212,175,55,0.15);
+        }
+        .role-icon {
+            font-size: 36px;
+        }
+        .role-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111111;
+        }
+        .role-subtitle {
+            font-size: 12px;
+            color: #777777;
+            text-align: center;
+        }
+    </style>
+    {% endif %}
+    <script>
+        function selectUserRole(role) {
+            fetch('/api/set-role', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ role: role })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (role === 'dealer') {
+                        window.location.href = '/dealer/login';
+                    } else {
+                        window.location.href = '/profile';
+                    }
+                }
+            })
+            .catch(err => {
+                console.error("Error setting role:", err);
+            });
+        }
+    </script>
+
+    <!-- Top Information Bar -->
+    <div class="top-bar">
+        <div class="container top-bar-content">
+            <div class="top-bar-info">
+                <div class="top-bar-item">
+                    <i data-lucide="map-pin"></i>
+                    <span>Rajampet, Andhra Pradesh</span>
+                </div>
+                <div class="top-bar-item">
+                    <i data-lucide="phone"></i>
+                    <span>{{ settings.whatsapp_number }}</span>
+                </div>
+                <div class="top-bar-item">
+                    <i data-lucide="clock"></i>
+                    <span>{{ settings.working_hours }}</span>
+                </div>
+            </div>
+            <div class="top-bar-offer">
+                <span>✨ Direct Factory Pricing - Direct WhatsApp Ordering ✨</span>
+            </div>
+            <div class="top-bar-social">
+                {% if settings.show_instagram and settings.instagram_url %}
+                <a href="{{ settings.instagram_url }}" target="_blank" rel="noopener noreferrer" class="top-social-icon insta" aria-label="Instagram">
+                    <i data-lucide="instagram"></i>
+                </a>
+                {% endif %}
+                {% if settings.show_facebook and settings.facebook_url %}
+                <a href="{{ settings.facebook_url }}" target="_blank" rel="noopener noreferrer" class="top-social-icon fb" aria-label="Facebook">
+                    <i data-lucide="facebook"></i>
+                </a>
+                {% endif %}
+                {% if settings.show_youtube and settings.youtube_url %}
+                <a href="{{ settings.youtube_url }}" target="_blank" rel="noopener noreferrer" class="top-social-icon yt" aria-label="YouTube">
+                    <i data-lucide="youtube"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Main Header -->
+    <header>
+        <div class="container nav-container">
+            <!-- Brand Logo -->
+            <a href="/" class="logo">
+                <span class="logo-main">MS Furniture Gallery</span>
+                <span class="logo-sub">Your Style - Your Space - Your Furniture.</span>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="nav-menu" id="navMenu">
+                <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Home</a>
+                <a href="/products" class="nav-link {% if request.path == '/products' %}active{% endif %}">Products</a>
+                
+                <!-- Mega Dropdown Category Menu -->
+                <div class="nav-link-dropdown">
+                    <a href="/products" class="nav-link" id="categoriesMenuToggle">Categories <i data-lucide="chevron-down" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-left:2px;"></i></a>
+                    <div class="mega-menu">
+                        <div class="mega-menu-tabs-container">
+                            <!-- Left Sidebar: Main Categories -->
+                            <ul class="mega-menu-tabs">
+                                <li class="mega-menu-tab-item active" data-tab="tab-living-room">
+                                    <span>Living Room</span> <i data-lucide="chevron-right"></i>
+                                </li>
+                                <li class="mega-menu-tab-item" data-tab="tab-bedroom">
+                                    <span>Bedroom</span> <i data-lucide="chevron-right"></i>
+                                </li>
+                                <li class="mega-menu-tab-item" data-tab="tab-dining">
+                                    <span>Dining</span> <i data-lucide="chevron-right"></i>
+                                </li>
+                                <li class="mega-menu-tab-item" data-tab="tab-study-office">
+                                    <span>Study & Office</span> <i data-lucide="chevron-right"></i>
+                                </li>
+                                <li class="mega-menu-tab-item" data-tab="tab-outdoor">
+                                    <span>Outdoor</span> <i data-lucide="chevron-right"></i>
+                                </li>
+                                <li class="mega-menu-tab-item" data-tab="tab-decor">
+                                    <span>Decor</span> <i data-lucide="chevron-right"></i>
+                                </li>
+                                <li class="mega-menu-tab-item" data-tab="tab-kitchen">
+                                    <span>Kitchen</span> <i data-lucide="chevron-right"></i>
+                                </li>
+                                <li class="mega-menu-tab-item" data-tab="tab-furnishings">
+                                    <span>Home Furnishings</span> <i data-lucide="chevron-right"></i>
+                                </li>
+                            </ul>
+
+                            <!-- Right Panels: Subcategories grid -->
+                            <div class="mega-menu-panels">
+                                
+                                <!-- Living Room Panel -->
+                                <div class="mega-menu-panel active" id="tab-living-room">
+                                    <h3 class="mobile-panel-header">Living Room</h3>
+                                    <div class="panel-grid-columns">
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Sofas</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/sofas?q=fabric">Fabric Sofa</a></li>
+                                                <li><a href="/category/sofas?q=wooden">Wooden Sofas</a></li>
+                                                <li><a href="/category/sofas?q=leatherette">Leatherette Sofas</a></li>
+                                                <li><a href="/category/sofas?q=leather">Leather Sofas</a></li>
+                                                <li><a href="/category/sofas?q=bed">Sofa Beds</a></li>
+                                                <li><a href="/category/sofas?q=set">Sofa Sets</a></li>
+                                                <li><a href="/category/sofas?q=corner">Corner Sofas</a></li>
+                                                <li><a href="/category/sofas?subcategory=l-shape-sofas">L Shaped Sofa</a></li>
+                                                <li><a href="/category/sofas?q=premium">Premium Sofas</a></li>
+                                                <li><a href="/category/sofas?subcategory=1-seater-sofas">Single Seater Sofas</a></li>
+                                                <li><a href="/category/sofas?subcategory=2-seater-sofas">Two Seater Sofas</a></li>
+                                                <li><a href="/category/sofas?subcategory=3-seater-sofas">Three Seater Sofas</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Recliners</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/sofas?subcategory=recliners&q=fabric">Fabric Recliners</a></li>
+                                                <li><a href="/category/sofas?subcategory=recliners&q=leatherette">Leatherette Recliners</a></li>
+                                                <li><a href="/category/sofas?subcategory=recliners&q=leather">Leather Recliners</a></li>
+                                                <li><a href="/category/sofas?subcategory=recliners&q=1+seater">Single Seater Recliners</a></li>
+                                                <li><a href="/category/sofas?subcategory=recliners&q=2+seater">Two Seater Recliners</a></li>
+                                                <li><a href="/category/sofas?subcategory=recliners&q=3+seater">Three Seater Recliners</a></li>
+                                                <li><a href="/category/sofas?subcategory=recliners&q=set">Recliner Sets</a></li>
+                                                <li><a href="/category/sofas?subcategory=recliners&q=theatre">Home Theatre Recliners</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Seating</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/chairs-0bb1?q=lounge">Lounge Chairs</a></li>
+                                                <li><a href="/category/chairs-0bb1?q=rocking">Rocking Chairs</a></li>
+                                                <li><a href="/category/chairs-0bb1?subcategory=accent-chairs">Accent Chairs</a></li>
+                                                <li><a href="/category/chairs-0bb1?subcategory=stools-poufs">Ottomans & Poufs</a></li>
+                                                <li><a href="/category/chairs-0bb1?q=patio">Patio Chairs & Set</a></li>
+                                                <li><a href="/category/chairs-0bb1?q=balcony">Balcony Chairs & Set</a></li>
+                                            </ul>
+                                            <span class="col-header" style="margin-top: 15px;">Shoe Racks</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/storage-cabinets?subcategory=shoe-racks&q=wooden">Wooden Shoe Racks</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Living Room Tables</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/tables?subcategory=coffee-tables&q=wooden">Wooden Center Tables</a></li>
+                                                <li><a href="/category/tables?subcategory=coffee-tables&q=glass">Glass Center Tables</a></li>
+                                                <li><a href="/category/tables?subcategory=coffee-tables&q=marble">Marble Center Tables</a></li>
+                                                <li><a href="/category/tables?subcategory=side-tables">Side & End Tables</a></li>
+                                                <li><a href="/category/tables?subcategory=console-tables">Console Tables</a></li>
+                                            </ul>
+                                            <span class="col-header" style="margin-top: 15px;">Entertainment Units</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/tables?subcategory=tv-units&q=stand">TV Stand</a></li>
+                                                <li><a href="/category/tables?subcategory=tv-units&q=wall">Wall Unit</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Bedroom Panel -->
+                                <div class="mega-menu-panel" id="tab-bedroom">
+                                    <h3 class="mobile-panel-header">Bedroom</h3>
+                                    <div class="panel-grid-columns">
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Beds</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/beds?subcategory=queen-size-beds&q=without">Queen Bed Without Storage</a></li>
+                                                <li><a href="/category/beds?subcategory=king-size-beds&q=without">King Bed Without Storage</a></li>
+                                                <li><a href="/category/beds?subcategory=beds-with-storage&q=queen">Queen Bed With Storage</a></li>
+                                                <li><a href="/category/beds?subcategory=beds-with-storage&q=king">King Bed With Storage</a></li>
+                                                <li><a href="/category/beds?q=set">Bedroom Sets</a></li>
+                                                <li><a href="/category/beds?q=bunk">Bunk Bed</a></li>
+                                                <li><a href="/category/beds?q=kids">Kids Bed</a></li>
+                                                <li><a href="/category/beds?q=single">Single Bed</a></li>
+                                                <li><a href="/category/beds?q=wooden">Wooden Bed</a></li>
+                                                <li><a href="/category/beds?q=engineered">Engineered Wood Bed</a></li>
+                                                <li><a href="/category/beds?q=folding">Folding Beds</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Wardrobes</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/wardrobes-6ca7?subcategory=2-door-wardrobes">Two Door Wardrobes</a></li>
+                                                <li><a href="/category/wardrobes-6ca7?subcategory=3-door-wardrobes">Three Door Wardrobes</a></li>
+                                                <li><a href="/category/wardrobes-6ca7?subcategory=4-door-wardrobes">Four Door Wardrobes</a></li>
+                                                <li><a href="/category/wardrobes-6ca7?q=5+door">Five Door Wardrobes</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Bedroom Tables</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/tables?q=dressing">Dressing Tables</a></li>
+                                                <li><a href="/category/tables?subcategory=side-tables">Side Tables</a></li>
+                                            </ul>
+                                            <span class="col-header" style="margin-top: 15px;">Pillows</span>
+                                            <ul class="col-list">
+                                                <li><a href="/products?q=pillow">Pillows</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Mattresses</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/mattresses">All Mattresses</a></li>
+                                                <li><a href="/category/mattresses?q=single">Single Mattresses</a></li>
+                                                <li><a href="/category/mattresses?q=queen">Queen Size Mattresses</a></li>
+                                                <li><a href="/category/mattresses?q=king">King Size Mattresses</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dining Panel -->
+                                <div class="mega-menu-panel" id="tab-dining">
+                                    <h3 class="mobile-panel-header">Dining</h3>
+                                    <div class="panel-grid-columns">
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Dining Tables & Sets</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/dining-sets?subcategory=4-seater-dining-sets">4 Seater Dining Sets</a></li>
+                                                <li><a href="/category/dining-sets?subcategory=6-seater-dining-sets">6 Seater Dining Sets</a></li>
+                                                <li><a href="/category/dining-sets?subcategory=8-seater-dining-sets">8 Seater Dining Sets</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Dining Tables & Chairs</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/dining-sets?q=table">Tables</a></li>
+                                                <li><a href="/category/dining-sets?q=chair">Chairs</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Bar Furniture</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/chairs-0bb1?q=bar">Bar Stools & Chairs</a></li>
+                                                <li><a href="/category/storage-cabinets?q=bar">Bar Cabinets</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Crockery Units</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/storage-cabinets?subcategory=sideboards">Side Board</a></li>
+                                                <li><a href="/category/storage-cabinets?subcategory=crockery-units">Crockery Unit</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Study & Office Panel -->
+                                <div class="mega-menu-panel" id="tab-study-office">
+                                    <h3 class="mobile-panel-header">Study & Office</h3>
+                                    <div class="panel-grid-columns">
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Tables</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/home-office?subcategory=study-desks">Study Tables</a></li>
+                                                <li><a href="/category/home-office?q=computer">Computer Tables</a></li>
+                                                <li><a href="/category/home-office?q=boss">Boss Table</a></li>
+                                                <li><a href="/category/office-furniture?subcategory=conference-tables">Conference Tables</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Chairs</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/office-furniture?subcategory=office-chairs">Office Chairs</a></li>
+                                                <li><a href="/category/office-furniture?subcategory=office-chairs&q=computer">Computer Chairs</a></li>
+                                                <li><a href="/category/office-furniture?subcategory=office-chairs&q=visitor">Visitor Chairs</a></li>
+                                                <li><a href="/category/chairs-0bb1?subcategory=study-chairs">Study Chairs</a></li>
+                                                <li><a href="/category/chairs-0bb1?q=gaming">Gaming Chairs</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Book Shelves</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/storage-cabinets?subcategory=book-shelves&q=engineered">Engineered Wood</a></li>
+                                                <li><a href="/category/storage-cabinets?subcategory=book-shelves&q=solid">Solid Wood</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Outdoor Panel -->
+                                <div class="mega-menu-panel" id="tab-outdoor">
+                                    <h3 class="mobile-panel-header">Outdoor</h3>
+                                    <div class="panel-grid-columns">
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Outdoor Furniture</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/outdoor-furniture?q=set">Outdoor Set</a></li>
+                                                <li><a href="/category/outdoor-furniture?q=chair">Outdoor Chairs</a></li>
+                                                <li><a href="/category/outdoor-furniture?subcategory=balcony-sets">Patio Set</a></li>
+                                                <li><a href="/category/outdoor-furniture?subcategory=garden-swings">Swings</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Outdoor Tables</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/outdoor-furniture?q=table">Patio Tables</a></li>
+                                            </ul>
+                                            <span class="col-header" style="margin-top: 15px;">Balcony Furniture</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/outdoor-furniture?subcategory=balcony-sets">Balcony Furniture</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Outdoor Decor</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/outdoor-furniture?q=garden">Garden Figurines & Furniture</a></li>
+                                                <li><a href="/category/outdoor-furniture?q=fountain">Fountains</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Outdoor Bar Furniture</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/outdoor-furniture?q=bar&type=stools">Bar Stools & Chairs</a></li>
+                                                <li><a href="/category/outdoor-furniture?q=bar&type=cabinets">Bar Cabinets</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Decor Panel -->
+                                <div class="mega-menu-panel" id="tab-decor">
+                                    <h3 class="mobile-panel-header">Decor</h3>
+                                    <div class="panel-grid-columns">
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Furniture Accents</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/chairs-0bb1?q=bench">Benches</a></li>
+                                                <li><a href="/category/tables?subcategory=side-tables">Side Tables</a></li>
+                                                <li><a href="/products?q=magazine">Magazine Holders</a></li>
+                                                <li><a href="/category/chairs-0bb1?subcategory=stools-poufs">Ottomans</a></li>
+                                                <li><a href="/products?q=mandir">Mandir</a></li>
+                                                <li><a href="/products?q=multipurpose">Multipurpose Accents</a></li>
+                                                <li><a href="/category/tables?q=nesting">Nesting Tables</a></li>
+                                                <li><a href="/category/tables?subcategory=console-tables">Console Tables</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Wall Decor</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/decor-lighting?subcategory=wall-art&q=metal">Metal Wall Arts</a></li>
+                                                <li><a href="/category/decor-lighting?subcategory=wall-art&q=crystal">Crystal Wall Art</a></li>
+                                                <li><a href="/category/decor-lighting?q=mirror">Mirrors</a></li>
+                                                <li><a href="/category/decor-lighting?q=clock">Clocks</a></li>
+                                                <li><a href="/category/decor-lighting?subcategory=wall-art&q=painting">Wall Paintings</a></li>
+                                            </ul>
+                                            <span class="col-header" style="margin-top: 15px;">Spiritual</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/decor-lighting?q=buddha">Buddha Idols</a></li>
+                                                <li><a href="/category/decor-lighting?q=religious">Religious Idols</a></li>
+                                                <li><a href="/category/decor-lighting?q=ganesha">Ganesha Idols</a></li>
+                                                <li><a href="/category/decor-lighting?q=spiritual">Spiritual Idols</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Table Decor</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/decor-lighting?q=showpiece">Showpieces</a></li>
+                                                <li><a href="/category/decor-lighting?q=globe">World Globes</a></li>
+                                                <li><a href="/category/decor-lighting?q=candle">Candles</a></li>
+                                            </ul>
+                                            <span class="col-header" style="margin-top: 15px;">Home Garden</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/decor-lighting?q=planter">Plants & Planters</a></li>
+                                                <li><a href="/category/decor-lighting?q=garden">Garden Figurines & Furniture</a></li>
+                                                <li><a href="/category/decor-lighting?q=artificial">Artificial Plants & Trees</a></li>
+                                                <li><a href="/category/decor-lighting?q=artificial+flower">Artificial Flowers</a></li>
+                                                <li><a href="/category/decor-lighting?q=artificial+tree">Artificial Trees</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Vases & Lighting</span>
+                                            <ul class="col-list">
+                                                <li><a href="/category/decor-lighting?subcategory=vases&q=table">Table Vases</a></li>
+                                                <li><a href="/category/decor-lighting?subcategory=vases&q=floor">Floor Vases</a></li>
+                                                <li><a href="/category/decor-lighting?subcategory=vases&q=flower">Flower Vases</a></li>
+                                                <li style="margin-top:10px;"><a href="/category/decor-lighting?subcategory=table-lamps" class="view-all">Table Lamps</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Kitchen Panel -->
+                                <div class="mega-menu-panel" id="tab-kitchen">
+                                    <h3 class="mobile-panel-header">Kitchen</h3>
+                                    <div class="panel-grid-columns">
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Accessories</span>
+                                            <ul class="col-list">
+                                                <li><a href="/products?q=tray">Trays & Platters</a></li>
+                                                <li><a href="/products?q=organizer">Organizers</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Home Furnishings Panel -->
+                                <div class="mega-menu-panel" id="tab-furnishings">
+                                    <h3 class="mobile-panel-header">Home Furnishings</h3>
+                                    <div class="panel-grid-columns">
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Bed Linen</span>
+                                            <ul class="col-list">
+                                                <li><a href="/products?q=pillow">Pillows</a></li>
+                                                <li><a href="/products?q=bag">Bed In A Bag</a></li>
+                                                <li><a href="/products?q=protector">Mattress Protectors</a></li>
+                                                <li><a href="/products?q=comforter">Comforter</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Flooring & Table Linen</span>
+                                            <ul class="col-list">
+                                                <li><a href="/products?q=mat">Door Mats</a></li>
+                                                <li><a href="/products?q=carpet">Carpets</a></li>
+                                                <li><a href="/products?q=table+mat">Table Mats</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="panel-grid-col">
+                                            <span class="col-header">Bath</span>
+                                            <ul class="col-list">
+                                                <li><a href="/products?q=bath+mat">Bath Mats</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="/#offers" class="nav-link">Offers</a>
+                <a href="/#testimonials" class="nav-link">Testimonials</a>
+                <a href="/#videos" class="nav-link">Videos</a>
+                <a href="/about" class="nav-link {% if request.path == '/about' %}active{% endif %}">About</a>
+                <a href="/contact" class="nav-link {% if request.path == '/contact' %}active{% endif %}">Contact</a>
+                <!-- Mobile Social Links -->
+                <div class="mobile-nav-social">
+                    {% if settings.show_instagram and settings.instagram_url %}
+                    <a href="{{ settings.instagram_url }}" target="_blank" rel="noopener noreferrer" class="mobile-social-icon insta" aria-label="Instagram">
+                        <i data-lucide="instagram"></i>
+                    </a>
+                    {% endif %}
+                    {% if settings.show_facebook and settings.facebook_url %}
+                    <a href="{{ settings.facebook_url }}" target="_blank" rel="noopener noreferrer" class="mobile-social-icon fb" aria-label="Facebook">
+                        <i data-lucide="facebook"></i>
+                    </a>
+                    {% endif %}
+                    {% if settings.show_youtube and settings.youtube_url %}
+                    <a href="{{ settings.youtube_url }}" target="_blank" rel="noopener noreferrer" class="mobile-social-icon yt" aria-label="YouTube">
+                        <i data-lucide="youtube"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </nav>
+
+            <!-- Header Actions -->
+            <div class="header-actions">
+                <!-- Cart Header Link -->
+                {% if settings.cart_enabled %}
+                <a href="/cart" class="nav-icon-link cart-header-link" aria-label="Cart">
+                    <div class="icon-badge-wrapper">
+                        <i data-lucide="shopping-cart"></i>
+                        <span class="badge-count cart-badge">0</span>
+                    </div>
+                    <span class="nav-icon-text">Cart</span>
+                </a>
+                {% endif %}
+
+                <!-- Wishlist Header Link -->
+                {% if settings.wishlist_enabled %}
+                <a href="/wishlist" class="nav-icon-link wishlist-header-link" aria-label="Wishlist">
+                    <div class="icon-badge-wrapper">
+                        <i data-lucide="heart"></i>
+                        <span class="badge-count wishlist-badge">0</span>
+                    </div>
+                    <span class="nav-icon-text">Wishlist</span>
+                </a>
+                {% endif %}
+
+                <!-- User Profile Header Link -->
+                <a href="/profile" class="nav-icon-link profile-header-link" aria-label="User Account">
+                    <div class="icon-badge-wrapper">
+                        <i data-lucide="user"></i>
+                    </div>
+                    <span class="nav-icon-text">Account</span>
+                </a>
+
+                <!-- Enhanced Inline Search Bar -->
+                <div class="search-container">
+                    <form action="/products" method="GET" id="searchForm">
+                        <input type="text" name="q" class="search-input" id="searchInput" placeholder="Search..." autocomplete="off" value="{{ request.args.get('q', '') }}">
+                        <button type="submit" class="search-icon-btn" aria-label="Search">
+                            <i data-lucide="search"></i>
+                        </button>
+                    </form>
+                    <!-- Instant Autocomplete Results Box -->
+                    <div class="search-autocomplete" id="searchAutocomplete"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown Navigation Menu (Appears when ☰ is clicked) -->
+        <div class="mobile-dropdown-menu" id="mobileDropdownMenu">
+            <div class="mobile-dropdown-links">
+                <a href="/" class="mobile-dropdown-link {% if request.path == '/' %}active{% endif %}">
+                    <i data-lucide="home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="/products" class="mobile-dropdown-link {% if request.path == '/products' and not request.args.get('q') %}active{% endif %}">
+                    <i data-lucide="grid"></i>
+                    <span>Categories</span>
+                </a>
+                <a href="/products" class="mobile-dropdown-link">
+                    <i data-lucide="layers"></i>
+                    <span>Products</span>
+                </a>
+                <a href="/about" class="mobile-dropdown-link {% if request.path == '/about' %}active{% endif %}">
+                    <i data-lucide="info"></i>
+                    <span>About Us</span>
+                </a>
+                <a href="/contact" class="mobile-dropdown-link {% if request.path == '/contact' %}active{% endif %}">
+                    <i data-lucide="phone"></i>
+                    <span>Contact Us</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Injection -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-widget">
+                <h4 class="logo-main" style="color:var(--bg-white); margin-bottom:12px;">MS Furniture Gallery</h4>
+                <p class="logo-sub" style="margin-bottom:20px;">Luxury Furniture</p>
+                <p class="footer-about-text">
+                    {{ (settings.get('about_story') or '')[:150] }}...
+                </p>
+                <div class="social-links">
+                    {% if settings.get('show_facebook', True) and settings.facebook_url and settings.facebook_url.strip() and settings.facebook_url.strip() != "None" %}
+                    <a href="{{ settings.facebook_url }}" target="_blank" class="social-btn facebook" aria-label="Facebook">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#1877F2">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                    </a>
+                    {% endif %}
+                    {% if settings.get('show_instagram', True) and settings.instagram_url and settings.instagram_url.strip() and settings.instagram_url.strip() != "None" %}
+                    <a href="{{ settings.instagram_url }}" target="_blank" class="social-btn instagram" aria-label="Instagram">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                            <defs>
+                                <radialGradient id="instaGrad" cx="30%" cy="107%" r="130%">
+                                    <stop offset="0%" stop-color="#fdf497" />
+                                    <stop offset="5%" stop-color="#fdf497" />
+                                    <stop offset="45%" stop-color="#fd5949" />
+                                    <stop offset="60%" stop-color="#d6249f" />
+                                    <stop offset="90%" stop-color="#285AEB" />
+                                </radialGradient>
+                            </defs>
+                            <path fill="url(#instaGrad)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+                        </svg>
+                    </a>
+                    {% endif %}
+                    {% if settings.get('show_youtube', True) and settings.youtube_url and settings.youtube_url.strip() and settings.youtube_url.strip() != "None" %}
+                    <a href="{{ settings.youtube_url }}" target="_blank" class="social-btn youtube" aria-label="YouTube">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#FF0000">
+                            <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.107C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.388.511a3.003 3.003 0 0 0-2.11 2.107C0 8.053 0 12 0 12s0 3.947.502 5.837a3.003 3.003 0 0 0 2.11 2.107c1.883.511 9.388.511 9.388.511s7.505 0 9.388-.511a3.003 3.003 0 0 0 2.11-2.107c.502-1.89.502-5.837.502-5.837s0-3.947-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                    </a>
+                    {% endif %}
+                    {% if settings.whatsapp_number and settings.whatsapp_number.strip() and settings.whatsapp_number.strip() != "None" %}
+                    <a href="https://wa.me/{{ settings.whatsapp_number|replace(' ', '')|replace('+', '') }}?text=Hello%20MS%20Furniture%20Gallery" target="_blank" class="social-btn whatsapp" aria-label="WhatsApp">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#25D366">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.458L0 24zm6.59-4.846c1.66.986 3.288 1.488 4.905 1.488 5.25 0 9.533-4.272 9.536-9.519.001-2.541-.981-4.931-2.768-6.714-1.786-1.783-4.162-2.761-6.702-2.762-5.253 0-9.54 4.276-9.543 9.524-.002 1.667.447 3.298 1.401 4.759l-.952 3.484 3.568-.936zM17.18 14.73c-.282-.142-1.67-.823-1.928-.918-.258-.095-.447-.142-.635.142-.188.283-.728.918-.893 1.106-.164.188-.329.212-.612.071-.282-.142-1.192-.44-2.271-1.402-.84-.75-1.407-1.675-1.572-1.958-.164-.282-.018-.435.123-.576.127-.127.282-.329.424-.495.141-.165.188-.282.282-.47.094-.189.047-.354-.023-.495-.071-.141-.635-1.53-.87-2.094-.228-.55-.457-.476-.635-.487-.164-.011-.353-.011-.541-.011-.188 0-.494.07-.753.353-.258.282-.988.965-.988 2.353 0 1.388 1.012 2.728 1.153 2.917.141.189 1.992 3.041 4.823 4.262.673.291 1.2.465 1.61.595.676.215 1.291.185 1.777.113.541-.08 1.67-.682 1.905-1.34.235-.659.235-1.223.164-1.34-.07-.118-.258-.164-.541-.306z"/>
+                        </svg>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="footer-widget">
+                <h3 class="footer-widget-title">Quick Links</h3>
+                <ul class="footer-links-list" style="margin-bottom: 20px;">
+                    <li><a href="/" class="footer-link-a">Home</a></li>
+                    <li><a href="/products" class="footer-link-a">Explore Products</a></li>
+                    <li><a href="/about" class="footer-link-a">About Our Brand</a></li>
+                    <li><a href="/contact" class="footer-link-a">Contact Support</a></li>
+                    <li><a href="/profile" class="footer-link-a" style="font-weight:700; color:var(--accent-color);"><i data-lucide="shopping-cart" style="width:12px; height:12px; display:inline-block; vertical-align:middle; margin-right:4px;"></i> Login as Customer</a></li>
+                    <li><a href="/dealer/login" class="footer-link-a" style="font-weight:700; color:var(--accent-color);"><i data-lucide="store" style="width:12px; height:12px; display:inline-block; vertical-align:middle; margin-right:4px;"></i> Login as Dealer</a></li>
+                    <li><a href="/admin/login" class="footer-link-a">Admin Login</a></li>
+                </ul>
+                <div style="display: flex; flex-direction: column; gap: 8px; max-width: 200px;">
+                    <span style="font-size: 11px; color: rgba(250,249,246,0.4); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Portal Mode</span>
+                    <a href="/profile" style="background:{% if session.get('user_role') == 'customer' %}var(--accent-color){% else %}rgba(250,249,246,0.05){% endif %}; color:{% if session.get('user_role') == 'customer' %}#111111{% else %}#ffffff{% endif %}; border: 1px solid rgba(250,249,246,0.1); padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s; width: 100%; text-decoration: none;">
+                        <i data-lucide="shopping-cart" style="width:14px; height:14px;"></i> Customer Portal
+                    </a>
+                    <a href="/dealer/login" style="background:{% if session.get('user_role') == 'dealer' %}var(--accent-color){% else %}rgba(250,249,246,0.05){% endif %}; color:{% if session.get('user_role') == 'dealer' %}#111111{% else %}#ffffff{% endif %}; border: 1px solid rgba(250,249,246,0.1); padding: 8px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s; width: 100%; text-decoration: none;">
+                        <i data-lucide="store" style="width:14px; height:14px;"></i> Dealer Portal
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-widget">
+                <h3 class="footer-widget-title">Top Categories</h3>
+                <ul class="footer-links-list">
+                    {% for cat in global_categories[:5] %}
+                    <li><a href="/products?category={{ cat.slug }}" class="footer-link-a">{{ cat.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="footer-widget">
+                <h3 class="footer-widget-title">Help</h3>
+                <ul class="footer-links-list">
+                    <li><a href="/bulk-enquiry" class="footer-link-a">Bulk Enquiry</a></li>
+                    <li><a href="/terms-and-conditions" class="footer-link-a">Terms and Condition</a></li>
+                    <li><a href="/privacy-policy" class="footer-link-a">Privacy Policy</a></li>
+                    <li><a href="/cancellation-policy" class="footer-link-a">Cancellation Policy</a></li>
+                    <li><a href="/refund-policy" class="footer-link-a">Return & Refund Policy</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-widget">
+                <h3 class="footer-widget-title">Get in Touch</h3>
+                <ul class="footer-links-list">
+                    <!-- Branch 1 (Main Showroom) -->
+                    <li style="display:flex; gap:8px; color:rgba(250,249,246,0.7); font-size:13.5px; margin-bottom: 12px; align-items: flex-start;">
+                        <i data-lucide="map-pin" style="color:var(--accent-color); flex-shrink:0; margin-top:3px; width:16px; height:16px;"></i>
+                        <div>
+                            <strong style="color:#ffffff; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:2px;">1st Branch (Main Showroom):</strong>
+                            <a href="https://maps.google.com/?q=ms+enterprises+Main+Rd+beside+TSR+function+hall+Mannuru+Rajampet+Andhra+Pradesh+516126+India" target="_blank" style="color:inherit; text-decoration:none; transition: color 0.3s; line-height: 1.4; display: block;" onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='inherit'">
+                                {{ settings.contact_address }}
+                            </a>
+                        </div>
+                    </li>
+                    <!-- Branch 2 (Newly Opened) -->
+                    <li style="display:flex; gap:8px; color:rgba(250,249,246,0.7); font-size:13.5px; margin-bottom: 12px; align-items: flex-start;">
+                        <i data-lucide="building-2" style="color:var(--accent-color); flex-shrink:0; margin-top:3px; width:16px; height:16px;"></i>
+                        <div>
+                            <strong style="color:#ffffff; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:2px;">2nd Branch:</strong>
+                            <a href="https://maps.google.com/?q=GLB+Plaza+Main+Road+Rajampet+Kadapa+Dist" target="_blank" style="color:inherit; text-decoration:none; transition: color 0.3s; line-height: 1.4; display: block;" onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='inherit'">
+                                1st Floor, GLB Plaza, Main Road, Rajampet, Kadapa Dist.
+                            </a>
+                        </div>
+                    </li>
+                    <li style="display:flex; gap:8px; color:rgba(250,249,246,0.7); font-size:14px;">
+                        <i data-lucide="phone" style="color:var(--accent-color); flex-shrink:0;"></i>
+                        <span>{{ settings.contact_phone }}</span>
+                    </li>
+                    <li style="display:flex; gap:8px; color:rgba(250,249,246,0.7); font-size:14px;">
+                        <i data-lucide="mail" style="color:var(--accent-color); flex-shrink:0;"></i>
+                        <span>{{ settings.contact_email }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>&copy; {{ current_year }} MS Furniture Gallery. All Rights Reserved. Designed for premium home lifestyle.</p>
+            <div class="footer-bottom-links">
+                <a href="#" class="footer-link-a" style="font-size:13px;">Privacy Policy</a>
+                <a href="#" class="footer-link-a" style="font-size:13px;">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Buttons (WhatsApp, Call, Top) -->
+    <div class="floating-container">
+        <!-- Scroll to Top -->
+        <button class="float-btn float-top" id="scrollTopBtn" aria-label="Back to Top">
+            <i data-lucide="arrow-up"></i>
+        </button>
+
+        <!-- Direct Phone Call -->
+        <a href="tel:{{ settings.whatsapp_number|replace(' ', '') }}" class="float-btn float-call" aria-label="Call MS Furniture Gallery">
+            <i data-lucide="phone"></i>
+        </a>
+
+        <!-- WhatsApp Floating Chat -->
+        <a href="https://wa.me/{{ settings.whatsapp_number|replace(' ', '')|replace('+', '') }}?text=Hello%20MS%20Furniture%20Gallery,%20I%20am%20visiting%20your%20website%20and%20interested%20in%20discussing%20some%20products." target="_blank" class="float-btn float-whatsapp" aria-label="Order on WhatsApp">
+            <i data-lucide="message-circle"></i>
+        </a>
+    </div>
+
+    <!-- Add to Home Screen Bar (Mobile Fixed Bottom) -->
+    <!-- PWA Home Bar -->
+    <div class="add-to-home-screen-bar" id="pwaHomeBar">
+        <div class="pwa-bar-content">
+            <i data-lucide="crown" class="pwa-crown-icon"></i>
+            <span class="pwa-text">Add to Home Screen</span>
+        </div>
+        <button class="pwa-close-btn" id="pwaCloseBtn" aria-label="Close">&times;</button>
+    </div>
+
+
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/static/js/main.js?v=20260825_v5"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+
+{% block title %}Account Profile | MS Furniture Gallery{% endblock %}
+
+{% block content %}
+{% if profile.role == 'dealer' and profile.logged_in and dealer %}
+<!-- FULL-WIDTH DEALER DASHBOARD STYLE FOR PROFILE -->
+<section class="dealer-dashboard-header" style="background: linear-gradient(135deg, #111111 0%, #2c2512 100%); color: #ffffff; padding: 50px 0; border-bottom: 3px solid var(--accent-color);">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <span style="font-size: 24px;">🏪</span>
+                <span style="background: var(--accent-color); color: #111111; font-weight: 700; font-size: 11px; text-transform: uppercase; padding: 3px 8px; border-radius: 4px;">Verified B2B Dealer</span>
+            </div>
+            <h1 style="font-size: 32px; font-weight: 800; margin: 0; color: #ffffff;">{{ dealer.business_name }}</h1>
+            <p style="margin: 5px 0 0 0; color: #b5af9c; font-size: 16px;">Welcome back, <strong>{{ dealer.dealer_name }}</strong> (Wholesale Tier: <span style="text-transform: uppercase; font-weight: 700;">{{ dealer.tier or 'default' }}</span>)</p>
+        </div>
+        <div style="display: flex; gap: 15px;">
+            <a href="/products" class="btn btn-primary" style="background: var(--accent-color); border: none; color: #111111; font-weight: 700; display: flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
+                Browse Wholesale Catalogue
+                <i data-lucide="arrow-right"></i>
+            </a>
+            <a href="/logout" class="btn btn-secondary" style="border: 1px solid rgba(255,255,255,0.2); background: transparent; color: #ffffff; font-weight: 600; padding: 12px 24px; border-radius: 6px; text-decoration: none;">
+                Logout
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="dealer-dashboard-content" style="padding: 60px 0; background: var(--bg-warm); min-height: 50vh;">
+    <div class="container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+        
+        <!-- Left Column -->
+        <div style="display: grid; gap: 30px;">
+            <!-- Announcements -->
+            <div class="dashboard-panel-card" style="background: #ffffff; border-radius: 10px; border: 1px solid var(--border-color); padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                <h3 style="font-size: 20px; font-weight: 700; color: #111111; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="megaphone" style="color: var(--accent-color); width: 20px; height: 20px;"></i> B2B Dealer Announcements
+                </h3>
+                <div style="line-height: 1.6; color: #555555; font-size: 15px;">
+                    <p><strong>✨ Festive Season Orders Now Open!</strong> Please submit your bulk requirements for cots, modular wardrobes, and dining tables at least 10 days in advance to ensure timely delivery and dispatch.</p>
+                    <p>All dealer prices shown on the catalog now reflect your special B2B discount tier automatically. Orders placed will be routed directly via WhatsApp with auto-formatted dealer quote sheets.</p>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="dashboard-panel-card" style="background: #ffffff; border-radius: 10px; border: 1px solid var(--border-color); padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                <h3 style="font-size: 20px; font-weight: 700; color: #111111; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="activity" style="color: var(--accent-color); width: 20px; height: 20px;"></i> Your Recent Activity Log
+                </h3>
+                {% if activities %}
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); color: #666666;">
+                                <th style="padding: 12px 8px; font-weight: 600;">Time</th>
+                                <th style="padding: 12px 8px; font-weight: 600;">Action</th>
+                                <th style="padding: 12px 8px; font-weight: 600;">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for act in activities %}
+                            <tr style="border-bottom: 1px solid var(--border-color); color: #333333;">
+                                <td style="padding: 12px 8px; color: var(--text-muted);">{{ act.created_at }}</td>
+                                <td style="padding: 12px 8px;"><span style="background: #f1f5f9; color: #334155; font-size: 12px; font-weight: 600; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">{{ act.action }}</span></td>
+                                <td style="padding: 12px 8px;">{{ act.details }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="color: var(--text-muted); text-align: center; margin: 20px 0;">No activities recorded yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- Wholesale Orders Panel -->
+            <div class="dashboard-panel-card" style="background: #ffffff; border-radius: 10px; border: 1px solid var(--border-color); padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                <h3 style="font-size: 20px; font-weight: 700; color: #111111; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="shopping-bag" style="color: var(--accent-color); width: 20px; height: 20px;"></i> Your Wholesale B2B Orders
+                </h3>
+                {% if dealer_orders %}
+                <div style="display: grid; gap: 20px;">
+                    {% for order in dealer_orders %}
+                    <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 18px; background: #fafafa;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 10px; font-size: 13px;">
+                            <div>
+                                <span style="display: block; color: var(--text-muted); font-size: 11px;">ORDER ID</span>
+                                <strong style="font-family: monospace; font-size: 14px;">{{ order.id }}</strong>
+                            </div>
+                            <div>
+                                <span style="display: block; color: var(--text-muted); font-size: 11px;">DATE</span>
+                                <strong>{{ order.created_at }}</strong>
+                            </div>
+                            <div>
+                                <span style="display: block; color: var(--text-muted); font-size: 11px;">STATUS</span>
+                                <span style="background: {% if order.status == 'approved' %}#dcfce7; color: #15803d;{% elif order.status == 'pending' %}#fffbeb; color: #b45309;{% else %}#fee2e2; color: #b91c1c;{% endif %} font-weight: 700; font-size: 10px; padding: 2px 8px; border-radius: 40px; text-transform: uppercase;">
+                                    {{ order.status }}
+                                </span>
+                            </div>
+                            <div>
+                                <span style="display: block; color: var(--text-muted); font-size: 11px;">TOTAL</span>
+                                <strong>₹{{ "{:,.2f}".format(order.total_amount) }}</strong>
+                            </div>
+                        </div>
+                        
+                        <div style="font-size: 13px; color: #475569;">
+                            {% for item in order.get('items', []) %}
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span>{{ item.product_name }} x {{ item.quantity }}</span>
+                                <span>₹{{ "{:,.2f}".format(item.price * item.quantity) }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color: var(--text-muted); text-align: center; margin: 20px 0; font-size: 14px;">No wholesale orders placed yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div style="display: grid; gap: 30px; align-content: start;">
+            <!-- Account Profile -->
+            <div class="dashboard-panel-card" style="background: #ffffff; border-radius: 10px; border: 1px solid var(--border-color); padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                <h3 style="font-size: 18px; font-weight: 700; color: #111111; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px;">
+                    Account Profile
+                </h3>
+                <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; font-size: 14px; color: #555555;">
+                    <li><strong>Dealer:</strong> {{ dealer.dealer_name }}</li>
+                    <li><strong>Business:</strong> {{ dealer.business_name }}</li>
+                    <li><strong>Mobile:</strong> {{ dealer.mobile_number }}</li>
+                    <li><strong>Email:</strong> {{ dealer.email }}</li>
+                </ul>
+            </div>
+
+            <!-- Dealer Resources -->
+            <div class="dashboard-panel-card" style="background: #ffffff; border-radius: 10px; border: 1px solid var(--border-color); padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                <h3 style="font-size: 18px; font-weight: 700; color: #111111; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px;">
+                    Dealer Resources
+                </h3>
+                <a href="/api/dealer/download-pricelist" class="btn btn-secondary" style="border: 1px solid rgba(0,0,0,0.1); background: #f8f9fa; color: #333333; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border-radius: 6px; text-decoration: none; font-size: 14px;">
+                    <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                    Download Wholesale Pricelist
+                </a>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% else %}
+<!-- STANDARD CARD STYLE FOR CUSTOMERS OR UNAUTHENTICATED USERS -->
+<section class="profile-section" style="padding: 80px 0; background: var(--bg-warm); min-height: 80vh; display: flex; align-items: center; justify-content: center;">
+    <div class="container" style="max-width: 650px; width: 100%;">
+        <div class="profile-card" style="background: #ffffff; border-radius: 12px; border: 1px solid var(--border-color); padding: 45px 35px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); border-top: 4px solid var(--accent-color);">
+            
+            <div style="text-align: center; margin-bottom: 35px;">
+                <div style="font-size: 55px; margin-bottom: 15px; display: inline-flex; align-items: center; justify-content: center; width: 100px; height: 100px; border-radius: 50%; background: #fffbeb; border: 2px solid var(--accent-color);">
+                    {% if profile.role == 'dealer' %}🏪{% else %}🛒{% endif %}
+                </div>
+                <h1 style="font-size: 24px; font-weight: 800; color: #111111; margin-bottom: 5px;">Your Account Profile</h1>
+                <p style="color: var(--text-muted); font-size: 13px;">Session ID: {{ profile.session_id[:16] }}...</p>
+            </div>
+
+            <!-- Role information block -->
+            <div style="background: var(--bg-warm); border-radius: 8px; padding: 20px; border: 1px solid var(--border-color); margin-bottom: 30px;">
+                <h3 style="font-size: 14px; text-transform: uppercase; color: #854d0e; font-weight: 700; margin-top: 0; margin-bottom: 12px; letter-spacing: 0.5px;">Portal Session Role</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="font-size: 18px; color: #111111;">
+                            {% if profile.role == 'dealer' %}
+                                B2B Wholesale Dealer
+                            {% else %}
+                                Retail Customer
+                            {% endif %}
+                        </strong>
+                        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                            {% if profile.role == 'dealer' %}
+                                {% if profile.logged_in %}
+                                    Authenticated &amp; Approved (Wholesale prices enabled)
+                                {% else %}
+                                    Guest (Please login or register to unlock wholesale access)
+                                {% endif %}
+                            {% else %}
+                                Guest Retail Visitor (Standard pricing active)
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <span style="background: {% if profile.role == 'dealer' and profile.logged_in %}#dcfce7; color: #15803d;{% else %}#fee2e2; color: #b91c1c;{% endif %} font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 40px; text-transform: uppercase;">
+                            {% if profile.role == 'dealer' and profile.logged_in %}
+                                Active B2B
+                            {% else %}
+                                B2C Retail
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Placed Orders Section -->
+            <div class="profile-orders-section" style="margin-top: 35px; border-top: 1px solid var(--border-color); padding-top: 30px;">
+                <!-- Sync History Card -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div style="text-align: left; max-width: 320px;">
+                        <strong style="font-size: 14px; color: #1e293b; display: block; margin-bottom: 4px;">Track Order &amp; Sync History</strong>
+                        <span style="font-size: 12px; color: #64748b;">Enter your 10-digit mobile number or Order Tracking ID to retrieve your history.</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-grow: 1; max-width: 300px;">
+                        <input type="text" id="profileSyncMobile" class="form-control" placeholder="Mobile Number or Order ID" value="{{ session.get('b2c_mobile', '') }}" style="padding: 8px 12px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1; flex-grow: 1;">
+                        <button onclick="syncB2cProfileMobile()" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px; font-weight: 700; border-radius: 6px; cursor: pointer;">Track / Sync</button>
+                    </div>
+                </div>
+                
+                <h3 style="font-size: 18px; font-weight: 700; color: #111111; margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; font-family: var(--font-heading);">
+                    <i data-lucide="package" style="color: var(--accent-color); width: 20px; height: 20px;"></i>
+                    Your Placed Orders
+                </h3>
+                
+                {% if customer_orders %}
+                <div style="display: grid; gap: 20px;">
+                    {% for order in customer_orders %}
+                    <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.01); text-align: left;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); display: block; font-weight: 600;">Order ID</span>
+                                <strong style="font-family: monospace; font-size: 15px; color: var(--primary-color);">{{ order.order_id }}</strong>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); display: block; font-weight: 600;">Date Placed</span>
+                                <span style="font-size: 13px; color: #475569; font-weight: 600;">{{ order.created_at }}</span>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); display: block; font-weight: 600;">Status</span>
+                                <span style="background: {% if order.order_status == 'Delivered' %}#dcfce7; color: #15803d;{% elif order.order_status == 'Pending Payment' %}#fffbeb; color: #b45309;{% elif order.order_status == 'Cancelled' %}#fee2e2; color: #b91c1c;{% else %}#eff6ff; color: #1d4ed8;{% endif %} font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 40px; text-transform: uppercase;">
+                                    {{ order.order_status }}
+                                </span>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); display: block; font-weight: 600;">Payment Status</span>
+                                <span style="background: {% if order.get('payment_status', 'Pending') == 'Paid' %}#dcfce7; color: #15803d;{% elif order.get('payment_status', 'Pending') == 'Pending' %}#fef3c7; color: #d97706;{% elif order.get('payment_status', 'Pending') == 'Failed' %}#fee2e2; color: #b91c1c;{% else %}#eff6ff; color: #1d4ed8;{% endif %} font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 40px; text-transform: uppercase;">
+                                    {{ order.get('payment_status', 'Pending') }}
+                                </span>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); display: block; font-weight: 600;">Total Amount</span>
+                                <strong style="font-size: 15px; color: #111111;">₹{{ "{:,.2f}".format(order.total_value) }}</strong>
+                            </div>
+                        </div>
+                        
+                        <!-- Ordered Items -->
+                        <div style="display: grid; gap: 12px;">
+                            {% for item in order.get('items', []) %}
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    {% if item.product_image %}
+                                    <img src="{{ item.product_image }}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;" onerror="this.src='/static/uploads/products/prod_generic_1.webp'">
+                                    {% endif %}
+                                    <div>
+                                        <strong style="color: #334155;">{{ item.product_name }}</strong> 
+                                        {% if item.variant %}
+                                        <span style="font-size: 11px; color: var(--text-muted); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">{{ item.variant }}</span>
+                                        {% endif %}
+                                        <span style="color: var(--text-muted); font-size: 12px; display: block; margin-top: 2px;">Qty: {{ item.quantity }} @ ₹{{ "{:,.2f}".format(item.unit_price) }}</span>
+                                    </div>
+                                </div>
+                                <span style="color: #475569; font-weight: 600;">₹{{ "{:,.2f}".format(item.subtotal) }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Delivery Address -->
+                        <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed #e2e8f0; font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+                            <strong>Delivery Address:</strong> {{ order.delivery_address }} | <strong>PIN:</strong> {{ order.pincode }}
+                            {% if order.order_notes %}
+                            <br><span style="color: #b45309; background: #fffbeb; padding: 1px 4px; border-radius: 4px; display: inline-block; margin-top: 4px;"><strong>Note:</strong> {{ order.order_notes }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Pay Now link if Payment is Pending and not Cancelled -->
+                        {% if order.get('payment_status', 'Pending') == 'Pending' and order.order_status != 'Cancelled' %}
+                        <div style="margin-top: 15px; display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+                            <span style="font-size: 13px; color: #d97706; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i> Payment is Pending
+                            </span>
+                            <a href="/order-confirmation?id={{ order.order_id }}" class="btn btn-whatsapp btn-sm" style="font-size: 12px; padding: 8px 16px; font-weight: 700; text-decoration: none; border-radius: 4px; background: #d97706; color: white; display: inline-flex; align-items: center; gap: 5px;">
+                                <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i> View QR Code &amp; Pay Now
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color: var(--text-muted); text-align: center; margin: 20px 0; font-size: 14px;">No B2C orders placed during this session yet.</p>
+                {% endif %}
+            </div>
+
+            <!-- Customer Active Shopping Cart -->
+            <div class="profile-cart-section" style="margin-top: 35px; border-top: 1px solid var(--border-color); padding-top: 30px;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #111111; margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; font-family: var(--font-heading);">
+                    <i data-lucide="shopping-cart" style="color: var(--accent-color); width: 20px; height: 20px;"></i>
+                    Saved Shopping Cart (Yet to be Ordered)
+                </h3>
+                
+                {% if customer_cart %}
+                <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.01);">
+                    <div style="display: grid; gap: 15px;">
+                        {% for item in customer_cart %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 12px; flex-wrap: wrap; gap: 15px;">
+                            <div style="display: flex; align-items: center; gap: 12px; text-align: left;">
+                                <img src="{{ item.product_image }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;" onerror="this.src='/static/uploads/products/prod_generic_1.webp'">
+                                <div>
+                                    <strong style="color: #1e293b; font-size: 15px;">{{ item.product_name }}</strong>
+                                    {% if item.variant_id %}
+                                    <span style="font-size: 11px; color: var(--text-muted); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">{{ item.variant_id }}</span>
+                                    {% endif %}
+                                    <span style="color: var(--text-muted); font-size: 12px; display: block; margin-top: 4px;">Quantity: {{ item.quantity }} @ ₹{{ "{:,.2f}".format(item.unit_price) }}</span>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <strong style="color: #0f172a; font-size: 15px; display: block; margin-bottom: 5px;">₹{{ "{:,.2f}".format(item.subtotal) }}</strong>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                        <a href="/cart" class="btn btn-primary" style="font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <i data-lucide="shopping-cart" style="width: 16px; height: 16px;"></i> Open Cart &amp; Checkout
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <p style="color: var(--text-muted); text-align: center; margin: 20px 0; font-size: 14px;">Your shopping cart is currently empty.</p>
+                {% endif %}
+            </div>
+
+            <!-- Customer Saved Wishlist Items -->
+            <div class="profile-wishlist-section" style="margin-top: 35px; border-top: 1px solid var(--border-color); padding-top: 30px;">
+                <h3 style="font-size: 18px; font-weight: 700; color: #111111; margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; font-family: var(--font-heading);">
+                    <i data-lucide="heart" style="color: #ef4444; width: 20px; height: 20px; fill: #ef4444;"></i>
+                    Wishlist (Saved/Paused Items)
+                </h3>
+                
+                {% if customer_wishlist %}
+                <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.01);">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                        {% for item in customer_wishlist %}
+                        <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; background: #ffffff;">
+                            <div>
+                                <img src="{{ item.product_image }}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; border: 1px solid #f1f5f9; margin-bottom: 10px;" onerror="this.src='/static/uploads/products/prod_generic_1.webp'">
+                                <strong style="color: #1e293b; font-size: 13px; display: block; height: 36px; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; text-align: left;">{{ item.product_name }}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                                <span style="font-weight: 700; color: #0f172a; font-size: 14px;">₹{{ "{:,.0f}".format(item.unit_price) }}</span>
+                                <a href="/product/{{ item.product_id }}" class="btn btn-secondary" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; text-decoration: none; font-weight: 700; background: #f8fafc; border: 1px solid #cbd5e1; color: #334155;">View</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <p style="color: var(--text-muted); text-align: center; margin: 20px 0; font-size: 14px;">Your wishlist is currently empty.</p>
+                {% endif %}
+            </div>
+
+            <!-- Actions buttons footer -->
+            <div style="display: flex; gap: 15px; justify-content: stretch; border-top: 1px solid var(--border-color); padding-top: 30px; margin-top: 30px;">
+                {% if profile.role == 'dealer' and not profile.logged_in %}
+                <a href="/dealer/login" class="btn btn-primary" style="flex: 1; background: var(--accent-color); color: #111111; font-weight: 700; padding: 12px; text-align: center; text-decoration: none; border-radius: 6px;">
+                    Login to Dealer Portal
+                </a>
+                {% endif %}
+                
+                <a href="/logout" class="btn btn-secondary" style="flex: 1; border: 1px solid #fca5a5; background: #fef2f2; color: #b91c1c; font-weight: 700; padding: 12px; text-align: center; text-decoration: none; border-radius: 6px;">
+                    Logout &amp; Reset Session
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<script>
+function syncB2cProfileMobile() {
+    const mobileInput = document.getElementById("profileSyncMobile");
+    const mobile = mobileInput ? mobileInput.value.trim() : "";
+    if (!mobile || mobile.length < 5) {
+        alert("Please enter a valid mobile number or Order ID.");
+        return;
+    }
+    
+    fetch('/api/profile/sync-mobile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: mobile })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert("Failed to sync: " + data.message);
+        }
+    })
+    .catch(err => {
+        console.error("Error syncing mobile number:", err);
+        alert("Failed to sync orders.");
+    });
+}
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container section-padding" style="padding-top: 30px;">
+    <!-- Category Hero Banner -->
+    <div class="category-hero-section" style="background-image: url('{{ hero.image_url }}');">
+        <div class="container">
+            <div class="category-hero-content">
+                {% if hero.offer_text %}
+                <span class="category-hero-offer">{{ hero.offer_text }}</span>
+                {% endif %}
+                <h1 class="category-hero-title">{{ hero.title }}</h1>
+                {% if category.description %}
+                <p class="category-hero-desc">{{ category.description }}</p>
+                {% endif %}
+                <a href="#category-catalog" class="btn btn-primary">
+                    {{ hero.button_text }} <i data-lucide="arrow-down" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-left: 5px;"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Featured Row (If present) -->
+    {% if featured_products or new_arrivals or best_sellers %}
+    <div class="category-featured-collections" style="margin-bottom: 50px;">
+        <div class="section-title-wrapper" style="text-align: left; margin-bottom: 25px;">
+            <span class="section-subtitle">Exquisite Curation</span>
+            <h2 class="section-title">Trending in {{ category.name }}</h2>
+        </div>
+        <div class="products-grid">
+            {% for prod in (featured_products or new_arrivals or best_sellers)[:4] %}
+            <div class="product-card">
+                <!-- Wishlist Heart Overlay -->
+                {% if settings.wishlist_enabled %}
+                <button class="wishlist-toggle-btn" data-id="{{ prod.id }}" aria-label="Add to Wishlist">
+                    <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
+                </button>
+                {% endif %}
+
+                <!-- Badges -->
+                <div class="product-badge-container">
+                    {% if prod.offer_price %}
+                        {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
+                        {% if discount_pct > 0 %}
+                        <span class="badge badge-offer">{{ discount_pct }}% OFF</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <!-- Image -->
+                <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
+                    <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy">
+                </a>
+
+                <!-- Details body -->
+                <div class="product-card-body">
+                    <span class="product-card-category">{{ category.name }}</span>
+                    <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
+                    <div class="product-card-rating">
+                        <span class="rating-stars">★ {{ "{:.1f}".format(prod.avg_rating or 4.5) }}</span>
+                        <span class="rating-count">({{ prod.reviews_count or 12 }})</span>
+                    </div>
+                    <p class="product-card-description">{{ prod.short_description }}</p>
+                    <div class="product-card-pricing">
+                        <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
+                        {% if prod.offer_price %}
+                        <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="product-card-actions" style="display: flex; gap: 8px;">
+                        {% if settings.cart_enabled %}
+                        <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="flex: 1;">
+                            <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
+                        </button>
+                        <a href="/product/{{ prod.slug }}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>
+                        {% else %}
+                        <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Category Offer Banner Row -->
+    {% if offer %}
+    <div class="category-offer-banner-row">
+        <div class="cat-offer-card" style="background-image: linear-gradient(135deg, rgba(17,17,17,0.95), rgba(31,31,31,0.95)), url('{{ offer.image_url }}'); background-size: cover; background-position: center;">
+            <div class="cat-offer-info">
+                {% if offer.discount %}
+                <span class="cat-offer-badge">{{ offer.discount }}</span>
+                {% endif %}
+                <h3 class="cat-offer-title">{{ offer.title }}</h3>
+                <p class="cat-offer-desc">Special promotional price available for instant WhatsApp orders. Free shipping and assembly included.</p>
+            </div>
+            {% if offer.product_image_url %}
+            <div class="cat-offer-product">
+                <img src="{{ offer.product_image_url }}" alt="Promo Product" class="cat-offer-img">
+                <div>
+                    <span style="font-size:12px; color:rgba(250,249,246,0.6); display:block; text-transform:uppercase;">Special Offer Price</span>
+                    <span class="cat-offer-price">₹{{ "{:,.0f}".format(offer.product_price) }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Catalog Section with filters -->
+    <div class="catalog-layout" id="category-catalog" style="scroll-margin-top: 100px;">
+        <!-- Sidebar Filters -->
+        <aside class="filter-sidebar">
+            <form action="/category/{{ category.slug }}" method="GET" id="filterForm">
+                <input type="hidden" name="q" value="{{ q }}">
+
+                <div style="margin-bottom: 20px;">
+                    <a href="/category/{{ category.slug }}" class="btn btn-dark btn-sm" style="width: 100%; display: flex; justify-content: center; gap: 8px;">
+                        <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Clear Filters
+                    </a>
+                </div>
+
+                <!-- Subcategories List -->
+                {% if subcategories %}
+                <div class="filter-section">
+                    <h3 class="filter-title">Sub Categories</h3>
+                    <div class="filter-links-list">
+                        <a href="/category/{{ category.slug }}?q={{ q }}&sort={{ sort_by }}" class="filter-link {% if not subcat_slug %}active{% endif %}">
+                            <span>All {{ category.name }}</span>
+                        </a>
+                        {% for sub in subcategories %}
+                        <a href="/category/{{ category.slug }}?subcategory={{ sub.slug }}&q={{ q }}&sort={{ sort_by }}" class="filter-link {% if subcat_slug == sub.slug %}active{% endif %}">
+                            <span>{{ sub.name }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% if subcat_slug %}
+                    <input type="hidden" name="subcategory" value="{{ subcat_slug }}">
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Max Price Slider -->
+                <div class="filter-section">
+                    <h3 class="filter-title">Max Price (₹)</h3>
+                    <input type="range" name="price_max" class="price-range-slider" min="0" max="{{ max_db_price }}" step="500" value="{{ price_max or max_db_price }}" oninput="document.getElementById('priceVal').innerText = Number(this.value).toLocaleString('en-IN')">
+                    <div class="price-range-values">
+                        <span>₹0</span>
+                        <span>₹<span id="priceVal">{{ "{:,.0f}".format((price_max or max_db_price)|float) }}</span></span>
+                    </div>
+                </div>
+
+                <!-- Collections checkbox list -->
+                <div class="filter-section">
+                    <h3 class="filter-title">Collections</h3>
+                    <div class="filter-checkbox-list">
+                        <label class="filter-checkbox-label">
+                            <input type="checkbox" name="featured" value="1" {% if featured_flag == '1' %}checked{% endif %} onchange="this.form.submit()">
+                            <span>Best Sellers</span>
+                        </label>
+                        <label class="filter-checkbox-label">
+                            <input type="checkbox" name="new_arrival" value="1" {% if new_arrival_flag == '1' %}checked{% endif %} onchange="this.form.submit()">
+                            <span>New Arrivals</span>
+                        </label>
+                        <label class="filter-checkbox-label">
+                            <input type="checkbox" name="best_seller" value="1" {% if best_seller_flag == '1' %}checked{% endif %} onchange="this.form.submit()">
+                            <span>Trending Items</span>
+                        </label>
+                        <label class="filter-checkbox-label">
+                            <input type="checkbox" name="premium" value="1" {% if premium_flag == '1' %}checked{% endif %} onchange="this.form.submit()">
+                            <span>Signature Premium</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">Apply Filters</button>
+            </form>
+        </aside>
+
+        <!-- Product List -->
+        <main>
+            <!-- Sort and results info -->
+            <div class="catalog-header">
+                <div class="results-info">
+                    Found <span>{{ products|length }}</span> of <span>{{ total_count }}</span> items in <span>{{ category.name }}</span>
+                    {% if q %} for "<span>{{ q }}</span>"{% endif %}
+                </div>
+                
+                <div class="catalog-sort">
+                    <span style="font-size: 14px; font-weight:600; color:var(--text-muted);">Sort By:</span>
+                    <select class="sort-select" id="sortSelect" onchange="applyCategorySort(this.value)">
+                        <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+                        <option value="featured" {% if sort_by == 'featured' %}selected{% endif %}>Featured Selection</option>
+                        <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Scoped category products grid -->
+            {% if products %}
+            <div class="products-grid">
+                {% for prod in products %}
+                <div class="product-card">
+                    <!-- Wishlist Heart Overlay -->
+                    {% if settings.wishlist_enabled %}
+                    <button class="wishlist-toggle-btn" data-id="{{ prod.id }}" aria-label="Add to Wishlist">
+                        <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
+                    </button>
+                    {% endif %}
+
+                    <!-- Badges -->
+                    <div class="product-badge-container">
+                        {% if prod.offer_price %}
+                            {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
+                            {% if discount_pct > 0 %}
+                            <span class="badge badge-offer">{{ discount_pct }}% OFF</span>
+                            {% endif %}
+                        {% elif prod.offer_badge %}
+                            <span class="badge badge-offer">{{ prod.offer_badge }}</span>
+                        {% endif %}
+                        {% if prod.is_new_arrival %}
+                        <span class="badge badge-new">New</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Image -->
+                    <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
+                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy">
+                    </a>
+
+                    <!-- Details body -->
+                    <div class="product-card-body">
+                        <span class="product-card-category">{{ category.name }}</span>
+                        <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
+                        
+                        <div class="product-card-rating">
+                            <span class="rating-stars">★ {{ "{:.1f}".format(prod.avg_rating or 4.5) }}</span>
+                            <span class="rating-count">({{ prod.reviews_count or 12 }})</span>
+                        </div>
+                        
+                        <p class="product-card-description">{{ prod.short_description }}</p>
+                        
+                        <div class="product-card-pricing">
+                            <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
+                            {% if prod.offer_price %}
+                            <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Card Action Buttons -->
+                        <div class="product-card-actions" style="display: flex; gap: 8px;">
+                            {% if settings.cart_enabled %}
+                            <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="flex: 1;">
+                                <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
+                            </button>
+                            <a href="/product/{{ prod.slug }}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>
+                            {% else %}
+                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Scoped Pagination -->
+            {% if total_pages > 1 %}
+            <div class="pagination-container">
+                {% if page > 1 %}
+                <a href="{{ url_for('category_page', slug=category.slug, page=page-1, subcategory=subcat_slug, price_max=price_max, featured=featured_flag, new_arrival=new_arrival_flag, best_seller=best_seller_flag, premium=premium_flag, q=q, sort=sort_by) }}" class="page-link" aria-label="Previous Page">
+                    <i data-lucide="chevron-left" style="width:18px;height:18px;"></i>
+                </a>
+                {% endif %}
+
+                {% for p in range(1, total_pages + 1) %}
+                    {% if p == page %}
+                    <span class="page-link active">{{ p }}</span>
+                    {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                    <a href="{{ url_for('category_page', slug=category.slug, page=p, subcategory=subcat_slug, price_max=price_max, featured=featured_flag, new_arrival=new_arrival_flag, best_seller=best_seller_flag, premium=premium_flag, q=q, sort=sort_by) }}" class="page-link">{{ p }}</a>
+                    {% elif p == page - 3 or p == page + 3 %}
+                    <span class="page-link" style="border:none; background:none;">...</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page < total_pages %}
+                <a href="{{ url_for('category_page', slug=category.slug, page=page+1, subcategory=subcat_slug, price_max=price_max, featured=featured_flag, new_arrival=new_arrival_flag, best_seller=best_seller_flag, premium=premium_flag, q=q, sort=sort_by) }}" class="page-link" aria-label="Next Page">
+                    <i data-lucide="chevron-right" style="width:18px;height:18px;"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div style="text-align: center; padding: 60px 20px; background-color: var(--bg-white); border-radius: var(--border-radius); border: 1px solid var(--border-color);">
+                <i data-lucide="alert-circle" style="width: 48px; height: 48px; color: var(--accent-color); margin-bottom: 20px;"></i>
+                <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 10px;">No Products Found</h3>
+                <p style="color: var(--text-muted); margin-bottom: 24px;">No items match your active filters in this category.</p>
+                <a href="/category/{{ category.slug }}" class="btn btn-dark">View Category Base</a>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function applyCategorySort(sortVal) {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('sort', sortVal);
+        urlParams.set('page', '1');
+        window.location.search = urlParams.toString();
+    }
+</script>
+{% endblock %}

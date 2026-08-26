@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MS Furniture Gallery - Admin Dashboard</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo-area">
+                <span class="logo-main" style="color:var(--bg-white);">MS Furniture Gallery</span>
+                <span class="logo-sub" style="letter-spacing:2px; font-size:9px;">Dashboard Panel</span>
+            </div>
+
+            <nav class="admin-nav">
+                <button class="admin-nav-btn active" data-tab="tab-overview" onclick="switchTab('tab-overview')">
+                    <i data-lucide="layout-dashboard"></i> Overview
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-products" onclick="switchTab('tab-products')">
+                    <i data-lucide="package"></i> Products
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-categories" onclick="switchTab('tab-categories')">
+                    <i data-lucide="grid"></i> Categories
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-subcategories" onclick="switchTab('tab-subcategories')">
+                    <i data-lucide="layers"></i> Sub Categories
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-hero-banners" onclick="switchTab('tab-hero-banners')">
+                    <i data-lucide="sliders"></i> Hero Banners
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-offer-banners" onclick="switchTab('tab-offer-banners')">
+                    <i data-lucide="percent"></i> Offer Banners
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-testimonials" onclick="switchTab('tab-testimonials')">
+                    <i data-lucide="smile"></i> Testimonials
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-videos" onclick="switchTab('tab-videos')">
+                    <i data-lucide="video"></i> Video Reviews
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-reviews" onclick="switchTab('tab-reviews')">
+                    <i data-lucide="star"></i> User Reviews
+                    {% if stats.reviews > 0 %}
+                    <span class="badge-pending">{{ stats.reviews }}</span>
+                    {% endif %}
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-stats" onclick="switchTab('tab-stats')">
+                    <i data-lucide="bar-chart-2"></i> Wishlist & Cart Stats
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-cat-banners" onclick="switchTab('tab-cat-banners')">
+                    <i data-lucide="image"></i> Category Banners
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-social" onclick="switchTab('tab-social')">
+                    <i data-lucide="share-2"></i> Social Media Toggles
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-dealers" onclick="switchTab('tab-dealers')">
+                    <i data-lucide="users"></i> B2B Dealers
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-dealer-activities" onclick="switchTab('tab-dealer-activities')">
+                    <i data-lucide="activity"></i> B2B Activity Logs
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-dealer-orders" onclick="switchTab('tab-dealer-orders')">
+                    <i data-lucide="shopping-bag"></i> B2B Dealer Orders
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-orders" onclick="switchTab('tab-orders')">
+                    <i data-lucide="shopping-cart"></i> Customer Orders
+                </button>
+                <button class="admin-nav-btn" data-tab="tab-settings" onclick="switchTab('tab-settings')">
+                    <i data-lucide="settings"></i> Settings & SEO
+                </button>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <a href="/" target="_blank" class="admin-sidebar-link">
+                    <i data-lucide="external-link"></i> View Website
+                </a>
+                <a href="/admin/logout" class="admin-sidebar-link logout">
+                    <i data-lucide="log-out"></i> Log Out
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Body -->
+        <main class="admin-content-area">
+            <!-- Header bar -->
+            <header class="admin-header-bar">
+                <h2>MS Furniture Gallery Management Panel</h2>
+                <div style="font-size:14px; font-weight:600; color:var(--text-muted);">
+                    Logged in as <span style="color:var(--primary-color);">Administrator</span>
+                </div>
+            </header>
+
+            <!-- Alerts -->
+            <div id="dashboardAlert" class="dashboard-alert"></div>
+
+            <!-- Tab Panels -->
+
+            <!-- Tab 1: Overview -->
+            <section class="admin-tab-panel active" id="tab-overview">
+                <div class="overview-stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color:rgba(197, 160, 48, 0.1); color:var(--accent-color);"><i data-lucide="package"></i></div>
+                        <div class="stat-info">
+                            <h3>{{ stats.products }}</h3>
+                            <p>Total Products</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color:rgba(17, 17, 17, 0.1); color:var(--primary-color);"><i data-lucide="grid"></i></div>
+                        <div class="stat-info">
+                            <h3>{{ stats.categories }}</h3>
+                            <p>Active Categories</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color:rgba(37, 211, 102, 0.1); color:var(--whatsapp-green);"><i data-lucide="smile"></i></div>
+                        <div class="stat-info">
+                            <h3>{{ stats.testimonials }}</h3>
+                            <p>Customer Stories</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background-color:rgba(231, 76, 60, 0.1); color:#E74C3C;"><i data-lucide="message-square"></i></div>
+                        <div class="stat-info">
+                            <h3>{{ stats.reviews }}</h3>
+                            <p>Pending Reviews</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-panel-card" style="margin-top: 40px;">
+                    <div class="panel-card-header">
+                        <h3>Quick Admin Instructions</h3>
+                    </div>
+                    <div class="panel-card-body" style="font-size:15px; color:var(--text-muted); line-height:1.7;">
+                        <p style="margin-bottom:12px;">Welcome to the MS Furniture Gallery Catalog Dashboard! Here you can control all details visible on the frontend catalogue website:</p>
+                        <ul style="list-style:disc; padding-left:20px; display:flex; flex-direction:column; gap:8px;">
+                            <li><strong>Manage Products:</strong> Add new furniture items, set retail vs offer price badges, configure specifications, and upload multiple catalog images.</li>
+                            <li><strong>Category Organization:</strong> Map products to specific categories and subcategories to streamline customer browsing.</li>
+                            <li><strong>Sliders & Promotion:</strong> Change banners, promo offer countdown timers, and manage custom badges.</li>
+                            <li><strong>Customer Proofs:</strong> Showcase testimonials and review videos directly on the homepage.</li>
+                            <li><strong>System Settings:</strong> Update your WhatsApp number, contact details, coordinates, and default site SEO description.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 2: Products -->
+            <section class="admin-tab-panel" id="tab-products">
+                <div class="admin-panel-card">
+                    <div class="panel-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>Products Catalog Listing</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openProductModal()"><i data-lucide="plus"></i> Add Product</button>
+                    </div>
+                    <div class="panel-card-body">
+                        <!-- Table Search -->
+                        <div style="margin-bottom:20px; display:flex; gap:10px;">
+                            <input type="text" id="prodTableSearch" class="form-control" placeholder="Type to filter table products..." style="max-width:320px;" onkeyup="filterTable('prodTableSearch', 'prodTable')">
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="admin-table" id="prodTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>SKU</th>
+                                        <th>Price (₹)</th>
+                                        <th>Wholesale (₹)</th>
+                                        <th>Badges</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminProductsTableBody">
+                                    {% for p in products %}
+                                    <tr>
+                                        <td>{{ p.id }}</td>
+                                        <td style="font-weight:700;">{{ p.name }}</td>
+                                        <td>{{ p.category_name or 'Uncategorized' }}</td>
+                                        <td>{{ p.sku }}</td>
+                                        <td>
+                                            {% if p.offer_price %}
+                                            <span style="color:var(--accent-color); font-weight:700;">₹{{ "{:,.0f}".format(p.offer_price) }}</span> <span style="text-decoration:line-through; font-size:11px; color:var(--text-muted);">₹{{ "{:,.0f}".format(p.price) }}</span>
+                                            {% else %}
+                                            ₹{{ "{:,.0f}".format(p.price) }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% set dp = p.dealer_prices or {} %}
+                                            <span style="color:#854d0e; font-weight:700;">₹{{ "{:,.0f}".format(dp.default or p.wholesale_price or 0) }}</span>
+                                            {% if dp.silver or dp.gold or dp.platinum %}
+                                            <div style="font-size:10px; color:var(--text-muted); margin-top:2px; display:flex; gap:5px; flex-wrap:wrap;">
+                                                {% if dp.silver %}<span style="background:#f1f5f9; padding:1px 3px; border-radius:2px;" title="Silver Tier">S: ₹{{ "{:,.0f}".format(dp.silver) }}</span>{% endif %}
+                                                {% if dp.gold %}<span style="background:#fef3c7; color:#d97706; padding:1px 3px; border-radius:2px;" title="Gold Tier">G: ₹{{ "{:,.0f}".format(dp.gold) }}</span>{% endif %}
+                                                {% if dp.platinum %}<span style="background:#ede9fe; color:#7c3aed; padding:1px 3px; border-radius:2px;" title="Platinum Tier">P: ₹{{ "{:,.0f}".format(dp.platinum) }}</span>{% endif %}
+                                            </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if p.is_featured %}<span class="admin-table-badge badge-featured">Featured</span>{% endif %}
+                                            {% if p.is_new_arrival %}<span class="admin-table-badge badge-new">New</span>{% endif %}
+                                            {% if p.is_best_seller %}<span class="admin-table-badge" style="background:#E67E22; color:white;">Hot</span>{% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="status-dot {% if p.status == 'active' %}active{% else %}inactive{% endif %}"></span> {{ p.status|capitalize }}
+                                        </td>
+                                        <td>
+                                            <div style="display:flex; gap:6px;">
+                                                <button class="btn-icon" onclick="editProduct('{{ p.id }}')" title="Edit Product"><i data-lucide="edit-3"></i></button>
+                                                <button class="btn-icon" onclick="editDealerPrices('{{ p.id }}')" title="Edit Dealer Prices" style="color:#854d0e;"><i data-lucide="coins"></i></button>
+                                                <button class="btn-icon" onclick="duplicateProduct('{{ p.id }}')" title="Duplicate Product" style="color:var(--accent-color);"><i data-lucide="copy"></i></button>
+                                                <button class="btn-icon delete" onclick="deleteProduct('{{ p.id }}')" title="Delete Product"><i data-lucide="trash-2"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 3: Categories -->
+            <section class="admin-tab-panel" id="tab-categories">
+                <div class="admin-panel-card">
+                    <div class="panel-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>Categories Management</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openCategoryModal()"><i data-lucide="plus"></i> Add Category</button>
+                    </div>
+                    <div class="panel-card-body">
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Image</th>
+                                        <th>Name</th>
+                                        <th>Slug</th>
+                                        <th>Sort Order</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for c in categories %}
+                                    <tr>
+                                        <td>{{ c.id }}</td>
+                                        <td><img src="{{ c.image_url }}" style="width:40px; height:40px; object-fit:cover; border-radius:50%;"></td>
+                                        <td style="font-weight:700;">{{ c.name }}</td>
+                                        <td>{{ c.slug }}</td>
+                                        <td>{{ c.display_order }}</td>
+                                        <td><span class="status-dot {% if c.status == 'active' %}active{% else %}inactive{% endif %}"></span> {{ c.status|capitalize }}</td>
+                                        <td>
+                                            <div style="display:flex; gap:6px;">
+                                                <button class="btn-icon" onclick="editCategory('{{ c.id }}')"><i data-lucide="edit-3"></i></button>
+                                                <button class="btn-icon delete" onclick="deleteCategory('{{ c.id }}')"><i data-lucide="trash-2"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 4: Subcategories -->
+            <section class="admin-tab-panel" id="tab-subcategories">
+                <div class="admin-panel-card">
+                    <div class="panel-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>Sub Categories Management</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openSubcategoryModal()"><i data-lucide="plus"></i> Add Subcategory</button>
+                    </div>
+                    <div class="panel-card-body">
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Category Reference</th>
+                                        <th>Name</th>
+                                        <th>Slug</th>
+                                        <th>Sort Order</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for s in subcategories %}
+                                    <tr>
+                                        <td>{{ s.id }}</td>
+                                        <td style="font-weight:700;">{{ s.category_name }}</td>
+                                        <td>{{ s.name }}</td>
+                                        <td>{{ s.slug }}</td>
+                                        <td>{{ s.display_order }}</td>
+                                        <td><span class="status-dot {% if s.status == 'active' %}active{% else %}inactive{% endif %}"></span> {{ s.status|capitalize }}</td>
+                                        <td>
+                                            <div style="display:flex; gap:6px;">
+                                                <button class="btn-icon" onclick="editSubcategory('{{ s.id }}')"><i data-lucide="edit-3"></i></button>
+                                                <button class="btn-icon delete" onclick="deleteSubcategory('{{ s.id }}')"><i data-lucide="trash-2"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 5: Hero Banners -->
+            <section class="admin-tab-panel" id="tab-hero-banners">
+                <div class="admin-panel-card">
+                    <div class="panel-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>Homepage Hero Banners</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openHeroModal()"><i data-lucide="plus"></i> Add Hero Slide</button>
+                    </div>
+                    <div class="panel-card-body">
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Image Preview</th>
+                                        <th>Title</th>
+                                        <th>Subtitle</th>
+                                        <th>Button Link</th>
+                                        <th>Sort</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for hb in hero_banners %}
+                                    <tr>
+                                        <td>{{ hb.id }}</td>
+                                        <td><img src="{{ hb.image_url }}" style="width:100px; height:50px; object-fit:cover; border-radius:4px;"></td>
+                                        <td style="font-weight:700;">{{ hb.title }}</td>
+                                        <td>{{ hb.subtitle }}</td>
+                                        <td>{{ hb.link_url }}</td>
+                                        <td>{{ hb.display_order }}</td>
+                                        <td><span class="status-dot {% if hb.status == 'active' %}active{% else %}inactive{% endif %}"></span> {{ hb.status|capitalize }}</td>
+                                        <td>
+                                            <div style="display:flex; gap:6px;">
+                                                <button class="btn-icon" onclick="editHero('{{ hb.id }}')"><i data-lucide="edit-3"></i></button>
+                                                <button class="btn-icon delete" onclick="deleteHero('{{ hb.id }}')"><i data-lucide="trash-2"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 6: Offer Banners -->
+            <section class="admin-tab-panel" id="tab-offer-banners">
+                <div class="admin-panel-card">
+                    <div class="panel-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>Offer Banners (Countdown Timers)</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openOfferModal()"><i data-lucide="plus"></i> Add Offer Banner</button>
+                    </div>
+                    <div class="panel-card-body">
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Banner</th>
+                                        <th>Title</th>
+                                        <th>Countdown Ending</th>
+                                        <th>Button</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ob in offer_banners %}
+                                    <tr>
+                                        <td>{{ ob.id }}</td>
+                                        <td><img src="{{ ob.image_url }}" style="width:100px; height:50px; object-fit:cover; border-radius:4px;"></td>
+                                        <td style="font-weight:700;">{{ ob.title }}</td>
+                                        <td>{{ ob.ending_date }}</td>
+                                        <td>{{ ob.button_text }}</td>
+                                        <td><span class="status-dot {% if ob.status == 'active' %}active{% else %}inactive{% endif %}"></span> {{ ob.status|capitalize }}</td>
+                                        <td>
+                                            <div style="display:flex; gap:6px;">
+                                                <button class="btn-icon" onclick="editOffer('{{ ob.id }}')"><i data-lucide="edit-3"></i></button>
+                                                <button class="btn-icon delete" onclick="deleteOffer('{{ ob.id }}')"><i data-lucide="trash-2"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 7: Testimonials -->
+            <section class="admin-tab-panel" id="tab-testimonials">
+                <div class="admin-panel-card">
+                    <div class="panel-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>Testimonials (Customer Stories)</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openTestimonialModal()"><i data-lucide="plus"></i> Add Testimonial</button>
+                    </div>
+                    <div class="panel-card-body">
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Photo</th>
+                                        <th>Customer</th>
+                                        <th>City</th>
+                                        <th>Rating</th>
+                                        <th>Review Snippet</th>
+                                        <th>Visibility</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for t in testimonials %}
+                                    <tr>
+                                        <td>{{ t.id }}</td>
+                                        <td><img src="{{ t.customer_photo or '/static/uploads/testimonials/avatar_default.svg' }}" alt="{{ t.customer_name }}" style="width:36px; height:36px; object-fit:cover; border-radius:50%; border:1.5px solid var(--accent-color); background:#0b1222;" onerror="this.onerror=null; this.src='/static/uploads/testimonials/avatar_default.svg';"></td>
+                                        <td style="font-weight:700;">{{ t.customer_name }}</td>
+                                        <td>{{ t.city }}</td>
+                                        <td>{{ t.rating }}★</td>
+                                        <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ t.review }}</td>
+                                        <td><span class="status-dot {% if t.status == 'active' %}active{% else %}inactive{% endif %}"></span> {{ t.status|capitalize }}</td>
+                                        <td>
+                                            <div style="display:flex; gap:6px;">
+                                                <button class="btn-icon" onclick="editTestimonial('{{ t.id }}')"><i data-lucide="edit-3"></i></button>
+                                                <button class="btn-icon delete" onclick="deleteTestimonial('{{ t.id }}')"><i data-lucide="trash-2"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 8: Video Reviews -->
+            <section class="admin-tab-panel" id="tab-videos">
+                <div class="admin-panel-card">
+                    <div class="panel-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>Happy Customer Video Reviews</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openVideoModal()"><i data-lucide="plus"></i> Add Video</button>
+                    </div>
+                    <div class="panel-card-body">
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Customer</th>
+                                        <th>Video Source</th>
+                                        <th>Description</th>
+                                        <th>Visibility</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for v in videos %}
+                                    <tr>
+                                        <td>{{ v.id }}</td>
+                                        <td style="font-weight:700;">{{ v.customer_name }}</td>
+                                        <td>{{ v.video_url }}</td>
+                                        <td>{{ v.review_text }}</td>
+                                        <td><span class="status-dot {% if v.status == 'active' %}active{% else %}inactive{% endif %}"></span> {{ v.status|capitalize }}</td>
+                                        <td>
+                                            <div style="display:flex; gap:6px;">
+                                                <button class="btn-icon" onclick="editVideo('{{ v.id }}')"><i data-lucide="edit-3"></i></button>
+                                                <button class="btn-icon delete" onclick="deleteVideo('{{ v.id }}')"><i data-lucide="trash-2"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 9: User Reviews -->
+            <section class="admin-tab-panel" id="tab-reviews">
+                <div class="admin-panel-card">
+                    <div class="panel-card-header">
+                        <h3>Customer Reviews Moderation</h3>
+                    </div>
+                    <div class="panel-card-body">
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Product</th>
+                                        <th>Reviewer Name</th>
+                                        <th>Rating</th>
+                                        <th>Review details</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for r in reviews %}
+                                    <tr>
+                                        <td>{{ r.id }}</td>
+                                        <td style="font-weight:700;">{{ r.product_name }}</td>
+                                        <td>{{ r.reviewer_name }}</td>
+                                        <td>{{ r.rating }}★</td>
+                                        <td>{{ r.review_text }}</td>
+                                        <td>
+                                            {% if r.status == 'approved' %}
+                                            <span class="admin-table-badge" style="background:#e8f5e9; color:#2e7d32; font-weight:700;">APPROVED</span>
+                                            {% elif r.status == 'rejected' %}
+                                            <span class="admin-table-badge" style="background:#ffebee; color:#c62828; font-weight:700;">REJECTED</span>
+                                            {% else %}
+                                            <span class="admin-table-badge" style="background:#fff8e1; color:#f57f17; font-weight:700;">PENDING</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div style="display:flex; gap:6px; align-items:center;">
+                                                {% if r.status != 'approved' %}
+                                                <button class="btn btn-primary btn-sm" style="padding:6px 12px; font-size:12px; background:#2e7d32; border-color:#2e7d32;" onclick="approveReview('{{ r.id }}')">Approve</button>
+                                                {% endif %}
+                                                {% if r.status != 'rejected' %}
+                                                <button class="btn btn-secondary btn-sm" style="padding:6px 12px; font-size:12px; background:#c62828; color:#fff; border-color:#c62828;" onclick="rejectReview('{{ r.id }}')">Reject</button>
+                                                {% endif %}
+                                                <button class="btn-icon delete" title="Delete Review" onclick="deleteReview('{{ r.id }}')"><i data-lucide="trash-2"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Wishlist & Cart Stats -->
+            <section class="admin-tab-panel" id="tab-stats">
+                <div class="admin-panel-card">
+                    <div class="panel-card-header">
+                        <h3>Wishlist & Cart Analytics</h3>
+                    </div>
+                    <div class="panel-card-body">
+                        <p style="color:var(--text-muted); margin-bottom: 20px;">Review which catalog products are most frequently added to customer Wishlists and Shopping Carts.</p>
+                        
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Product Name</th>
+                                        <th>SKU</th>
+                                        <th>Category</th>
+                                        <th>Wishlist Saves Count</th>
+                                        <th>Cart Additions Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in (products|sort(attribute='wishlist_count', reverse=True))[:25] %}
+                                    {% if (p.wishlist_count|default(0)) > 0 or (p.cart_count|default(0)) > 0 %}
+                                    <tr>
+                                        <td>{{ p.id }}</td>
+                                        <td style="font-weight:700;">{{ p.name }}</td>
+                                        <td>{{ p.sku }}</td>
+                                        <td>{{ p.category_name or 'Uncategorized' }}</td>
+                                        <td>
+                                            <span class="admin-table-badge badge-new" style="display:inline-flex; align-items:center; gap:4px; padding:6px 12px; font-size:12px; font-weight:700;">
+                                                <i data-lucide="heart" fill="currentColor" style="width:12px; height:12px;"></i> {{ p.wishlist_count|default(0) }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="admin-table-badge" style="background-color:var(--accent-color); color:var(--primary-color); display:inline-flex; align-items:center; gap:4px; padding:6px 12px; font-size:12px; font-weight:700;">
+                                                <i data-lucide="shopping-cart" style="width:12px; height:12px;"></i> {{ p.cart_count|default(0) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Category Banners -->
+            <section class="admin-tab-panel" id="tab-cat-banners">
+                <div class="admin-panel-card">
+                    <div class="panel-card-header">
+                        <h3>Category Specific Banners</h3>
+                    </div>
+                    <div class="panel-card-body">
+                        <p style="color:var(--text-muted); margin-bottom: 20px;">Customize Hero and Offer Promotion Banners specifically for each product category landing page.</p>
+                        
+                        <div class="form-group" style="max-width: 400px; margin-bottom: 30px;">
+                            <label class="form-label" style="font-weight:700;">Select Category to Edit Banners</label>
+                            <select id="catBannerSelect" class="form-control" onchange="loadCategoryBanners(this.value)">
+                                <option value="">-- Choose Category --</option>
+                                {% for c in categories %}
+                                <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Editor container (Hidden until category is selected) -->
+                        <div id="catBannersEditor" style="display: none; grid-template-columns: 1fr 1fr; gap: 30px;">
+                            
+                            <!-- Left: Category Hero Banner Form -->
+                            <form id="catHeroBannerForm" class="admin-panel-card" style="margin-top: 0; box-shadow: none; border: 1px solid var(--border-color);">
+                                <div class="panel-card-header" style="padding: 15px 20px; background-color: var(--bg-warm);">
+                                    <h4 style="font-size: 15px; font-weight: 700;">Category Hero Banner</h4>
+                                </div>
+                                <div class="panel-card-body" style="padding: 20px;">
+                                    <input type="hidden" id="chbCatId">
+                                    <div class="form-group">
+                                        <label class="form-label">Hero Title</label>
+                                        <input type="text" id="chbTitle" class="form-control" placeholder="e.g. Luxury Sofas Collection">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Banner Image URL *</label>
+                                        <input type="text" id="chbImg" class="form-control" required>
+                                        <input type="file" class="form-control" style="margin-top:6px;" onchange="uploadImage(this, 'chbImg')">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Offer Badge Text / Tagline</label>
+                                        <input type="text" id="chbOfferText" class="form-control" placeholder="e.g. Flat 30% OFF Direct Factory Deals">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Button Text</label>
+                                        <input type="text" id="chbBtnText" class="form-control" value="Explore Collection">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Status</label>
+                                        <select id="chbStatus" class="form-control">
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; margin-top: 15px;">Save Category Hero Banner</button>
+                                </div>
+                            </form>
+
+                            <!-- Right: Category Offer Banner Form -->
+                            <form id="catOfferBannerForm" class="admin-panel-card" style="margin-top: 0; box-shadow: none; border: 1px solid var(--border-color);">
+                                <div class="panel-card-header" style="padding: 15px 20px; background-color: var(--bg-warm);">
+                                    <h4 style="font-size: 15px; font-weight: 700;">Category Offer Banner (Promotion Promo)</h4>
+                                </div>
+                                <div class="panel-card-body" style="padding: 20px;">
+                                    <input type="hidden" id="cobCatId">
+                                    <div class="form-group">
+                                        <label class="form-label">Offer Title / Headline</label>
+                                        <input type="text" id="cobTitle" class="form-control" placeholder="e.g. Weekend Special Bed Sale">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Background Banner Image URL *</label>
+                                        <input type="text" id="cobImg" class="form-control" required>
+                                        <input type="file" class="form-control" style="margin-top:6px;" onchange="uploadImage(this, 'cobImg')">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Promotion Discount Tag</label>
+                                        <input type="text" id="cobDiscount" class="form-control" placeholder="e.g. Flat 40% OFF">
+                                    </div>
+                                    <div class="modal-grid" style="grid-template-columns: 2fr 1fr;">
+                                        <div class="form-group">
+                                            <label class="form-label">Featured Product Image URL</label>
+                                            <input type="text" id="cobProductImg" class="form-control">
+                                            <input type="file" class="form-control" style="margin-top:6px;" onchange="uploadImage(this, 'cobProductImg')">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Promo Price (₹)</label>
+                                            <input type="number" id="cobProductPrice" class="form-control" value="0" min="0">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Status</label>
+                                        <select id="cobStatus" class="form-control">
+                                            <option value="active">Active</option>
+                                            <option value="inactive">Inactive</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm" style="width: 100%; margin-top: 15px;">Save Category Offer Banner</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 10: Social Media Settings -->
+            <section class="admin-tab-panel" id="tab-social">
+                <form id="socialSaveForm">
+                    <div class="admin-panel-card" style="max-width: 700px; margin: 0 auto;">
+                        <div class="panel-card-header">
+                            <h3>Social Media Links & Visibility</h3>
+                        </div>
+                        <div class="panel-card-body" style="display:flex; flex-direction:column; gap:25px; padding:25px;">
+                            
+                            <!-- Facebook -->
+                            <div style="border-bottom:1px solid var(--border-color); padding-bottom:20px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                    <h4 style="font-weight:700; color:var(--primary-color); display:flex; align-items:center; gap:8px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#1877F2">
+                                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                        </svg>
+                                        Facebook
+                                    </h4>
+                                    <!-- Toggle checkbox -->
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                        <input type="checkbox" id="settFbShow" {% if settings.get('show_facebook') is not none and not settings.get('show_facebook') %}{% else %}checked{% endif %} style="width:18px; height:18px; cursor:pointer;">
+                                        <span style="font-size:13px; font-weight:600; color:var(--text-muted);">Show Icon on Website</span>
+                                    </label>
+                                </div>
+                                <input type="text" id="settFbSocial" class="form-control" value="{{ settings.facebook_url }}" placeholder="https://facebook.com/yourpage">
+                            </div>
+
+                            <!-- Instagram -->
+                            <div style="border-bottom:1px solid var(--border-color); padding-bottom:20px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                    <h4 style="font-weight:700; color:var(--primary-color); display:flex; align-items:center; gap:8px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                                            <defs>
+                                                <radialGradient id="instaGradForm" cx="30%" cy="107%" r="130%">
+                                                    <stop offset="0%" stop-color="#fdf497" />
+                                                    <stop offset="5%" stop-color="#fdf497" />
+                                                    <stop offset="45%" stop-color="#fd5949" />
+                                                    <stop offset="60%" stop-color="#d6249f" />
+                                                    <stop offset="90%" stop-color="#285AEB" />
+                                                </radialGradient>
+                                            </defs>
+                                            <path fill="url(#instaGradForm)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
+                                        </svg>
+                                        Instagram
+                                    </h4>
+                                    <!-- Toggle checkbox -->
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                        <input type="checkbox" id="settInstaShow" {% if settings.get('show_instagram') is not none and not settings.get('show_instagram') %}{% else %}checked{% endif %} style="width:18px; height:18px; cursor:pointer;">
+                                        <span style="font-size:13px; font-weight:600; color:var(--text-muted);">Show Icon on Website</span>
+                                    </label>
+                                </div>
+                                <input type="text" id="settInstaSocial" class="form-control" value="{{ settings.instagram_url }}" placeholder="https://instagram.com/yourprofile">
+                            </div>
+
+                            <!-- YouTube -->
+                            <div style="border-bottom:1px solid var(--border-color); padding-bottom:20px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                    <h4 style="font-weight:700; color:var(--primary-color); display:flex; align-items:center; gap:8px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="#FF0000">
+                                            <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.107C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.388.511a3.003 3.003 0 0 0-2.11 2.107C0 8.053 0 12 0 12s0 3.947.502 5.837a3.003 3.003 0 0 0 2.11 2.107c1.883.511 9.388.511 9.388.511s7.505 0 9.388-.511a3.003 3.003 0 0 0 2.11-2.107c.502-1.89.502-5.837.502-5.837s0-3.947-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                        </svg>
+                                        YouTube
+                                    </h4>
+                                    <!-- Toggle checkbox -->
+                                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                        <input type="checkbox" id="settYtShow" {% if settings.get('show_youtube') is not none and not settings.get('show_youtube') %}{% else %}checked{% endif %} style="width:18px; height:18px; cursor:pointer;">
+                                        <span style="font-size:13px; font-weight:600; color:var(--text-muted);">Show Icon on Website</span>
+                                    </label>
+                                </div>
+                                <input type="text" id="settYtSocial" class="form-control" value="{{ settings.youtube_url }}" placeholder="https://youtube.com/yourchannel">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" style="padding: 12px 36px; width: fit-content; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="save"></i> Save Social Toggles
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Tab 10b: Customer Orders -->
+            <section class="admin-tab-panel" id="tab-orders">
+                <div class="admin-panel-card" style="margin-bottom: 30px;">
+                    <div class="panel-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <h3>Customer Orders Management</h3>
+                        <div style="display: flex; gap: 10px; width: 100%; max-width: 600px; flex-grow: 1; justify-content: flex-end;">
+                            <input type="text" id="adminOrderSearch" class="form-control" placeholder="Search Order ID, Name, Mobile..." style="padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; flex-grow: 1;" onkeyup="filterOrdersTable()">
+                            <select id="adminOrderStatusFilter" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; width: 180px; font-weight: 600;" onchange="filterOrdersTable()">
+                                <option value="">All Statuses</option>
+                                <option value="Initiated">Initiated</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Processing">Processing</option>
+                                <option value="Shipped">Shipped</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="overflow-x: auto; margin-top: 20px;">
+                        <table class="admin-table" style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border-color); color: #666; font-weight: 700;">
+                                    <th style="padding: 12px 8px;">Order ID</th>
+                                    <th style="padding: 12px 8px;">Date</th>
+                                    <th style="padding: 12px 8px;">Customer Info</th>
+                                    <th style="padding: 12px 8px;">Delivery Details</th>
+                                    <th style="padding: 12px 8px;">Items Ordered</th>
+                                    <th style="padding: 12px 8px;">Total</th>
+                                    <th style="padding: 12px 8px;">Status</th>
+                                    <th style="padding: 12px 8px; width: 80px; text-align: center;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminOrdersTableBody">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                        Loading customer orders...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab 11: Settings -->
+            <section class="admin-tab-panel" id="tab-settings">
+                <form id="settingsSaveForm">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:30px;">
+                        
+                        <!-- Left Block: Global details -->
+                        <div class="admin-panel-card">
+                            <div class="panel-card-header"><h3>Business Contact Details</h3></div>
+                            <div class="panel-card-body">
+                                <div class="form-group">
+                                    <label class="form-label">Order WhatsApp Number (with country code)</label>
+                                    <input type="text" id="settWhatsapp" class="form-control" value="{{ settings.whatsapp_number }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Payment UPI ID (e.g., 9676667998@ybl)</label>
+                                    <input type="text" id="settUpi" class="form-control" value="{{ settings.upi_id or '9676667998@ybl' }}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Contact Phone Number</label>
+                                    <input type="text" id="settPhone" class="form-control" value="{{ settings.contact_phone }}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Contact Email</label>
+                                    <input type="email" id="settEmail" class="form-control" value="{{ settings.contact_email }}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Working Hours Description</label>
+                                    <input type="text" id="settHours" class="form-control" value="{{ settings.working_hours }}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Address</label>
+                                    <textarea id="settAddress" class="form-control" rows="3">{{ settings.contact_address }}</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Google Maps Embed Link (Iframe Src)</label>
+                                    <input type="text" id="settMap" class="form-control" value="{{ settings.google_map_link }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Block: Social & SEO -->
+                        <div class="admin-panel-card">
+                            <div class="panel-card-header"><h3>Social Links & Default SEO</h3></div>
+                            <div class="panel-card-body">
+                                <div class="form-group">
+                                    <label class="form-label">Instagram Profile URL</label>
+                                    <input type="text" id="settInsta" class="form-control" value="{{ settings.instagram_url }}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Facebook Page URL</label>
+                                    <input type="text" id="settFb" class="form-control" value="{{ settings.facebook_url }}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">YouTube Channel URL</label>
+                                    <input type="text" id="settYt" class="form-control" value="{{ settings.youtube_url }}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Meta Search Title</label>
+                                    <input type="text" id="settSeoTitle" class="form-control" value="{{ settings.seo_meta_title }}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Meta Search Description</label>
+                                    <textarea id="settSeoDesc" class="form-control" rows="3">{{ settings.seo_meta_description }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wishlist & Cart Settings Card -->
+                    <div class="admin-panel-card" style="margin-top:30px;">
+                        <div class="panel-card-header"><h3>Wishlist & Shopping Cart Settings</h3></div>
+                        <div class="panel-card-body" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                            <div>
+                                <div class="form-group" style="display:flex; gap:20px; align-items:center; margin-bottom:15px; margin-top:10px;">
+                                    <label class="filter-checkbox-label" style="font-weight:600; display:flex; align-items:center; gap:8px;">
+                                        <input type="checkbox" id="settWishlistEnabled" {% if settings.wishlist_enabled %}checked{% endif %}>
+                                        <span>Enable Wishlist Feature</span>
+                                    </label>
+                                    <label class="filter-checkbox-label" style="font-weight:600; display:flex; align-items:center; gap:8px;">
+                                        <input type="checkbox" id="settCartEnabled" {% if settings.cart_enabled %}checked{% endif %}>
+                                        <span>Enable Shopping Cart Feature</span>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Minimum Order Value (₹) for Cart Checkout</label>
+                                    <input type="number" id="settCartMinValue" class="form-control" value="{{ settings.cart_min_value or 0.0 }}" min="0" step="100">
+                                </div>
+                            </div>
+                            <div>
+                                <div class="form-group">
+                                    <label class="form-label">WhatsApp Wishlist Message Prefix Text</label>
+                                    <textarea id="settWhatsappWishlistPrefix" class="form-control" rows="2">{{ settings.whatsapp_wishlist_prefix }}</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">WhatsApp Cart Message Prefix Text</label>
+                                    <textarea id="settWhatsappCartPrefix" class="form-control" rows="2">{{ settings.whatsapp_cart_prefix }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Homepage Offer Countdown Settings Card -->
+                    <div class="admin-panel-card" style="margin-top:30px;">
+                        <div class="panel-card-header"><h3>Homepage Offer Countdown Settings</h3></div>
+                        <div class="panel-card-body" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                            <div>
+                                <div class="form-group" style="display:flex; gap:20px; align-items:center; margin-bottom:15px; margin-top:10px;">
+                                    <label class="filter-checkbox-label" style="font-weight:600; display:flex; align-items:center; gap:8px;">
+                                        <input type="checkbox" id="settCountdownEnabled" {% if settings.countdown_enabled %}checked{% endif %}>
+                                        <span>Show Countdown Timer on Homepage</span>
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Countdown Ending Date &amp; Time *</label>
+                                    <input type="datetime-local" id="settCountdownEndDate" class="form-control" value="{{ settings.countdown_end_date|replace(' ', 'T') }}" required>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; padding:15px; background:var(--bg-warm); border-radius:8px; border:1px solid var(--border-color);">
+                                <p style="color:var(--text-muted); font-size:14px; line-height:1.6; margin:0;">
+                                    <strong>Tip:</strong> Checking "Show Countdown Timer" displays a ticking timer on the main deals banner. Set the date and time here to control exactly when the offer counter hits 0.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Story Panel Content -->
+                    <div class="admin-panel-card" style="margin-top:30px;">
+                        <div class="panel-card-header"><h3>Brand Story Content</h3></div>
+                        <div class="panel-card-body" style="display:grid; grid-template-columns:1fr; gap:20px;">
+                            <div class="form-group">
+                                <label class="form-label">Our Story (Paragraph)</label>
+                                <textarea id="settStory" class="form-control" rows="4">{{ settings.about_story }}</textarea>
+                            </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                                <div class="form-group">
+                                    <label class="form-label">Mission Statement</label>
+                                    <textarea id="settMission" class="form-control" rows="3">{{ settings.about_mission }}</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Vision Statement</label>
+                                    <textarea id="settVision" class="form-control" rows="3">{{ settings.about_vision }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Update Card -->
+                    <div class="admin-panel-card" style="margin-top:30px; max-width:600px;">
+                        <div class="panel-card-header"><h3>Update Administrator Password</h3></div>
+                        <div class="panel-card-body">
+                            <div class="form-group">
+                                <label class="form-label">New Password (leave blank if keeping current)</label>
+                                <input type="password" id="settNewPass" class="form-control" placeholder="Enter new strong password" autocomplete="new-password">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:30px; text-align:right;">
+                        <button type="submit" class="btn btn-primary" style="padding: 14px 40px;"><i data-lucide="save"></i> Save Global Settings</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- B2B Dealers Moderation Panel -->
+            <section class="admin-tab-panel" id="tab-dealers">
+                <div class="panel-header-row">
+                    <h2>B2B Dealer Management</h2>
+                </div>
+
+                <div class="admin-panel-card">
+                    <div class="panel-card-header">
+                        <h3>Dealer Registration Requests &amp; Profiles</h3>
+                    </div>
+                    <div class="panel-card-body">
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" id="dealersAdminTable" style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
+                                <thead>
+                                    <tr style="border-bottom:2px solid var(--border-color); color:#555555; background:#fafafa;">
+                                        <th style="padding:12px;">Business Info</th>
+                                        <th style="padding:12px;">Dealer Contact</th>
+                                        <th style="padding:12px;">Location</th>
+                                        <th style="padding:12px;">Registered</th>
+                                        <th style="padding:12px;">Status</th>
+                                        <th style="padding:12px;">Pricing Tier</th>
+                                        <th style="padding:12px; text-align:right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dealersTableBody">
+                                    <!-- Populated dynamically via JS -->
+                                    <tr>
+                                        <td colspan="7" style="padding:20px; text-align:center; color:var(--text-muted);">Loading dealer profiles...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- B2B Activity Logs Panel -->
+            <section class="admin-tab-panel" id="tab-dealer-activities">
+                <div class="panel-header-row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
+                    <h2>B2B Dealer Activity Logs</h2>
+                    <button class="btn btn-secondary" onclick="exportDealerLogs()"><i data-lucide="download"></i> Export Logs to CSV</button>
+                </div>
+
+                <!-- Filters -->
+                <div class="admin-panel-card" style="margin-bottom:20px;">
+                    <div class="panel-card-body" style="display:flex; gap:15px; flex-wrap:wrap; align-items:center;">
+                        <div class="form-group" style="margin:0; flex:1; min-width:200px;">
+                            <input type="text" id="logSearchInput" class="form-control" placeholder="Search by name, business, or details..." onkeyup="filterLogs()">
+                        </div>
+                        <div class="form-group" style="margin:0; width:200px;">
+                            <select id="logActionFilter" class="form-control" onchange="filterLogs()">
+                                <option value="">Filter by Action</option>
+                                <option value="login">Login</option>
+                                <option value="logout">Logout</option>
+                                <option value="view_product">Product Viewed</option>
+                                <option value="view_wholesale_catalog">Catalog Viewed</option>
+                                <option value="order_placed">Order Placed</option>
+                                <option value="downloads">Downloads</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-panel-card">
+                    <div class="panel-card-body">
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" id="activitiesAdminTable" style="width:100%; border-collapse:collapse; text-align:left; font-size:13px;">
+                                <thead>
+                                    <tr style="border-bottom:2px solid var(--border-color); color:#555555; background:#fafafa;">
+                                        <th style="padding:10px;">Timestamp</th>
+                                        <th style="padding:10px;">Dealer</th>
+                                        <th style="padding:10px;">Business</th>
+                                        <th style="padding:10px;">Action</th>
+                                        <th style="padding:10px;">Details</th>
+                                        <th style="padding:10px;">Device / IP</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activitiesTableBody">
+                                    <!-- Populated dynamically via JS -->
+                                    <tr>
+                                        <td colspan="6" style="padding:20px; text-align:center; color:var(--text-muted);">Loading B2B activity logs...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- B2B Dealer Orders Panel -->
+            <section class="admin-tab-panel" id="tab-dealer-orders">
+                <div class="panel-header-row">
+                    <h2>B2B Dealer Orders</h2>
+                </div>
+
+                <div class="admin-panel-card">
+                    <div class="panel-card-body">
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" id="dealerOrdersAdminTable" style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
+                                <thead>
+                                    <tr style="border-bottom:2px solid var(--border-color); color:#555555; background:#fafafa;">
+                                        <th style="padding:12px;">Order ID / Date</th>
+                                        <th style="padding:12px;">Dealer Company</th>
+                                        <th style="padding:12px;">Products Ordered</th>
+                                        <th style="padding:12px;">Total Value</th>
+                                        <th style="padding:12px;">Payment</th>
+                                        <th style="padding:12px;">Order Status</th>
+                                        <th style="padding:12px; text-align:right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dealerOrdersTableBody">
+                                    <!-- Populated dynamically via JS -->
+                                    <tr>
+                                        <td colspan="7" style="padding:20px; text-align:center; color:var(--text-muted);">Loading B2B wholesale orders...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- DEALER PRICES MODAL -->
+    <div class="admin-modal" id="dealerPricesModal">
+        <div class="modal-card">
+            <div class="modal-card-header">
+                <h3>Edit Dealer Prices</h3>
+                <button class="modal-close-btn" onclick="closeDealerPricesModal()">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <form id="dealerPricesForm">
+                    <input type="hidden" id="dpFormProdId">
+                    <div style="margin-bottom: 20px;">
+                        <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Product Item</span>
+                        <h4 id="dpFormProdName" style="margin: 5px 0 0 0; color: var(--text-dark); font-weight: 700; font-size: 16px;">-</h4>
+                    </div>
+
+                    <div style="background: var(--bg-warm); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: grid; gap: 15px; margin-bottom: 20px;">
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label" style="font-weight: 600;">Default Wholesale Price (₹) *</label>
+                            <input type="number" id="dpDefaultPrice" class="form-control" min="0" required placeholder="Default B2B price">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label" style="font-weight: 600;">Silver Tier Price (₹)</label>
+                            <input type="number" id="dpSilverPrice" class="form-control" min="0" placeholder="Optional Silver tier price">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label" style="font-weight: 600;">Gold Tier Price (₹)</label>
+                            <input type="number" id="dpGoldPrice" class="form-control" min="0" placeholder="Optional Gold tier price">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label" style="font-weight: 600;">Platinum Tier Price (₹)</label>
+                            <input type="number" id="dpPlatinumPrice" class="form-control" min="0" placeholder="Optional Platinum tier price">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeDealerPricesModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Prices</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRODUCT MODAL -->
+    <div class="admin-modal" id="prodModal">
+        <div class="modal-card lg">
+            <div class="modal-card-header">
+                <h3 id="prodModalTitle">Add Product Catalog Item</h3>
+                <button class="modal-close-btn" onclick="closeProductModal()">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <form id="prodForm">
+                    <input type="hidden" id="formProdId">
+
+                    <div class="modal-grid">
+                        <div class="form-group">
+                            <label class="form-label">Product Name *</label>
+                            <input type="text" id="prodFormName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">SKU Reference</label>
+                            <input type="text" id="prodFormSku" class="form-control" placeholder="Leave empty for auto-generated code">
+                        </div>
+                    </div>
+
+                    <div class="modal-grid-3">
+                        <div class="form-group">
+                            <label class="form-label">Category *</label>
+                            <select id="prodFormCat" class="form-control" required onchange="populateSubcategories()">
+                                <option value="">Select Category</option>
+                                {% for c in categories %}
+                                <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sub Category</label>
+                            <select id="prodFormSub" class="form-control">
+                                <option value="">Select Subcategory</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Catalog Status</label>
+                            <select id="prodFormStatus" class="form-control">
+                                <option value="active">Active (Visible)</option>
+                                <option value="inactive">Inactive (Hidden)</option>
+                                <option value="draft">Draft (Saved)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-grid-3">
+                        <div class="form-group">
+                            <label class="form-label">Original Price (₹) *</label>
+                            <input type="number" id="prodFormPrice" class="form-control" required min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Offer Price (₹)</label>
+                            <input type="number" id="prodFormOfferPrice" class="form-control" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Offer Badge Text</label>
+                            <input type="text" id="prodFormBadge" class="form-control" placeholder="e.g. 15% OFF, Special Offer">
+                        </div>
+                    </div>
+
+                    <!-- B2B Pricing and Visibility Row -->
+                    <div style="background: var(--bg-warm); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                        <h4 style="color: #854d0e; font-weight: 700; margin-top: 0; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">B2B Dealer Settings</h4>
+                        <div class="modal-grid-3" style="margin-bottom: 15px;">
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="font-weight: 600;">Default Wholesale Price (₹) *</label>
+                                <input type="number" id="prodFormWholesalePrice" class="form-control" min="0" placeholder="Default B2B Price" value="0">
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="font-weight: 600;">Silver Tier Price (₹)</label>
+                                <input type="number" id="prodFormWholesalePriceSilver" class="form-control" min="0" placeholder="Optional B2B Silver Price">
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="font-weight: 600;">Gold Tier Price (₹)</label>
+                                <input type="number" id="prodFormWholesalePriceGold" class="form-control" min="0" placeholder="Optional B2B Gold Price">
+                            </div>
+                        </div>
+                        <div class="modal-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="font-weight: 600;">Platinum Tier Price (₹)</label>
+                                <input type="number" id="prodFormWholesalePricePlatinum" class="form-control" min="0" placeholder="Optional B2B Platinum Price">
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="font-weight: 600;">Dealer Visibility Rules</label>
+                                <select id="prodFormDealerStatus" class="form-control">
+                                    <option value="visible">Visible to Dealers &amp; Customers</option>
+                                    <option value="dealer_only">Dealer Only (Hide from Customers)</option>
+                                    <option value="hidden">Hidden from Dealers (Customer Only)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 11px; margin-top: 10px; margin-bottom: 0; line-height: 1.4;">
+                            * Assign prices for different dealer tiers. If a tier price is left blank, it will automatically fall back to the default wholesale price.
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Short Description (Hover details) *</label>
+                        <input type="text" id="prodFormShortDesc" class="form-control" placeholder="Enter a single sentence overview" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Detailed Product Description *</label>
+                        <textarea id="prodFormDesc" class="form-control" rows="4" required></textarea>
+                    </div>
+
+                    <!-- Images Upload Grid -->
+                    <div class="form-group">
+                        <label class="form-label">Catalog Images (Provide URL or Upload below) *</label>
+                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px;">
+                            <div>
+                                <input type="text" id="prodFormImg1" class="form-control img-url-field" placeholder="Image 1 URL" required>
+                                <input type="file" class="form-control" style="margin-top:6px; font-size:12px;" onchange="uploadImage(this, 'prodFormImg1')">
+                            </div>
+                            <div>
+                                <input type="text" id="prodFormImg2" class="form-control img-url-field" placeholder="Image 2 URL">
+                                <input type="file" class="form-control" style="margin-top:6px; font-size:12px;" onchange="uploadImage(this, 'prodFormImg2')">
+                            </div>
+                            <div>
+                                <input type="text" id="prodFormImg3" class="form-control img-url-field" placeholder="Image 3 URL">
+                                <input type="file" class="form-control" style="margin-top:6px; font-size:12px;" onchange="uploadImage(this, 'prodFormImg3')">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Collection Flags -->
+                    <div class="form-group" style="display:flex; gap:20px; flex-wrap:wrap; background-color:var(--bg-warm); padding:16px; border-radius:8px; border:1px solid var(--border-color);">
+                        <label class="filter-checkbox-label">
+                            <input type="checkbox" id="prodFormFeat">
+                            <span>Featured (Best Sellers Grid)</span>
+                        </label>
+                        <label class="filter-checkbox-label">
+                            <input type="checkbox" id="prodFormNew">
+                            <span>New Arrival (Show badge)</span>
+                        </label>
+                        <label class="filter-checkbox-label">
+                            <input type="checkbox" id="prodFormBest">
+                            <span>Trending Items</span>
+                        </label>
+                        <label class="filter-checkbox-label">
+                            <input type="checkbox" id="prodFormPrem">
+                            <span>Signature Premium Collection</span>
+                        </label>
+                    </div>
+
+                    <!-- Specifications List (JSON table mapper) -->
+                    <div class="form-group">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <label class="form-label" style="margin-bottom:0;">Technical Specifications</label>
+                            <button type="button" class="btn btn-dark btn-sm" style="padding:6px 12px; font-size:12px;" onclick="addSpecRow()"><i data-lucide="plus"></i> Add Spec</button>
+                        </div>
+                        <div id="specsContainer" style="display:flex; flex-direction:column; gap:8px;">
+                            <!-- Dynamically loaded rows -->
+                        </div>
+                    </div>
+
+                    <!-- Highlights checklist -->
+                    <div class="form-group">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <label class="form-label" style="margin-bottom:0;">Product Highlights</label>
+                            <button type="button" class="btn btn-dark btn-sm" style="padding:6px 12px; font-size:12px;" onclick="addFeatureRow()"><i data-lucide="plus"></i> Add Highlight</button>
+                        </div>
+                        <div id="featuresContainer" style="display:flex; flex-direction:column; gap:8px;">
+                            <!-- Dynamically loaded rows -->
+                        </div>
+                    </div>
+
+                    <!-- Variants adjustments -->
+                    <div class="form-group">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <label class="form-label" style="margin-bottom:0;">Product Variants & Price adjustments</label>
+                            <button type="button" class="btn btn-dark btn-sm" style="padding:6px 12px; font-size:12px;" onclick="addVariantRow()"><i data-lucide="plus"></i> Add Variant</button>
+                        </div>
+                        <div id="variantsContainer" style="display:flex; flex-direction:column; gap:8px;">
+                            <!-- Dynamically loaded rows -->
+                        </div>
+                    </div>
+
+                    <div style="margin-top:30px; text-align:right;">
+                        <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Save Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- CATEGORY MODAL -->
+    <div class="admin-modal" id="catModal">
+        <div class="modal-card">
+            <div class="modal-card-header">
+                <h3 id="catModalTitle">Category Editor</h3>
+                <button class="modal-close-btn" onclick="closeCategoryModal()">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <form id="catForm">
+                    <input type="hidden" id="formCatId">
+                    <div class="form-group">
+                        <label class="form-label">Category Name *</label>
+                        <input type="text" id="catFormName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Image URL *</label>
+                        <input type="text" id="catFormImg" class="form-control" required>
+                        <input type="file" class="form-control" style="margin-top:6px;" onchange="uploadImage(this, 'catFormImg')">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="catFormDesc" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="modal-grid">
+                        <div class="form-group">
+                            <label class="form-label">Display Order</label>
+                            <input type="number" id="catFormOrder" class="form-control" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select id="catFormStatus" class="form-control">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top:24px; text-align:right;">
+                        <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBCATEGORY MODAL -->
+    <div class="admin-modal" id="subModal">
+        <div class="modal-card">
+            <div class="modal-card-header">
+                <h3 id="subModalTitle">Subcategory Editor</h3>
+                <button class="modal-close-btn" onclick="closeSubcategoryModal()">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <form id="subForm">
+                    <input type="hidden" id="formSubId">
+                    <div class="form-group">
+                        <label class="form-label">Parent Category Reference *</label>
+                        <select id="subFormCat" class="form-control" required>
+                            <option value="">Select Parent Category</option>
+                            {% for c in categories %}
+                            <option value="{{ c.id }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Subcategory Name *</label>
+                        <input type="text" id="subFormName" class="form-control" required>
+                    </div>
+                    <div class="modal-grid">
+                        <div class="form-group">
+                            <label class="form-label">Display Order</label>
+                            <input type="number" id="subFormOrder" class="form-control" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select id="subFormStatus" class="form-control">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top:24px; text-align:right;">
+                        <button type="button" class="btn btn-secondary" onclick="closeSubcategoryModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Subcategory</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- HERO BANNER MODAL -->
+    <div class="admin-modal" id="heroModal">
+        <div class="modal-card">
+            <div class="modal-card-header">
+                <h3 id="heroModalTitle">Hero Slide Editor</h3>
+                <button class="modal-close-btn" onclick="closeHeroModal()">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <form id="heroForm">
+                    <input type="hidden" id="formHeroId">
+                    <div class="form-group">
+                        <label class="form-label">Slide Title</label>
+                        <input type="text" id="heroFormTitle" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Slide Subtitle</label>
+                        <input type="text" id="heroFormSubtitle" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Slide Image *</label>
+                        <input type="hidden" id="heroFormImg" required>
+                        <div class="image-upload-preview-container">
+                            <img id="heroFormImgPreview" src="" style="width:100%; max-height:160px; object-fit:cover; border-radius:8px; margin-bottom:8px; border:1px solid var(--border-color); display:none;">
+                            <input type="file" class="form-control" onchange="uploadHeroImage(this)">
+                        </div>
+                    </div>
+                    <div class="modal-grid">
+                        <div class="form-group">
+                            <label class="form-label">Button CTA Text</label>
+                            <input type="text" id="heroFormBtnText" class="form-control" placeholder="e.g. Shop Now">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Button Target Link</label>
+                            <input type="text" id="heroFormBtnLink" class="form-control" placeholder="e.g. /products">
+                        </div>
+                    </div>
+                    <div class="modal-grid">
+                        <div class="form-group">
+                            <label class="form-label">Display Order</label>
+                            <input type="number" id="heroFormOrder" class="form-control" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            <select id="heroFormStatus" class="form-control">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top:24px; text-align:right;">
+                        <button type="button" class="btn btn-secondary" onclick="closeHeroModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Hero Slide</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- OFFER BANNER MODAL -->
+    <div class="admin-modal" id="offerModal">
+        <div class="modal-card">
+            <div class="modal-card-header">
+                <h3 id="offerModalTitle">Offer Banner Editor</h3>
+                <button class="modal-close-btn" onclick="closeOfferModal()">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <form id="offerForm">
+                    <input type="hidden" id="formOfferId">
+                    <div class="form-group">
+                        <label class="form-label">Offer Title *</label>
+                        <input type="text" id="offerFormTitle" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Offer Subtitle / Description</label>
+                        <input type="text" id="offerFormSubtitle" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Image URL *</label>
+                        <input type="text" id="offerFormImg" class="form-control" required>
+                        <input type="file" class="form-control" style="margin-top:6px;" onchange="uploadImage(this, 'offerFormImg')">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Countdown Ending Date &amp; Time *</label>
+                        <input type="datetime-local" id="offerFormEnding" class="form-control" required>
+                    </div>
+                    <div class="modal-grid">
+                        <div class="form-group">
+                            <label class="form-label">Button Text</label>
+                            <input type="text" id="offerFormBtnText" class="form-control" placeholder="e.g. Order Now">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Button Link</label>
+                            <input type="text" id="offerFormBtnLink" class="form-control" placeholder="e.g. /products">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select id="offerFormStatus" class="form-control">
+                            <option value="active">Active (Only first active is countdown-displayed)</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div style="margin-top:24px; text-align:right;">
+                        <button type="button" class="btn btn-secondary" onclick="closeOfferModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Offer Banner</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- TESTIMONIAL MODAL -->
+    <div class="admin-modal" id="testimonialModal">
+        <div class="modal-card">
+            <div class="modal-card-header">
+                <h3 id="testimonialModalTitle">Testimonial Editor</h3>
+                <button class="modal-close-btn" onclick="closeTestimonialModal()">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <form id="testimonialForm">
+                    <input type="hidden" id="formTestId">
+                    <div class="form-group">
+                        <label class="form-label">Customer Name *</label>
+                        <input type="text" id="testFormName" class="form-control" required>
+                    </div>
+                    <div class="modal-grid">
+                        <div class="form-group">
+                            <label class="form-label">City *</label>
+                            <input type="text" id="testFormCity" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Rating (1 to 5) *</label>
+                            <select id="testFormRating" class="form-control" required>
+                                <option value="5">5 Stars</option>
+                                <option value="4">4 Stars</option>
+                                <option value="3">3 Stars</option>
+                                <option value="2">2 Stars</option>
+                                <option value="1">1 Star</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Customer Avatar Photo URL</label>
+                        <input type="text" id="testFormPhoto" class="form-control">
+                        <input type="file" class="form-control" style="margin-top:6px;" onchange="uploadImage(this, 'testFormPhoto')">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Customer Review Text *</label>
+                        <textarea id="testFormReview" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select id="testFormStatus" class="form-control">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div style="margin-top:24px; text-align:right;">
+                        <button type="button" class="btn btn-secondary" onclick="closeTestimonialModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Testimonial</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIDEO TESTIMONIAL MODAL -->
+    <div class="admin-modal" id="videoModal">
+        <div class="modal-card">
+            <div class="modal-card-header">
+                <h3 id="videoModalTitle">Video Review Editor</h3>
+                <button class="modal-close-btn" onclick="closeVideoModal()">&times;</button>
+            </div>
+            <div class="modal-card-body">
+                <form id="videoForm">
+                    <input type="hidden" id="formVideoId">
+                    <div class="form-group">
+                        <label class="form-label">Customer Name *</label>
+                        <input type="text" id="videoFormName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Video Embed URL * (e.g. YouTube https://www.youtube.com/embed/...)</label>
+                        <input type="text" id="videoFormUrl" class="form-control" placeholder="https://www.youtube.com/embed/..." required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Thumbnail Image URL</label>
+                        <input type="text" id="videoFormThumb" class="form-control">
+                        <input type="file" class="form-control" style="margin-top:6px;" onchange="uploadImage(this, 'videoFormThumb')">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description / Review summary *</label>
+                        <textarea id="videoFormDesc" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Visibility</label>
+                        <select id="videoFormStatus" class="form-control">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div style="margin-top:24px; text-align:right;">
+                        <button type="button" class="btn btn-secondary" onclick="closeVideoModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Video</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subcategories global mapping lookup helper -->
+    <div id="subcatLookupData" style="display:none;">
+        {% for s in subcategories %}
+        <span data-id="{{ s.id }}" data-cat-id="{{ s.category_id }}" data-name="{{ s.name }}"></span>
+        {% endfor %}
+    </div>
+
+    <!-- Script loading -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/static/js/admin.js?v=2.1"></script>
+</body>
+</html>

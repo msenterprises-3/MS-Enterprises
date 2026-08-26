@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}{{ error_title or "Error" }} | MS Furniture Gallery{% endblock %}
+
+{% block content %}
+<section class="error-page-section" style="padding: 100px 0; background: var(--bg-warm); min-height: 75vh; display: flex; align-items: center; justify-content: center;">
+    <div class="container" style="max-width: 550px; text-align: center;">
+        <div class="error-card" style="background: #ffffff; border-radius: 12px; border: 1px solid var(--border-color); padding: 50px 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 4px solid var(--accent-color);">
+            <div class="error-icon-wrapper" style="margin-bottom: 25px;">
+                <span style="font-size: 50px;">⚠️</span>
+            </div>
+            
+            <h1 style="font-size: 28px; font-weight: 800; color: #111111; margin-bottom: 15px;">{{ error_title or "An Error Occurred" }}</h1>
+            
+            <p style="color: var(--text-muted); font-size: 15px; line-height: 1.6; margin-bottom: 35px;">
+                {{ error_message or "We've encountered an unexpected problem on our end. Please try reloading the page or return to our homepage." }}
+            </p>
+            
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <a href="/" class="btn btn-primary" style="background: var(--accent-color); border: none; color: #111111; font-weight: 700; padding: 12px 30px; display: inline-flex; align-items: center; gap: 8px;">
+                    Go to Homepage
+                </a>
+                <button onclick="window.history.back()" class="btn btn-secondary" style="border: 1px solid var(--border-color); background: transparent; color: #333333; font-weight: 600; padding: 12px 30px;">
+                    Go Back
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

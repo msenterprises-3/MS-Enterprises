@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Dealer Login | MS Enterprises B2B Portal{% endblock %}
+
+{% block content %}
+<section class="dealer-auth-section" style="padding: 80px 0; background: var(--bg-warm); min-height: 70vh; display: flex; align-items: center;">
+    <div class="container" style="max-width: 480px;">
+        <div class="auth-card" style="background: #ffffff; border-radius: 12px; border: 1px solid var(--border-color); padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center;">
+            <div class="auth-header" style="margin-bottom: 30px;">
+                <span style="font-size: 32px;">🏪</span>
+                <h2 style="font-size: 24px; font-weight: 700; color: #111111; margin-top: 10px; margin-bottom: 5px;">Dealer Portal</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Sign in to view exclusive wholesale catalog &amp; pricing</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }}" style="padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; text-align: left; line-height: 1.5; {% if category == 'error' or category == 'danger' %}background: #fdf2f2; color: #9b1c1c; border: 1px solid #f8b4b4;{% elif category == 'warning' %}background: #fffdf2; color: #b48b04; border: 1px solid #f8e5b4;{% else %}background: #f2fdf2; color: #1c9b1c; border: 1px solid #b4f8b4;{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('dealer_login') }}" method="POST" style="text-align: left; display: grid; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600; margin-bottom: 8px; display: block; font-size: 14px; color: #333333;">Business Email Address *</label>
+                    <input type="email" name="email" class="form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px;" placeholder="name@company.com" required>
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label class="form-label" style="font-weight: 600; display: block; font-size: 14px; color: #333333; margin: 0;">Password *</label>
+                    </div>
+                    <input type="password" name="password" class="form-control" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px;" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: 600; font-size: 15px; background: var(--accent-color); border: none; color: #ffffff; border-radius: 6px; cursor: pointer; transition: all 0.3s ease;">
+                    Sign In to Portal
+                </button>
+            </form>
+
+            <div class="auth-footer" style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px; font-size: 14px; color: var(--text-muted);">
+                Don't have a dealer account? 
+                <a href="{{ url_for('dealer_register') }}" style="color: var(--accent-color); font-weight: 600; text-decoration: none;">Register Business</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

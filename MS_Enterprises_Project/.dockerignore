@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.git/
+.gitignore
+.env
+.venv/
+venv/
+.idea/
+.vscode/
+*.log
+scratch/
+wincerts.pem

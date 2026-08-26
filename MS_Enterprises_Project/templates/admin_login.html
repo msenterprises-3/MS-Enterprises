@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Administrator Login | MS Furniture Gallery</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-color);
+            padding: 24px;
+            background-image: linear-gradient(135deg, rgba(0,0,0,0.85) 0%, rgba(20,20,20,0.9) 100%), url('/static/uploads/banners/hero_banner2.webp');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background-color: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(197, 160, 48, 0.2);
+            border-radius: var(--border-radius-lg);
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+
+        .login-header {
+            margin-bottom: 30px;
+        }
+
+        .login-logo {
+            font-family: var(--font-heading);
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .login-logo-sub {
+            font-family: var(--font-body);
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">MS Furniture Gallery</div>
+                <div class="login-logo-sub">Catalog Manager</div>
+            </div>
+
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 24px;">Please enter your credentials to access the administrative dashboard panel.</p>
+
+            <!-- Flash alerts -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for cat, msg in messages %}
+                    <div style="background-color:{% if cat == 'success' %}#E8F8F5{% else %}#FADBD8{% endif %}; border:1px solid {% if cat == 'success' %}#A2D9CE{% else %}#F5B7B1{% endif %}; color:{% if cat == 'success' %}#117A65{% else %}#78281F{% endif %}; padding:12px; border-radius:8px; margin-bottom:20px; font-size:13px; font-weight:600; text-align:left;">
+                        {{ msg }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="/admin/login" method="POST">
+                <div class="form-group" style="text-align: left;">
+                    <label class="form-label" style="font-size:11px;">Username</label>
+                    <input type="text" name="username" class="form-control" placeholder="Enter admin username" required autocomplete="username">
+                </div>
+
+                <div class="form-group" style="text-align: left; margin-bottom:28px;">
+                    <label class="form-label" style="font-size:11px;">Password</label>
+                    <input type="password" name="password" class="form-control" placeholder="Enter admin password" required autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="btn btn-dark" style="width: 100%; padding: 12px 20px; font-size:15px;">
+                    Log In Securely
+                </button>
+            </form>
+
+            <div style="margin-top:24px; border-top:1px solid var(--border-color); padding-top:20px;">
+                <a href="/" style="font-size:13px; color:var(--accent-color); font-weight:600; display:inline-flex; align-items:center; gap:6px;">
+                    ← Return to Catalogue Page
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

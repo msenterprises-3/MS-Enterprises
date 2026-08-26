@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - MS Furniture Gallery{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+        font-family: var(--font-body);
+    }
+    
+    .checkout-title {
+        font-family: var(--font-heading);
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 30px;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+    
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 40px;
+        align-items: start;
+    }
+    
+    @media (max-width: 992px) {
+        .checkout-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .checkout-card {
+        background: var(--bg-warm);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .checkout-card h3 {
+        font-family: var(--font-heading);
+        font-size: 20px;
+        color: var(--primary-color);
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    @media (max-width: 576px) {
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+    }
+    
+    .form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text-dark);
+        font-size: 14px;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: var(--font-body);
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--accent-color);
+    }
+    
+    .payment-notice-banner {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        color: #b45309;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        font-size: 14px;
+        line-height: 1.5;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .payment-notice-banner i {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    
+    .order-summary-item {
+        display: flex;
+        gap: 15px;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .order-summary-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+    }
+    
+    .order-summary-details {
+        flex: 1;
+    }
+    
+    .order-summary-name {
+        font-weight: 600;
+        font-size: 14px;
+        margin: 0 0 5px 0;
+        color: var(--text-dark);
+    }
+    
+    .order-summary-variant {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+    
+    .order-summary-pricing {
+        text-align: right;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+    
+    .summary-totals {
+        margin-top: 20px;
+        display: grid;
+        gap: 10px;
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 15px;
+        color: var(--text-muted);
+    }
+    
+    .summary-row.total {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--primary-color);
+        border-top: 2px solid var(--border-color);
+        padding-top: 15px;
+        margin-top: 10px;
+    }
+    
+    .btn-checkout-submit {
+        background: var(--accent-color);
+        color: #111111;
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 16px;
+        padding: 15px;
+        border: none;
+        border-radius: 6px;
+        width: 100%;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .btn-checkout-submit:hover {
+        opacity: 0.9;
+    }
+    
+    .btn-checkout-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .spinner {
+        border: 3px solid rgba(0,0,0,0.1);
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border-left-color: #111;
+        animation: spin 1s linear infinite;
+        display: none;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <h1 class="checkout-title">Complete Checkout</h1>
+    
+    <div class="payment-notice-banner">
+        <i data-lucide="info" style="width: 20px; height: 20px;"></i>
+        <div>
+            <strong>Important Notice:</strong> Payment is completed separately after order confirmation. This website is only used to place orders. No payment details or card details are requested on this website.
+        </div>
+    </div>
+    
+    <div class="checkout-grid">
+        <!-- Delivery Details Form -->
+        <div class="checkout-card">
+            <h3>Delivery Details</h3>
+            <form id="checkoutForm">
+                <div class="form-group">
+                    <label class="form-label" for="fullName">Full Name *</label>
+                    <input type="text" id="fullName" class="form-control" placeholder="Enter your full name" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="mobileNumber">Mobile Number *</label>
+                        <input type="tel" id="mobileNumber" class="form-control" placeholder="Enter 10-digit mobile" required pattern="[0-9]{10}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="email">Email Address (Optional)</label>
+                        <input type="email" id="email" class="form-control" placeholder="Enter email address">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="deliveryAddress">Complete Delivery Address *</label>
+                    <textarea id="deliveryAddress" class="form-control" rows="4" placeholder="Enter flat/house no., street address, landmark, city, state" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="pincode">PIN Code *</label>
+                    <input type="text" id="pincode" class="form-control" placeholder="6-digit PIN code" required pattern="[0-9]{6}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="orderNotes">Order Notes (Optional)</label>
+                    <textarea id="orderNotes" class="form-control" rows="3" placeholder="Special delivery instructions, timing, etc."></textarea>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Order Summary Box -->
+        <div class="checkout-card" style="align-self: start;">
+            <h3>Order Summary</h3>
+            <div id="summaryItemsContainer">
+                <!-- Loaded dynamically via JS -->
+            </div>
+            
+            <div class="summary-totals">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="summarySubtotal">₹0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery &amp; Shipping</span>
+                    <span style="color: var(--whatsapp-green); font-weight: 600;">FREE</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total Amount</span>
+                    <span id="summaryTotal">₹0</span>
+                </div>
+            </div>
+            
+            <button id="btnSubmitOrder" type="button" class="btn-checkout-submit">
+                <span class="spinner" id="submitSpinner"></span>
+                <span id="submitBtnText">Place Order</span>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const itemsContainer = document.getElementById("summaryItemsContainer");
+        const summarySubtotal = document.getElementById("summarySubtotal");
+        const summaryTotal = document.getElementById("summaryTotal");
+        const btnSubmit = document.getElementById("btnSubmitOrder");
+        const spinner = document.getElementById("submitSpinner");
+        const btnText = document.getElementById("submitBtnText");
+        
+        let cartItems = [];
+        let totalAmount = 0;
+        
+        // 0. Restore checkout form values from localStorage
+        const fields = ["fullName", "mobileNumber", "email", "deliveryAddress", "pincode", "orderNotes"];
+        fields.forEach(field => {
+            const input = document.getElementById(field);
+            if (input) {
+                const val = localStorage.getItem("checkout_" + field);
+                if (val !== null) input.value = val;
+                
+                input.addEventListener("input", function() {
+                    localStorage.setItem("checkout_" + field, input.value);
+                });
+            }
+        });
+        
+        // 1. Fetch Cart Items from API
+        fetch('/api/cart')
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success || data.items.length === 0) {
+                    alert("Your cart is empty. Redirecting to catalog.");
+                    window.location.href = "/";
+                    return;
+                }
+                
+                cartItems = data.items;
+                totalAmount = data.total_amount;
+                
+                // Render items
+                itemsContainer.innerHTML = "";
+                cartItems.forEach(item => {
+                    const price = item.offer_price || item.price;
+                    const subtotal = price * item.quantity;
+                    
+                    const div = document.createElement("div");
+                    div.className = "order-summary-item";
+                    div.innerHTML = `
+                        <img src="${item.image_url}" alt="${item.name}" class="order-summary-img">
+                        <div class="order-summary-details">
+                            <h4 class="order-summary-name">${item.name}</h4>
+                            <p class="order-summary-variant">Qty: ${item.quantity} ${item.variant_id ? ' | Size: ' + item.variant_id : ''}</p>
+                        </div>
+                        <div class="order-summary-pricing">
+                            ₹${subtotal.toLocaleString('en-IN')}
+                            <div style="font-size: 11px; color: var(--text-muted); font-weight: normal; margin-top: 2px;">
+                                ₹${price.toLocaleString('en-IN')} each
+                            </div>
+                        </div>
+                    `;
+                    itemsContainer.appendChild(div);
+                });
+                
+                summarySubtotal.innerText = "₹" + totalAmount.toLocaleString('en-IN');
+                summaryTotal.innerText = "₹" + totalAmount.toLocaleString('en-IN');
+            })
+            .catch(err => {
+                console.error("Error loading cart for checkout summary:", err);
+                alert("Failed to load cart. Please try again.");
+                window.location.href = "/cart";
+            });
+            
+        // 2. Form submission trigger
+        btnSubmit.addEventListener("click", function() {
+            const form = document.getElementById("checkoutForm");
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Collect form details
+            const orderPayload = {
+                fullName: document.getElementById("fullName").value.trim(),
+                mobileNumber: document.getElementById("mobileNumber").value.trim(),
+                email: document.getElementById("email").value.trim(),
+                deliveryAddress: document.getElementById("deliveryAddress").value.trim(),
+                pincode: document.getElementById("pincode").value.trim(),
+                orderNotes: document.getElementById("orderNotes").value.trim()
+            };
+            
+            // Set loading state
+            btnSubmit.disabled = true;
+            spinner.style.display = "inline-block";
+            btnText.innerText = "Processing...";
+            
+            fetch('/api/order/place', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderPayload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear saved checkout form values from localStorage
+                    fields.forEach(field => {
+                        localStorage.removeItem("checkout_" + field);
+                    });
+                    
+                    // Clear client-side cart badges
+                    if (window.mseCart && typeof window.mseCart.sync === 'function') {
+                        window.mseCart.sync();
+                    }
+                    // Redirect to order confirmation page
+                    window.location.href = "/order-confirmation?id=" + encodeURIComponent(data.order_id);
+                } else {
+                    alert("Failed to place order: " + data.message);
+                    btnSubmit.disabled = false;
+                    spinner.style.display = "none";
+                    btnText.innerText = "Place Order";
+                }
+            })
+            .catch(err => {
+                console.error("AJAX checkout order submission failed:", err);
+                alert("An error occurred. Please check your connection and try again.");
+                btnSubmit.disabled = false;
+                spinner.style.display = "none";
+                btnText.innerText = "Place Order";
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container section-padding" style="padding-top: 30px;">
+    <div class="section-title-wrapper" style="text-align: left; margin-bottom: 30px;">
+        <span class="section-subtitle">Your Selection</span>
+        <h1 class="section-title">Shopping Cart</h1>
+    </div>
+
+    <!-- Empty State -->
+    <div id="cartEmptyState" class="cart-empty-state">
+        <i data-lucide="shopping-cart" style="width: 60px; height: 60px; color: var(--accent-color); margin-bottom: 20px;"></i>
+        <h3>Your Shopping Cart is Empty</h3>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">Explore our catalog, select premium pieces, and add them to your cart to request a direct quote.</p>
+        <a href="/products" class="btn btn-dark">Browse Products</a>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="cartLoading" style="text-align: center; padding: 40px; display: none;">
+        <div class="spinner" style="border: 4px solid rgba(0,0,0,0.1); width: 40px; height: 40px; border-radius: 50%; border-left-color: var(--accent-color); animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+        <p style="color: var(--text-muted);">Loading cart items...</p>
+    </div>
+
+    <!-- Cart Layout -->
+    <div id="cartLayout" class="cart-layout" style="display: none;">
+        <!-- Left: Table of Items -->
+        <div class="cart-table-card">
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Product Details</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th style="width: 40px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="cartTableBody">
+                    <!-- Dynamically Injected -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Right: Summary Panel -->
+        <div class="cart-summary-card">
+            <h3 class="summary-title">Order Summary</h3>
+            <div class="summary-row">
+                <span>Unique Items</span>
+                <span id="summaryItemCount">0</span>
+            </div>
+            <div class="summary-row">
+                <span>Total Quantity</span>
+                <span id="summaryTotalQty">0</span>
+            </div>
+            <div class="summary-row">
+                <span>Est. Shipping & Assembly</span>
+                <span style="color: var(--whatsapp-green); font-weight: 600;">FREE</span>
+            </div>
+            
+            <div class="summary-row total">
+                <span>Estimated Total</span>
+                <span id="summaryTotalAmount">₹0</span>
+            </div>
+
+            <!-- Minimum order notice -->
+            <div id="minOrderWarning" style="display: none; background-color: rgba(231,76,60,0.05); border: 1px solid rgba(231,76,60,0.2); color: #E74C3C; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 20px;">
+                <i data-lucide="alert-circle" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;display:inline-block;"></i>
+                Minimum order value for direct catalog checkout is <strong>₹<span id="minOrderLimit">0</span></strong>. Please add more items.
+            </div>
+
+            <a href="/checkout" id="orderCartCheckoutBtn" class="btn btn-primary" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 15px; padding: 14px 20px; background: var(--accent-color); color: #111111; font-weight: 700; text-decoration: none; border-radius: 6px;">
+                <i data-lucide="shopping-bag"></i> Proceed to Checkout
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const emptyState = document.getElementById("cartEmptyState");
+        const loadingEl = document.getElementById("cartLoading");
+        const layoutEl = document.getElementById("cartLayout");
+        const tableBody = document.getElementById("cartTableBody");
+        const checkoutBtn = document.getElementById("orderCartCheckoutBtn");
+        
+        const summaryItemCount = document.getElementById("summaryItemCount");
+        const summaryTotalQty = document.getElementById("summaryTotalQty");
+        const summaryTotalAmount = document.getElementById("summaryTotalAmount");
+        
+        const minOrderWarning = document.getElementById("minOrderWarning");
+        const minOrderLimitSpan = document.getElementById("minOrderLimit");
+
+        const whatsappNumber = "{{ settings.whatsapp_number|replace(' ', '')|replace('+', '') }}";
+        const whatsappPrefix = "{{ settings.whatsapp_cart_prefix|urlencode }}";
+        const minOrderLimit = parseFloat("{{ settings.cart_min_value or 0.0 }}");
+
+        let loadedProducts = [];
+        let quantitiesMap = {};
+
+        function renderCart() {
+            emptyState.style.display = "none";
+            loadingEl.style.display = "block";
+            layoutEl.style.display = "none";
+
+            fetch('/api/cart')
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success || data.items.length === 0) {
+                        emptyState.style.display = "block";
+                        loadingEl.style.display = "none";
+                        layoutEl.style.display = "none";
+                        return;
+                    }
+
+                    quantitiesMap = {};
+                    const itemIds = [];
+                    data.items.forEach(item => {
+                        quantitiesMap[String(item.product_id)] = item.quantity;
+                        itemIds.push(String(item.product_id));
+                    });
+
+                    fetch("/api/products/batch", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ ids: itemIds })
+                    })
+                    .then(res => res.json())
+                    .then(products => {
+                        loadedProducts = products;
+                        loadingEl.style.display = "none";
+
+                        if (products.length === 0) {
+                            emptyState.style.display = "block";
+                            return;
+                        }
+
+                        updateCartUI();
+                    })
+                    .catch(err => {
+                        console.error("Cart products load error:", err);
+                        loadingEl.style.display = "none";
+                        emptyState.style.display = "block";
+                    });
+                })
+                .catch(err => {
+                    console.error("Cart api load error:", err);
+                    loadingEl.style.display = "none";
+                    emptyState.style.display = "block";
+                });
+        }
+
+        function updateCartUI() {
+            tableBody.innerHTML = "";
+            let uniqueItems = 0;
+            let totalQty = 0;
+            let totalAmount = 0;
+
+            loadedProducts.forEach(prod => {
+                const qty = quantitiesMap[String(prod.id)] || 0;
+                if (qty <= 0) return;
+
+                uniqueItems++;
+                totalQty += qty;
+                
+                const unitPrice = prod.offer_price || prod.price;
+                const rowTotal = unitPrice * qty;
+                totalAmount += rowTotal;
+
+                const tr = document.createElement("tr");
+                tr.dataset.id = prod.id;
+
+                tr.innerHTML = `
+                    <td>
+                        <div class="cart-item-detail">
+                            <img src="${prod.image_url}" alt="${prod.name}" class="cart-item-img">
+                            <div class="cart-item-info">
+                                <h4><a href="/product/${prod.slug}">${prod.name}</a></h4>
+                                <p>Category: ${prod.category_name} | SKU: ${prod.sku}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight:600;">₹${unitPrice.toLocaleString('en-IN')}</div>
+                    </td>
+                    <td>
+                        <div class="cart-qty-controller">
+                            <button class="cart-qty-btn qty-minus" data-id="${prod.id}">-</button>
+                            <span class="cart-qty-val">${qty}</span>
+                            <button class="cart-qty-btn qty-plus" data-id="${prod.id}">+</button>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="cart-item-total">₹${rowTotal.toLocaleString('en-IN')}</span>
+                    </td>
+                    <td>
+                        <button class="cart-item-remove" data-id="${prod.id}" aria-label="Remove Item">
+                            <i data-lucide="trash-2" style="width:18px;height:18px;"></i>
+                        </button>
+                    </td>
+                `;
+
+                tableBody.appendChild(tr);
+            });
+
+            summaryItemCount.innerText = uniqueItems;
+            summaryTotalQty.innerText = totalQty;
+            summaryTotalAmount.innerText = `₹${totalAmount.toLocaleString('en-IN')}`;
+
+            // Check Minimum Order Limit
+            if (minOrderLimit > 0 && totalAmount < minOrderLimit) {
+                minOrderLimitSpan.innerText = minOrderLimit.toLocaleString('en-IN');
+                minOrderWarning.style.display = "block";
+                checkoutBtn.removeAttribute("href");
+                checkoutBtn.style.opacity = "0.5";
+                checkoutBtn.style.cursor = "not-allowed";
+            } else {
+                minOrderWarning.style.display = "none";
+                checkoutBtn.setAttribute("href", "/checkout");
+                checkoutBtn.style.opacity = "1";
+                checkoutBtn.style.cursor = "pointer";
+            }
+
+            if (uniqueItems === 0) {
+                emptyState.style.display = "block";
+                layoutEl.style.display = "none";
+            } else {
+                layoutEl.style.display = "grid";
+            }
+
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        // Qty and removal click listeners
+        tableBody.addEventListener("click", function (e) {
+            const btnMinus = e.target.closest(".qty-minus");
+            const btnPlus = e.target.closest(".qty-plus");
+            const btnRemove = e.target.closest(".cart-item-remove");
+
+            if (btnMinus) {
+                const id = String(btnMinus.dataset.id);
+                const currentQty = quantitiesMap[id] || 0;
+                if (currentQty > 1) {
+                    window.mseCart.updateQty(id, currentQty - 1);
+                    quantitiesMap[id] = currentQty - 1;
+                } else {
+                    window.mseCart.remove(id);
+                    delete quantitiesMap[id];
+                    loadedProducts = loadedProducts.filter(p => String(p.id) !== id);
+                }
+                updateCartUI();
+            }
+
+            if (btnPlus) {
+                const id = String(btnPlus.dataset.id);
+                const currentQty = quantitiesMap[id] || 0;
+                window.mseCart.updateQty(id, currentQty + 1);
+                quantitiesMap[id] = currentQty + 1;
+                updateCartUI();
+            }
+
+            if (btnRemove) {
+                const id = String(btnRemove.dataset.id);
+                window.mseCart.remove(id);
+                delete quantitiesMap[id];
+                loadedProducts = loadedProducts.filter(p => String(p.id) !== id);
+                updateCartUI();
+            }
+        });
+
+
+
+        renderCart();
+        window.addEventListener('cartUpdated', renderCart);
+    });
+</script>
+{% endblock %}

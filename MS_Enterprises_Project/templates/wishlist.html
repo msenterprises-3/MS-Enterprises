@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container section-padding" style="padding-top: 30px;">
+    <div class="section-title-wrapper" style="text-align: left; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <span class="section-subtitle">Your Saved Items</span>
+            <h1 class="section-title">My Wishlist</h1>
+        </div>
+        <button id="addAllToCartBtn" class="btn btn-primary" style="display: none; align-items: center; gap: 8px; background: var(--accent-color); color: #111111; font-weight: 700; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer;">
+            <i data-lucide="shopping-cart"></i> Add All to Cart
+        </button>
+    </div>
+
+    <!-- Empty State -->
+    <div id="wishlistEmptyState" class="wishlist-empty-state">
+        <i data-lucide="heart" style="width: 60px; height: 60px; color: var(--accent-color); margin-bottom: 20px;"></i>
+        <h3>Your Wishlist is Empty</h3>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">Explore our premium collections and add your favourite furniture pieces to your wishlist.</p>
+        <a href="/products" class="btn btn-dark">Browse Products</a>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="wishlistLoading" style="text-align: center; padding: 40px; display: none;">
+        <div class="spinner" style="border: 4px solid rgba(0,0,0,0.1); width: 40px; height: 40px; border-radius: 50%; border-left-color: var(--accent-color); animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+        <p style="color: var(--text-muted);">Loading your wishlist items...</p>
+    </div>
+
+    <!-- Wishlist Products Grid -->
+    <div id="wishlistGrid" class="products-grid" style="display: none;">
+        <!-- Dynamically injected via JS -->
+    </div>
+</div>
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const emptyState = document.getElementById("wishlistEmptyState");
+        const loadingEl = document.getElementById("wishlistLoading");
+        const gridEl = document.getElementById("wishlistGrid");
+        const addAllBtn = document.getElementById("addAllToCartBtn");
+
+        let loadedProducts = [];
+
+        function renderWishlist() {
+            emptyState.style.display = "none";
+            loadingEl.style.display = "block";
+            gridEl.style.display = "none";
+            addAllBtn.style.display = "none";
+
+            fetch('/api/wishlist')
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success || data.items.length === 0) {
+                        emptyState.style.display = "block";
+                        loadingEl.style.display = "none";
+                        gridEl.style.display = "none";
+                        addAllBtn.style.display = "none";
+                        return;
+                    }
+
+                    const wishlistIds = data.items.map(item => String(item.product_id));
+
+                    fetch("/api/products/batch", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ ids: wishlistIds })
+                    })
+                    .then(res => res.json())
+                    .then(products => {
+                        loadedProducts = products;
+                        loadingEl.style.display = "none";
+                        
+                        if (products.length === 0) {
+                            emptyState.style.display = "block";
+                            return;
+                        }
+
+                        gridEl.innerHTML = "";
+                        products.forEach(prod => {
+                            const card = document.createElement("div");
+                            card.className = "product-card";
+                            card.dataset.id = prod.id;
+
+                            const priceCurrent = prod.offer_price || prod.price;
+                            const priceOriginalHtml = prod.offer_price 
+                                ? `<span class="price-original">₹${prod.price.toLocaleString('en-IN')}</span>` 
+                                : "";
+
+                            let discountHtml = "";
+                            if (prod.offer_price) {
+                                const pct = Math.round((prod.price - prod.offer_price) / prod.price * 100);
+                                if (pct > 0) {
+                                    discountHtml = `<span class="badge badge-offer">${pct}% OFF</span>`;
+                                }
+                            }
+
+                            // Rating calculation
+                            const rating = (prod.avg_rating || 4.5).toFixed(1);
+                            const ratingCount = prod.reviews_count || 12;
+
+                            const isCartEnabled = {{ 'true' if settings.cart_enabled else 'false' }};
+                            const actionBtnHtml = isCartEnabled
+                                ? `<button class="btn btn-dark btn-sm add-to-cart-btn" data-id="${prod.id}" style="flex: 1;">
+                                     <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
+                                   </button>
+                                   <a href="/product/${prod.slug}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>`
+                                : `<a href="/product/${prod.slug}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>`;
+
+                            card.innerHTML = `
+                                <button class="wishlist-toggle-btn active" data-id="${prod.id}" aria-label="Remove from Wishlist">
+                                    <i data-lucide="heart" fill="currentColor" style="width: 18px; height: 18px; color: rgb(231, 76, 60);"></i>
+                                </button>
+                                <div class="product-badge-container">
+                                    ${discountHtml}
+                                    ${prod.is_new_arrival ? '<span class="badge badge-new">New</span>' : ''}
+                                </div>
+                                <a href="/product/${prod.slug}" class="product-card-img-wrapper">
+                                    <img src="${prod.image_url}" alt="${prod.name}" loading="lazy">
+                                </a>
+                                <div class="product-card-body">
+                                    <span class="product-card-category">${prod.category_name}</span>
+                                    <h3 class="product-card-title"><a href="/product/${prod.slug}">${prod.name}</a></h3>
+                                    <div class="product-card-rating">
+                                        <span class="rating-stars">★ ${rating}</span>
+                                        <span class="rating-count">(${ratingCount})</span>
+                                    </div>
+                                    <p class="product-card-description">${prod.short_description || ''}</p>
+                                    <div class="product-card-pricing">
+                                        <span class="price-current">₹${priceCurrent.toLocaleString('en-IN', {maximumFractionDigits:0})}</span>
+                                        ${priceOriginalHtml}
+                                    </div>
+                                    <div class="product-card-actions">
+                                        ${actionBtnHtml}
+                                    </div>
+                                </div>
+                            `;
+
+                            gridEl.appendChild(card);
+                        });
+
+                        if (typeof lucide !== 'undefined') {
+                            lucide.createIcons();
+                        }
+
+                        gridEl.style.display = "grid";
+                        addAllBtn.style.display = "inline-flex";
+                    })
+                    .catch(err => {
+                        console.error("Batch load error:", err);
+                        loadingEl.style.display = "none";
+                        emptyState.style.display = "block";
+                    });
+                })
+                .catch(err => {
+                    console.error("Wishlist api load error:", err);
+                    loadingEl.style.display = "none";
+                    emptyState.style.display = "block";
+                });
+        }
+
+        // Intercept remove click to update view immediately
+        document.body.addEventListener("click", function(e) {
+            const btn = e.target.closest(".wishlist-toggle-btn");
+            if (btn && document.getElementById("wishlistGrid").contains(btn)) {
+                e.preventDefault();
+                const id = String(btn.dataset.id);
+                window.mseWishlist.toggle(id);
+                const card = btn.closest(".product-card");
+                if (card) {
+                    card.remove();
+                }
+                const activeCards = gridEl.querySelectorAll(".product-card");
+                if (activeCards.length === 0) {
+                    emptyState.style.display = "block";
+                    gridEl.style.display = "none";
+                    addAllBtn.style.display = "none";
+                }
+            }
+        });
+
+        // Add all items in wishlist to cart
+        addAllBtn.addEventListener("click", function() {
+            if (loadedProducts.length === 0) return;
+            
+            loadedProducts.forEach(prod => {
+                window.mseCart.add(prod.id, 1);
+            });
+            
+            alert("All wishlist products added to your cart!");
+        });
+
+        renderWishlist();
+        window.addEventListener('wishlistUpdated', renderWishlist);
+    });
+</script>
+{% endblock %}

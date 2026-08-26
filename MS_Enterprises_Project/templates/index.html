@@ -1,0 +1,898 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero & Video Spotlight Row -->
+<div class="hero-spotlight-row">
+    <!-- Hero Section Banner Slider (60% width on desktop) -->
+    <section class="hero-section">
+        <div class="slider-container" id="heroSlider">
+            {% for banner in hero_banners %}
+            <div class="slide {% if loop.first %}active{% endif %}" style="background-image: url('{{ banner.image_url }}');">
+                <div class="slide-inner-content">
+                    <div class="slide-content">
+                        <h1 class="slide-title">{{ banner.title }}</h1>
+                        <p class="slide-subtitle">{{ banner.subtitle }}</p>
+                        <a href="{{ banner.link_url }}" class="btn btn-primary">
+                            {{ banner.link_text }}
+                            <i data-lucide="arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Navigation Arrows -->
+            <button type="button" class="slider-arrow prev" id="sliderPrevBtn" aria-label="Previous Slide">
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <button type="button" class="slider-arrow next" id="sliderNextBtn" aria-label="Next Slide">
+                <i data-lucide="chevron-right"></i>
+            </button>
+
+            <!-- Pagination Dots -->
+            <div class="slider-dots" id="sliderDots">
+                {% for banner in hero_banners %}
+                <span class="dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></span>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Customer Review Video Carousel (22% width on desktop) -->
+    {% if videos %}
+    <div class="hero-video-card">
+        <div class="hero-video-header">
+            <div class="header-icon-title">
+                <i data-lucide="play-circle" class="spotlight-play-icon"></i>
+                <span class="spotlight-badge">Customer Spotlight</span>
+            </div>
+            <span class="live-indicator"><span class="live-dot"></span> Videos</span>
+        </div>
+        
+        <div class="video-slider-container" id="videoSlider">
+            {% for vid in videos %}
+            <div class="video-slide {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}">
+                <div class="hero-video-wrapper">
+                    {% if vid.video_url == 'demo' %}
+                        <a href="/contact" class="play-btn-circle" title="Contact Us">
+                            <i data-lucide="info" style="width:24px;height:24px;color:white;"></i>
+                        </a>
+                    {% else %}
+                    <iframe src="{{ vid.video_url }}" title="Customer Video Review" allowfullscreen loading="lazy"></iframe>
+                    {% endif %}
+                </div>
+                <div class="hero-video-footer">
+                    <div class="hero-video-stars">
+                        <i data-lucide="star" fill="currentColor"></i>
+                        <i data-lucide="star" fill="currentColor"></i>
+                        <i data-lucide="star" fill="currentColor"></i>
+                        <i data-lucide="star" fill="currentColor"></i>
+                        <i data-lucide="star" fill="currentColor"></i>
+                    </div>
+                    <h3 class="hero-video-client">{{ vid.customer_name }}</h3>
+                    <p class="hero-video-feedback">"{{ vid.review_text }}"</p>
+                    
+                    {% if 'instagram.com' in vid.video_url %}
+                    {% set original_url = vid.video_url|replace('/embed/', '')|replace('/embed', '') %}
+                    <a href="{{ original_url }}" target="_blank" class="video-instagram-btn">
+                        <i data-lucide="instagram"></i>
+                        <span>Watch on Instagram</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- Video Navigation Arrows -->
+            <button type="button" class="video-arrow prev" id="videoPrevBtn" aria-label="Previous Video">
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <button type="button" class="video-arrow next" id="videoNextBtn" aria-label="Next Video">
+                <i data-lucide="chevron-right"></i>
+            </button>
+            
+            <!-- Video Pagination Dots -->
+            <div class="video-dots" id="videoDots">
+                {% for vid in videos %}
+                <span class="video-dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Trust Icons Section -->
+<section class="trust-section">
+    <div class="container">
+        <div class="trust-grid">
+            {% for badge in trust_badges %}
+            <div class="trust-card">
+                <div class="trust-icon">
+                    <i data-lucide="{{ badge.icon_svg }}"></i>
+                </div>
+                <h3 class="trust-title">{{ badge.title }}</h3>
+                <p class="trust-desc">{{ badge.description }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Popular Categories Section -->
+<section class="section-padding">
+    <div class="container">
+        <div class="section-title-wrapper">
+            <span class="section-subtitle">Premium Categories</span>
+            <h2 class="section-title">Shop by Room & Style</h2>
+        </div>
+
+        <div class="categories-grid">
+            {% for cat in categories %}
+            <a href="/products?category={{ cat.slug }}" class="category-card">
+                <div class="category-img-wrapper">
+                    <img src="{{ cat.image_url }}" alt="{{ cat.name }}" loading="lazy">
+                </div>
+                <h3 class="category-name">{{ cat.name }}</h3>
+                <span class="category-count">{{ cat.product_count }} Products</span>
+            </a>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 50px;">
+            <a href="/products" class="btn btn-dark">
+                Explore Complete Catalogue
+                <i data-lucide="arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Spotlight Section (Large cards) -->
+<section class="section-padding" style="background-color: #F5F2EB; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+    <div class="container">
+        <div class="section-title-wrapper">
+            <span class="section-subtitle">Exquisite Spotlights</span>
+            <h2 class="section-title">Design Highlights</h2>
+        </div>
+
+        <div class="spotlight-grid">
+            <div class="spotlight-card large" style="background-image: url('https://hpgjdqiixpgiznaonmhi.supabase.co/storage/v1/object/public/products/highlights/spot_sofa_c36100.jpg');">
+                <div class="spotlight-card-content">
+                    <span class="spotlight-category">Living Space</span>
+                    <h3 class="spotlight-title">Premium Chesterfield & L-Shape Sofas</h3>
+                    <a href="/products?category=sofas" class="spotlight-link">
+                        Explore Collection <i data-lucide="chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="spotlight-card" style="background-image: url('https://hpgjdqiixpgiznaonmhi.supabase.co/storage/v1/object/public/products/highlights/spot_dining_b6ca89.jpg');">
+                <div class="spotlight-card-content">
+                    <span class="spotlight-category">Dining Luxury</span>
+                    <h3 class="spotlight-title">Italian Marble Dining Tables</h3>
+                    <a href="/products?category=dining-sets" class="spotlight-link">
+                        Explore Collection <i data-lucide="chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="spotlight-card" style="background-image: url('https://hpgjdqiixpgiznaonmhi.supabase.co/storage/v1/object/public/products/highlights/spot_bed_684e89.jpg');">
+                <div class="spotlight-card-content">
+                    <span class="spotlight-category">Rest & Sleep</span>
+                    <h3 class="spotlight-title">Hydraulic Storage Beds</h3>
+                    <a href="/products?category=beds" class="spotlight-link">
+                        Explore Collection <i data-lucide="chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="spotlight-card" style="background-image: url('https://hpgjdqiixpgiznaonmhi.supabase.co/storage/v1/object/public/products/highlights/spot_office_e6cd05.jpg');">
+                <div class="spotlight-card-content">
+                    <span class="spotlight-category">Executive Desk</span>
+                    <h3 class="spotlight-title">Ergonomic Office Desks & Chairs</h3>
+                    <a href="/products?category=office-furniture" class="spotlight-link">
+                        Explore Collection <i data-lucide="chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="spotlight-card" style="background-image: url('https://hpgjdqiixpgiznaonmhi.supabase.co/storage/v1/object/public/products/highlights/spot_decor_cf9e44.jpg');">
+                <div class="spotlight-card-content">
+                    <span class="spotlight-category">Home Accents</span>
+                    <h3 class="spotlight-title">Vases, Sculptures & Floor Lamps</h3>
+                    <a href="/products?category=decor-lighting" class="spotlight-link">
+                        Explore Collection <i data-lucide="chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Offer Section with Countdown Timer -->
+{% if active_offer %}
+<section class="promo-banner-section" id="offers">
+    <div class="container promo-banner-container">
+        <div class="promo-content">
+            <span class="promo-subtitle">Limited Time Catalog Deals</span>
+            <div class="promo-title-row">
+                <div class="promo-mobile-left">
+                    <h2 class="promo-title">{{ active_offer.title }}</h2>
+                    
+                    <!-- Countdown Timer -->
+                    {% if settings.countdown_enabled %}
+                    <div class="countdown-container" id="countdownTimer" data-endtime="{{ settings.countdown_end_date or active_offer.ending_date }}">
+                        <div class="countdown-box" id="daysBox">
+                            <span class="countdown-number" id="days">00</span>
+                            <span class="countdown-label">Days</span>
+                        </div>
+                        <span class="countdown-colon" id="daysColon">:</span>
+                        <div class="countdown-box">
+                            <span class="countdown-number" id="hours">00</span>
+                            <span class="countdown-label">Hours</span>
+                        </div>
+                        <span class="countdown-colon">:</span>
+                        <div class="countdown-box">
+                            <span class="countdown-number" id="minutes">00</span>
+                            <span class="countdown-label">Mins</span>
+                        </div>
+                        <span class="countdown-colon">:</span>
+                        <div class="countdown-box">
+                            <span class="countdown-number" id="seconds">00</span>
+                            <span class="countdown-label">Secs</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <a href="{{ active_offer.button_link }}" class="btn btn-primary">
+                    {{ active_offer.button_text }}
+                    <i data-lucide="arrow-right"></i>
+                </a>
+            </div>
+            
+            <p class="promo-desc">{{ active_offer.subtitle }}</p>
+        </div>
+        <div class="promo-image">
+            <img src="{{ active_offer.image_url }}" alt="Promo Offer" loading="lazy">
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Collections (Tabbed) -->
+<section class="section-padding">
+    <div class="container">
+        <div class="section-title-wrapper">
+            <span class="section-subtitle">Exquisite Curation</span>
+            <h2 class="section-title">Featured Collections</h2>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="tab-featured">Best Sellers</button>
+            <button class="tab-btn" data-tab="tab-new">New Arrivals</button>
+            <button class="tab-btn" data-tab="tab-best">Trending Products</button>
+            <button class="tab-btn" data-tab="tab-premium">Premium Collection</button>
+        </div>
+
+        <!-- Tab Contents -->
+        <!-- Tab 1: Featured -->
+        <div class="tab-content active" id="tab-featured">
+            <div class="products-grid">
+                {% for prod in featured %}
+                <div class="product-card">
+                    <!-- Wishlist Heart Overlay -->
+                    {% if settings.wishlist_enabled %}
+                    <button class="wishlist-toggle-btn" data-id="{{ prod.id }}" aria-label="Add to Wishlist">
+                        <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
+                    </button>
+                    {% endif %}
+
+                    <!-- Badges -->
+                    <div class="product-badge-container">
+                        {% if prod.offer_price %}
+                            {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
+                            {% if discount_pct > 0 %}
+                            <span class="badge badge-offer">{{ discount_pct }}% OFF</span>
+                            {% endif %}
+                        {% elif prod.offer_badge %}
+                            <span class="badge badge-offer">{{ prod.offer_badge }}</span>
+                        {% endif %}
+                        {% if prod.is_new_arrival %}
+                        <span class="badge badge-new">New</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Image -->
+                    <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
+                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy">
+                    </a>
+
+                    <!-- Details body -->
+                    <div class="product-card-body">
+                        <span class="product-card-category">{{ prod.category_name }}</span>
+                        <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
+                        
+                        <!-- Ratings indicator line -->
+                        <div class="product-card-rating">
+                            <span class="rating-stars">★ {{ "{:.1f}".format(((prod.id | int(12)) % 7) / 10 + 4.3) }}</span>
+                            <span class="rating-count">({{ ((prod.id | int(12)) * 13) % 40 + 8 }})</span>
+                        </div>
+                        
+                        <p class="product-card-description">{{ prod.short_description }}</p>
+                        
+                        <div class="product-card-pricing">
+                            <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
+                            {% if prod.offer_price %}
+                            <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Card Action Buttons -->
+                        <div class="product-card-actions" style="display: flex; gap: 8px;">
+                            {% if settings.cart_enabled %}
+                            <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="flex: 1;">
+                                <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
+                            </button>
+                            <a href="/product/{{ prod.slug }}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>
+                            {% else %}
+                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Tab 2: New Arrivals -->
+        <div class="tab-content" id="tab-new">
+            <div class="products-grid">
+                {% for prod in new_arrivals %}
+                <div class="product-card">
+                    <!-- Wishlist Heart Overlay -->
+                    {% if settings.wishlist_enabled %}
+                    <button class="wishlist-toggle-btn" data-id="{{ prod.id }}" aria-label="Add to Wishlist">
+                        <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
+                    </button>
+                    {% endif %}
+
+                    <!-- Badges -->
+                    <div class="product-badge-container">
+                        {% if prod.offer_price %}
+                            {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
+                            {% if discount_pct > 0 %}
+                            <span class="badge badge-offer">{{ discount_pct }}% OFF</span>
+                            {% endif %}
+                        {% elif prod.offer_badge %}
+                            <span class="badge badge-offer">{{ prod.offer_badge }}</span>
+                        {% endif %}
+                        <span class="badge badge-new">New</span>
+                    </div>
+
+                    <!-- Image -->
+                    <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
+                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy">
+                    </a>
+
+                    <!-- Details body -->
+                    <div class="product-card-body">
+                        <span class="product-card-category">{{ prod.category_name }}</span>
+                        <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
+                        
+                        <!-- Ratings indicator line -->
+                        <div class="product-card-rating">
+                            <span class="rating-stars">★ {{ "{:.1f}".format(((prod.id | int(12)) % 7) / 10 + 4.3) }}</span>
+                            <span class="rating-count">({{ ((prod.id | int(12)) * 13) % 40 + 8 }})</span>
+                        </div>
+                        
+                        <p class="product-card-description">{{ prod.short_description }}</p>
+                        
+                        <div class="product-card-pricing">
+                            <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
+                            {% if prod.offer_price %}
+                            <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Card Action Buttons -->
+                        <div class="product-card-actions" style="display: flex; gap: 8px;">
+                            {% if settings.cart_enabled %}
+                            <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="flex: 1;">
+                                <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
+                            </button>
+                            <a href="/product/{{ prod.slug }}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>
+                            {% else %}
+                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Tab 3: Best Sellers -->
+        <div class="tab-content" id="tab-best">
+            <div class="products-grid">
+                {% for prod in best_sellers %}
+                <div class="product-card">
+                    <!-- Wishlist Heart Overlay -->
+                    {% if settings.wishlist_enabled %}
+                    <button class="wishlist-toggle-btn" data-id="{{ prod.id }}" aria-label="Add to Wishlist">
+                        <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
+                    </button>
+                    {% endif %}
+
+                    <!-- Badges -->
+                    <div class="product-badge-container">
+                        {% if prod.offer_price %}
+                            {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
+                            {% if discount_pct > 0 %}
+                            <span class="badge badge-offer">{{ discount_pct }}% OFF</span>
+                            {% endif %}
+                        {% elif prod.offer_badge %}
+                            <span class="badge badge-offer">{{ prod.offer_badge }}</span>
+                        {% endif %}
+                        <span class="badge badge-featured">Best Seller</span>
+                    </div>
+
+                    <!-- Image -->
+                    <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
+                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy">
+                    </a>
+
+                    <!-- Details body -->
+                    <div class="product-card-body">
+                        <span class="product-card-category">{{ prod.category_name }}</span>
+                        <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
+                        
+                        <!-- Ratings indicator line -->
+                        <div class="product-card-rating">
+                            <span class="rating-stars">★ {{ "{:.1f}".format(((prod.id | int(12)) % 7) / 10 + 4.3) }}</span>
+                            <span class="rating-count">({{ ((prod.id | int(12)) * 13) % 40 + 8 }})</span>
+                        </div>
+                        
+                        <p class="product-card-description">{{ prod.short_description }}</p>
+                        
+                        <div class="product-card-pricing">
+                            <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
+                            {% if prod.offer_price %}
+                            <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Card Action Buttons -->
+                        <div class="product-card-actions" style="display: flex; gap: 8px;">
+                            {% if settings.cart_enabled %}
+                            <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="flex: 1;">
+                                <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
+                            </button>
+                            <a href="/product/{{ prod.slug }}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>
+                            {% else %}
+                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Tab 4: Premium -->
+        <div class="tab-content" id="tab-premium">
+            <div class="products-grid">
+                {% for prod in premium %}
+                <div class="product-card">
+                    <!-- Wishlist Heart Overlay -->
+                    {% if settings.wishlist_enabled %}
+                    <button class="wishlist-toggle-btn" data-id="{{ prod.id }}" aria-label="Add to Wishlist">
+                        <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
+                    </button>
+                    {% endif %}
+
+                    <!-- Badges -->
+                    <div class="product-badge-container">
+                        {% if prod.offer_price %}
+                            {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
+                            {% if discount_pct > 0 %}
+                            <span class="badge badge-offer">{{ discount_pct }}% OFF</span>
+                            {% endif %}
+                        {% elif prod.offer_badge %}
+                            <span class="badge badge-offer">{{ prod.offer_badge }}</span>
+                        {% endif %}
+                        <span class="badge badge-featured" style="background-color:var(--accent-color); color:var(--primary-color);">Signature</span>
+                    </div>
+
+                    <!-- Image -->
+                    <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
+                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy">
+                    </a>
+
+                    <!-- Details body -->
+                    <div class="product-card-body">
+                        <span class="product-card-category">{{ prod.category_name }}</span>
+                        <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
+                        
+                        <!-- Ratings indicator line -->
+                        <div class="product-card-rating">
+                            <span class="rating-stars">★ {{ "{:.1f}".format(((prod.id | int(12)) % 7) / 10 + 4.3) }}</span>
+                            <span class="rating-count">({{ ((prod.id | int(12)) * 13) % 40 + 8 }})</span>
+                        </div>
+                        
+                        <p class="product-card-description">{{ prod.short_description }}</p>
+                        
+                        <div class="product-card-pricing">
+                            <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
+                            {% if prod.offer_price %}
+                            <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Card Action Buttons -->
+                        <div class="product-card-actions" style="display: flex; gap: 8px;">
+                            {% if settings.cart_enabled %}
+                            <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="flex: 1;">
+                                <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
+                            </button>
+                            <a href="/product/{{ prod.slug }}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>
+                            {% else %}
+                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recently Viewed Products Section (Dynamic render) -->
+<section class="section-padding Recently-viewed-section" id="recentlyViewedSection" style="display:none; border-top: 1px solid var(--border-color); background-color: var(--bg-white);">
+    <div class="container">
+        <div class="section-title-wrapper">
+            <span class="section-subtitle">Your Browsing History</span>
+            <h2 class="section-title">Recently Viewed</h2>
+        </div>
+        <div class="products-grid" id="recentlyViewedGrid">
+            <!-- Loaded and rendered by JavaScript -->
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="section-padding testimonials-section" id="testimonials" style="border-top:1px solid var(--border-color); border-bottom: 1px solid var(--border-color); background-color: var(--bg-warm);">
+    <div class="container">
+        <div class="section-title-wrapper">
+            <span class="section-subtitle">Customer Voices</span>
+            <h2 class="section-title">What Our Customers Say</h2>
+        </div>
+
+        <div class="testimonials-grid">
+            {% for t in testimonials %}
+            <div class="testimonial-card">
+                <div>
+                    <div class="testimonial-rating">
+                        {% for i in range(t.rating) %}
+                        <i data-lucide="star" fill="currentColor"></i>
+                        {% endfor %}
+                    </div>
+                    <p class="testimonial-review">
+                        "{{ t.review }}"
+                    </p>
+                </div>
+                <div class="testimonial-profile">
+                    {% if t.customer_photo and t.customer_photo.strip() %}
+                    <img src="{{ t.customer_photo }}" alt="{{ t.customer_name }}" class="testimonial-avatar" loading="lazy" onerror="this.onerror=null; this.src='/static/uploads/testimonials/avatar_default.svg';">
+                    {% else %}
+                    <img src="/static/uploads/testimonials/avatar_default.svg" alt="{{ t.customer_name }}" class="testimonial-avatar" loading="lazy">
+                    {% endif %}
+                    <div class="testimonial-info">
+                        <h4 class="testimonial-name">{{ t.customer_name }}</h4>
+                        <span class="testimonial-city">{{ t.city }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Write a Review Button & Form -->
+        <div style="text-align: center; margin-top: 40px;">
+            <button class="btn btn-primary" onclick="openTestimonialForm()">Write a Customer Review</button>
+        </div>
+
+        <div id="testimonialFormContainer" class="admin-panel-card" style="display: none; max-width: 600px; margin: 30px auto 0 auto; padding: 25px; background: var(--bg-white); border-radius: 12px; box-shadow: var(--box-shadow); border: 1px solid var(--border-color);">
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--primary-color);">Submit Your Review</h3>
+            <form id="testimonialSubmitForm" onsubmit="submitTestimonialReview(event)">
+                <div class="form-group" style="margin-bottom: 15px; text-align: left;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--primary-color);">Your Name *</label>
+                    <input type="text" id="tFormName" class="form-control" placeholder="Enter your full name" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                </div>
+                <div class="form-group" style="margin-bottom: 15px; text-align: left;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--primary-color);">Your City *</label>
+                    <input type="text" id="tFormCity" class="form-control" placeholder="e.g. Rajampet" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                </div>
+                <div class="form-group" style="margin-bottom: 15px; text-align: left;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--primary-color);">Rating (1 to 5 Stars) *</label>
+                    <select id="tFormRating" class="form-control" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <option value="5">5 Stars</option>
+                        <option value="4">4 Stars</option>
+                        <option value="3">3 Stars</option>
+                        <option value="2">2 Stars</option>
+                        <option value="1">1 Star</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px; text-align: left;">
+                    <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--primary-color);">Your Review / Experience *</label>
+                    <textarea id="tFormReviewText" class="form-control" rows="4" placeholder="Share your experience with MS Furniture Gallery..." required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeTestimonialForm()" style="padding: 10px 20px;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">Submit Review</button>
+                </div>
+            </form>
+            <div id="tFormStatus" style="margin-top: 15px; font-weight: 600; text-align: center; display: none;"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Video Testimonials Section -->
+<section class="section-padding" id="videos" style="background-color: #F5F2EB; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+    <div class="container">
+        <div class="section-title-wrapper">
+            <span class="section-subtitle">Real Showcases</span>
+            <h2 class="section-title">Happy Customer Videos</h2>
+        </div>
+
+        <div class="video-track">
+            {% for vid in videos %}
+            <div class="video-card">
+                <div class="video-wrapper">
+                    <iframe src="{{ vid.video_url }}" title="Customer Video Review" allowfullscreen loading="lazy"></iframe>
+                </div>
+                <div class="video-card-body">
+                    <h3 class="video-customer-name">{{ vid.customer_name }}</h3>
+                    <p class="video-desc">{{ vid.review_text }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    function setupSliders() {
+        // --- 1. HERO BANNER SLIDER ---
+        const heroSlider = document.getElementById('heroSlider');
+        if (heroSlider && !heroSlider.dataset.initialized) {
+            heroSlider.dataset.initialized = "true";
+            const slides = Array.from(heroSlider.querySelectorAll('.slide'));
+            const dots = Array.from(heroSlider.querySelectorAll('.dot'));
+            const prevBtn = document.getElementById('sliderPrevBtn');
+            const nextBtn = document.getElementById('sliderNextBtn');
+            let currentSlide = 0;
+            let bannerTimer = null;
+
+            function goToSlide(idx) {
+                if (!slides.length) return;
+                if (idx >= slides.length) currentSlide = 0;
+                else if (idx < 0) currentSlide = slides.length - 1;
+                else currentSlide = idx;
+
+                slides.forEach((s, i) => {
+                    if (i === currentSlide) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+
+                dots.forEach((d, i) => {
+                    if (i === currentSlide) {
+                        d.classList.add('active');
+                    } else {
+                        d.classList.remove('active');
+                    }
+                });
+            }
+
+            function startBannerTimer() {
+                stopBannerTimer();
+                bannerTimer = setInterval(function() {
+                    goToSlide(currentSlide + 1);
+                }, 5000);
+            }
+
+            function stopBannerTimer() {
+                if (bannerTimer) {
+                    clearInterval(bannerTimer);
+                    bannerTimer = null;
+                }
+            }
+
+            if (prevBtn) {
+                prevBtn.onclick = function(e) {
+                    if (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    stopBannerTimer();
+                    goToSlide(currentSlide - 1);
+                    startBannerTimer();
+                };
+            }
+
+            if (nextBtn) {
+                nextBtn.onclick = function(e) {
+                    if (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    stopBannerTimer();
+                    goToSlide(currentSlide + 1);
+                    startBannerTimer();
+                };
+            }
+
+            dots.forEach((dot, i) => {
+                dot.onclick = function(e) {
+                    if (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    stopBannerTimer();
+                    goToSlide(i);
+                    startBannerTimer();
+                };
+            });
+
+            heroSlider.addEventListener('mouseenter', stopBannerTimer);
+            heroSlider.addEventListener('mouseleave', startBannerTimer);
+
+            // Touch swipe support
+            let touchX = 0;
+            heroSlider.addEventListener('touchstart', function(e) {
+                touchX = e.changedTouches[0].clientX;
+            }, { passive: true });
+            heroSlider.addEventListener('touchend', function(e) {
+                const diff = e.changedTouches[0].clientX - touchX;
+                if (diff < -40) {
+                    if (nextBtn) nextBtn.click();
+                } else if (diff > 40) {
+                    if (prevBtn) prevBtn.click();
+                }
+            }, { passive: true });
+
+            startBannerTimer();
+        }
+
+        // --- 2. CUSTOMER SPOTLIGHT VIDEO SLIDER ---
+        const videoSlider = document.getElementById('videoSlider');
+        if (videoSlider && !videoSlider.dataset.initialized) {
+            videoSlider.dataset.initialized = "true";
+            const vSlides = Array.from(videoSlider.querySelectorAll('.video-slide'));
+            const vDots = Array.from(videoSlider.querySelectorAll('.video-dot'));
+            const vPrevBtn = document.getElementById('videoPrevBtn');
+            const vNextBtn = document.getElementById('videoNextBtn');
+            let currentVSlide = 0;
+            let videoTimer = null;
+
+            function goToVSlide(idx) {
+                if (!vSlides.length) return;
+                if (idx >= vSlides.length) currentVSlide = 0;
+                else if (idx < 0) currentVSlide = vSlides.length - 1;
+                else currentVSlide = idx;
+
+                vSlides.forEach((s, i) => {
+                    if (i === currentVSlide) {
+                        s.classList.add('active');
+                    } else {
+                        s.classList.remove('active');
+                    }
+                });
+
+                vDots.forEach((d, i) => {
+                    if (i === currentVSlide) {
+                        d.classList.add('active');
+                    } else {
+                        d.classList.remove('active');
+                    }
+                });
+            }
+
+            function startVideoTimer() {
+                stopVideoTimer();
+                videoTimer = setInterval(function() {
+                    goToVSlide(currentVSlide + 1);
+                }, 6000);
+            }
+
+            function stopVideoTimer() {
+                if (videoTimer) {
+                    clearInterval(videoTimer);
+                    videoTimer = null;
+                }
+            }
+
+            if (vPrevBtn) {
+                vPrevBtn.onclick = function(e) {
+                    if (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    stopVideoTimer();
+                    goToVSlide(currentVSlide - 1);
+                    startVideoTimer();
+                };
+            }
+
+            if (vNextBtn) {
+                vNextBtn.onclick = function(e) {
+                    if (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    stopVideoTimer();
+                    goToVSlide(currentVSlide + 1);
+                    startVideoTimer();
+                };
+            }
+
+            vDots.forEach((dot, i) => {
+                dot.onclick = function(e) {
+                    if (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    stopVideoTimer();
+                    goToVSlide(i);
+                    startVideoTimer();
+                };
+            });
+
+            videoSlider.addEventListener('mouseenter', stopVideoTimer);
+            videoSlider.addEventListener('mouseleave', startVideoTimer);
+
+            // Touch swipe support
+            let vTouchX = 0;
+            videoSlider.addEventListener('touchstart', function(e) {
+                vTouchX = e.changedTouches[0].clientX;
+            }, { passive: true });
+            videoSlider.addEventListener('touchend', function(e) {
+                const diff = e.changedTouches[0].clientX - vTouchX;
+                if (diff < -40) {
+                    if (vNextBtn) vNextBtn.click();
+                } else if (diff > 40) {
+                    if (vPrevBtn) vPrevBtn.click();
+                }
+            }, { passive: true });
+
+            // Pause if user clicks inside iframe
+            window.addEventListener('blur', function() {
+                setTimeout(function() {
+                    const activeEl = document.activeElement;
+                    if (activeEl && activeEl.tagName === 'IFRAME' && activeEl.closest('#videoSlider')) {
+                        stopVideoTimer();
+                    }
+                }, 100);
+            });
+
+            startVideoTimer();
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupSliders);
+    } else {
+        setupSliders();
+    }
+    window.addEventListener('load', setupSliders);
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Terms and Condition | MS Furniture Gallery{% endblock %}
+
+{% block content %}
+<section class="section-padding" style="background-color: var(--bg-warm);">
+    <div class="container" style="max-width: 900px; margin: 40px auto;">
+        <div class="admin-panel-card" style="padding: 40px 50px; background: var(--bg-white); border-radius: 16px; box-shadow: var(--box-shadow); border: 1px solid var(--border-color); line-height: 1.8; color: var(--primary-color);">
+            
+            <div style="text-align: center; margin-bottom: 40px; border-bottom: 1px solid var(--border-color); padding-bottom: 25px;">
+                <span class="section-subtitle">Legal Agreements</span>
+                <h1 style="font-size: 28px; font-weight: 800; color: var(--primary-color); margin-top: 8px;">Terms and Conditions</h1>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">Last Updated: July 2026</p>
+            </div>
+
+            <div style="font-size: 15px;">
+                <p>Welcome to <strong>MS Furniture Gallery</strong> (originally established in 2016). By accessing our website, browsing our product catalogue, or initiating purchases (via WhatsApp integration), you agree to comply with and be bound by the following terms and conditions.</p>
+
+                <h3 style="font-size: 18px; font-weight: 700; margin-top: 30px; margin-bottom: 12px; border-left: 3px solid var(--accent-color); padding-left: 10px;">1. Ownership & Catalogue Use</h3>
+                <p>This website and all its original contents (including descriptions, custom styled components, images, designs, and metadata) are the sole property of MS Furniture Gallery. You may browse and use the catalogue for personal, non-commercial shopping purposes only. Any unauthorized duplication or hotlinking is strictly prohibited.</p>
+
+                <h3 style="font-size: 18px; font-weight: 700; margin-top: 30px; margin-bottom: 12px; border-left: 3px solid var(--accent-color); padding-left: 10px;">2. Order Coordination via WhatsApp</h3>
+                <p>MS Furniture Gallery utilizes an innovative order checkout protocol that directly integrates with WhatsApp. When you click "Order via WhatsApp" or submit a cart, a customized text string is generated with your selected items, options, and pricing adjustments. Final price validation, delivery timelines, shipping fees (if applicable), and invoice settlement are executed directly through direct communication with our sales representatives on WhatsApp.</p>
+
+                <h3 style="font-size: 18px; font-weight: 700; margin-top: 30px; margin-bottom: 12px; border-left: 3px solid var(--accent-color); padding-left: 10px;">3. Product Specifications & Customization</h3>
+                <p>We make every effort to display the colors, wood grain patterns, materials, and specifications of our furniture catalogue accurately. However, because wood is a natural material and display screens vary, minor differences may occur. Custom dimensions, fabrics, or wood selections (e.g. Premium Teak Wood) must be explicitly finalized and agreed upon during the WhatsApp coordination process.</p>
+
+                <h3 style="font-size: 18px; font-weight: 700; margin-top: 30px; margin-bottom: 12px; border-left: 3px solid var(--accent-color); padding-left: 10px;">4. Pricing and Errors</h3>
+                <p>While we strive to ensure all pricing (original catalog prices, offer prices, and variant price adjustments) are accurate, database synchronization errors may occur. In the event of a pricing error, MS Furniture Gallery reserves the right to cancel or adjust pending inquiries before shipping, communicating the correction directly via phone or WhatsApp.</p>
+
+                <h3 style="font-size: 18px; font-weight: 700; margin-top: 30px; margin-bottom: 12px; border-left: 3px solid var(--accent-color); padding-left: 10px;">5. Contact Information</h3>
+                <p>For any queries regarding these Terms and Conditions, please contact us at:</p>
+                <ul style="list-style-type: none; padding-left: 0; margin-top: 10px;">
+                    <li><strong>Showroom Address:</strong> {{ settings.contact_address }}</li>
+                    <li><strong>Primary Phone:</strong> +91 96766 67998</li>
+                    <li><strong>Secondary Phone:</strong> +91 90326 11016</li>
+                    <li><strong>Email Address:</strong> {{ settings.contact_email }}</li>
+                </ul>
+            </div>
+            
+        </div>
+    </div>
+</section>
+{% endblock %}

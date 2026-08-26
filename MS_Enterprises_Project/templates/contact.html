@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us | MS Furniture Gallery{% endblock %}
+
+{% block content %}
+<div class="container section-padding">
+    <div class="section-title-wrapper" style="text-align: left; margin-bottom: 50px;">
+        <span class="section-subtitle">Get in Touch</span>
+        <h1 class="section-title">Contact MS Furniture Gallery</h1>
+    </div>
+
+    <!-- Contact Layout Grid -->
+    <div class="contact-layout">
+        <!-- Left: Contact info panel -->
+        <div class="contact-info-panel" style="display:flex; flex-direction:column; gap:40px;">
+            <div class="contact-info-card">
+                <h2 class="contact-info-title">Headquarters Info</h2>
+                
+                <div class="contact-item">
+                    <div class="contact-item-icon"><i data-lucide="map-pin"></i></div>
+                    <div>
+                        <h4 class="contact-item-title">1st Branch (Main Showroom)</h4>
+                        <p class="contact-item-value">
+                            <a href="https://maps.google.com/?q=ms+enterprises+Main+Rd+beside+TSR+function+hall+Mannuru+Rajampet+Andhra+Pradesh+516126+India" target="_blank" style="color:inherit; text-decoration:none; transition: color 0.3s;" onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='inherit'">
+                                {{ settings.contact_address }}
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-item-icon"><i data-lucide="building-2"></i></div>
+                    <div>
+                        <h4 class="contact-item-title">2nd Branch (Newly Opened)</h4>
+                        <p class="contact-item-value">
+                            <a href="https://maps.google.com/?q=GLB+Plaza+Main+Road+Rajampet+Kadapa+Dist" target="_blank" style="color:inherit; text-decoration:none; transition: color 0.3s;" onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='inherit'">
+                                1st Floor, GLB Plaza, Main Road, Rajampet, Kadapa Dist.
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-item-icon"><i data-lucide="phone"></i></div>
+                    <div>
+                        <h4 class="contact-item-title">Call / WhatsApp</h4>
+                        <p class="contact-item-value">{{ settings.whatsapp_number }} / +91 90326 11016</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-item-icon"><i data-lucide="mail"></i></div>
+                    <div>
+                        <h4 class="contact-item-title">Email Inquiries</h4>
+                        <p class="contact-item-value">{{ settings.contact_email }}</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-item-icon"><i data-lucide="clock"></i></div>
+                    <div>
+                        <h4 class="contact-item-title">Working Hours</h4>
+                        <p class="contact-item-value">{{ settings.working_hours }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Direct chat prompt box -->
+            <div style="background-color:var(--bg-white); border:1px solid var(--border-color); padding:30px; border-radius:var(--border-radius); box-shadow:var(--box-shadow); text-align:center;">
+                <i data-lucide="message-square" style="width:48px;height:48px; color:var(--whatsapp-green); margin-bottom:15px;"></i>
+                <h3 style="font-size:18px; font-weight:700; margin-bottom:8px;">Instant Catalog Assistance</h3>
+                <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Skip writing forms and message our sales representative directly on WhatsApp for instant replies, customization options, and freight details.</p>
+                <a href="https://wa.me/{{ settings.whatsapp_number|replace(' ', '')|replace('+', '') }}?text=Hello%20MS%20Furniture%20Gallery" target="_blank" class="btn btn-whatsapp" style="width:100%;">
+                    <i data-lucide="message-circle"></i> Chat Now
+                </a>
+            </div>
+        </div>
+
+        <!-- Right: Map and Contact Form -->
+        <div>
+            <!-- Messages flash wrapper -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for cat, msg in messages %}
+                    <div style="background-color:{% if cat == 'success' %}#E8F8F5{% else %}#FADBD8{% endif %}; border:1px solid {% if cat == 'success' %}#A2D9CE{% else %}#F5B7B1{% endif %}; color:{% if cat == 'success' %}#117A65{% else %}#78281F{% endif %}; padding:15px; border-radius:8px; margin-bottom:20px; font-size:14px; font-weight:600;">
+                        {{ msg }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="review-form" style="margin-top:0;">
+                <h2 style="font-size:22px; font-weight:700; margin-bottom:20px;">Send Us an Inquiry Message</h2>
+                <form action="/contact" method="POST">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="Enter your full name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" class="form-control" placeholder="Enter your email address" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" name="phone" class="form-control" placeholder="Enter your mobile number" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Product Name / Inquiry Details</label>
+                        <textarea name="message" class="form-control" rows="5" placeholder="Write details about what product or configuration you are inquiring about..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width:100%;">Submit Inquiry</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Map Container -->
+    {% if settings.google_map_link %}
+    <div class="map-container">
+        <iframe src="{{ settings.google_map_link }}" allowfullscreen loading="lazy" aria-label="Google Map Showroom Location"></iframe>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const contactForm = document.querySelector('.review-form form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = this.querySelector('[name="name"]').value.trim();
+            const email = this.querySelector('[name="email"]').value.trim();
+            const phone = this.querySelector('[name="phone"]').value.trim();
+            const details = this.querySelector('[name="message"]').value.trim();
+            
+            const whatsappNumber = "{{ settings.whatsapp_number }}".replace(/[^0-9]/g, "");
+            
+            const messageText = `Hello MS Furniture Gallery,\n\nI would like to submit an inquiry:\n\n*Name*: ${name}\n*Email*: ${email}\n*Phone*: ${phone}\n*Inquiry Details*: ${details}`;
+            
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(messageText)}`;
+            
+            // Open WhatsApp chat in a new tab
+            window.open(whatsappUrl, '_blank');
+            
+            // Reset form fields
+            this.reset();
+        });
+    }
+});
+</script>
+{% endblock %}

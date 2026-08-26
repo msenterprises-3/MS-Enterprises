@@ -1,0 +1,433 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container section-padding">
+    <!-- Breadcrumbs -->
+    <div style="font-size:14px; margin-bottom:30px; color:var(--text-muted); display:flex; gap:8px; align-items:center;">
+        <a href="/">Home</a>
+        <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+        <a href="/products">Products</a>
+        <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+        <a href="/products?category={{ product.category_slug }}">{{ product.category_name }}</a>
+        <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+        <span style="color:var(--primary-color); font-weight:600;">{{ product.name }}</span>
+    </div>
+
+    <!-- Product Layout Core -->
+    <div class="product-details-container">
+        <!-- Left: Image Gallery & Zoom -->
+        <div class="gallery-layout">
+            <div class="main-image-wrapper" id="zoomContainer">
+                <img src="{{ product.images[0] }}" alt="{{ product.name }}" id="mainProductImg" class="zoomable-image">
+                <!-- Magnify lens overlay -->
+                <div class="zoom-lens" id="zoomLens"></div>
+            </div>
+
+            <!-- Thumbnail strip -->
+            {% if product.images|length > 1 %}
+            <div class="thumbnail-strip">
+                {% for img in product.images %}
+                <button class="thumbnail-btn {% if loop.first %}active{% endif %}" onclick="changeMainImage('{{ img }}', this)">
+                    <img src="{{ img }}" alt="Product thumbnail" loading="lazy">
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right: Info Panel & Actions -->
+        <div class="product-info-panel">
+            <div class="product-badge-details">
+                {% if product.offer_badge %}
+                <span class="badge badge-offer" style="font-size:11px; padding:6px 12px;">{{ product.offer_badge }}</span>
+                {% endif %}
+                {% if product.is_new_arrival %}
+                <span class="badge badge-new" style="font-size:11px; padding:6px 12px; margin-left:6px;">New</span>
+                {% endif %}
+                {% if product.is_premium %}
+                <span class="badge badge-featured" style="font-size:11px; padding:6px 12px; margin-left:6px; background-color:var(--accent-color); color:var(--primary-color);">Signature</span>
+                {% endif %}
+            </div>
+
+            <h1 class="details-title">{{ product.name }}</h1>
+            <span style="font-size:13px; color:var(--text-muted); font-weight:600; margin-bottom:12px; display:block;">SKU: {{ product.sku }}</span>
+
+            <!-- Rating summary -->
+            <div class="details-rating">
+                <div class="stars-rating">
+                    {% set rating_floor = product.avg_rating|int %}
+                    {% for i in range(5) %}
+                        {% if i < rating_floor %}
+                        <i data-lucide="star" fill="currentColor" style="width:16px;height:16px;"></i>
+                        {% else %}
+                        <i data-lucide="star" style="width:16px;height:16px;"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <span class="rating-text">({{ product.avg_rating }} / 5.0 based on {{ product.reviews_count }} reviews)</span>
+            </div>
+
+            <!-- Pricing -->
+            <div class="details-pricing">
+                {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
+                <span class="details-price-current" style="font-size: 16px; color: #b45309; font-weight: 600;">Login to view wholesale pricing.</span>
+                {% elif session.get('dealer_logged_in') %}
+                <span class="details-price-current" id="dynamicPrice">₹{{ "{:,.0f}".format(product.wholesale_price) }}</span>
+                <span style="font-size: 14px; color: var(--accent-color); font-weight: 700; margin-left: 8px;">(Wholesale Price)</span>
+                {% else %}
+                <span class="details-price-current" id="dynamicPrice">₹{{ "{:,.0f}".format(product.offer_price or product.price) }}</span>
+                {% if product.offer_price %}
+                <span class="details-price-original">₹{{ "{:,.0f}".format(product.price) }}</span>
+                {% endif %}
+                {% endif %}
+            </div>
+
+            <!-- Short Description -->
+            <p class="details-short-desc">{{ product.short_description }}</p>
+
+            <!-- Variants selector -->
+            {% if product.variants %}
+            <div class="variants-box-container">
+                {% for v_name, v_opts in product.variants.items() %}
+                <div class="variant-selector">
+                    <h3 class="variant-title">Choose {{ v_name }}</h3>
+                    <div class="variant-options">
+                        {% for opt in v_opts %}
+                        <label class="variant-radio-label">
+                            <input type="radio" name="variant_{{ v_name }}" value="{{ opt.value }}" data-adjust="{{ opt.price_adjustment }}" {% if loop.first %}checked{% endif %} onchange="updateVariantPrice()">
+                            <div class="variant-box">
+                                {{ opt.value }}
+                                {% if opt.price_adjustment > 0 %}
+                                 (+₹{{ "{:,.0f}".format(opt.price_adjustment) }})
+                                {% endif %}
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Order Trigger Buttons (Add to Cart / Buy Now) -->
+            <div class="details-actions" style="display: grid; gap: 15px; grid-template-columns: 1fr 1fr; width: 100%;">
+                {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
+                <a href="/dealer/login" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; grid-column: span 2; text-align: center; justify-content: center; display: flex; align-items: center;">
+                    <i data-lucide="lock" style="width:20px; height:20px; margin-right: 8px;"></i> Login to Order B2B Wholesale
+                </a>
+                {% else %}
+                <button onclick="handleAddToCartClick()" class="btn btn-dark" style="padding: 16px 20px; font-size:16px; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer;">
+                    <i data-lucide="shopping-cart"></i> Add to Cart
+                </button>
+                <button onclick="handleBuyNowClick()" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer;">
+                    <i data-lucide="shopping-bag"></i> Buy Now
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- Share Buttons -->
+            <div style="display:flex; align-items:center; gap:15px; border-top:1px solid var(--border-color); padding-top:20px;">
+                <span style="font-size:13px; font-weight:700; text-transform:uppercase; color:var(--text-muted);">Share Product:</span>
+                <div style="display:flex; gap:10px;">
+                    <a href="https://facebook.com/sharer/sharer.php?u={{ request.url|urlencode }}" target="_blank" class="social-btn" style="width:34px;height:34px; display: flex; align-items: center; justify-content: center;" aria-label="Share on Facebook"><i data-lucide="facebook" style="width:14px;height:14px;"></i></a>
+                    <button onclick="copyProductLink()" class="social-btn" style="width:34px;height:34px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); background: transparent; cursor: pointer; border-radius: 50%;" aria-label="Copy Link"><i data-lucide="copy" style="width:14px;height:14px;"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Specs & Reviews tabs -->
+    <div class="details-tabs">
+        <div class="details-tab-nav">
+            <button class="details-tab-btn active" onclick="switchDetailsTab(event, 'tab-description')">Description</button>
+            <button class="details-tab-btn" onclick="switchDetailsTab(event, 'tab-specifications')">Specifications</button>
+            <button class="details-tab-btn" onclick="switchDetailsTab(event, 'tab-features')">Highlights</button>
+            <button class="details-tab-btn" onclick="switchDetailsTab(event, 'tab-reviews')">Reviews ({{ product.reviews_count }})</button>
+        </div>
+
+        <!-- Description -->
+        <div class="details-tab-content active" id="tab-description">
+            <div style="font-size:15px; line-height:1.7; color:var(--text-muted);">
+                <p>{{ product.description }}</p>
+            </div>
+        </div>
+
+        <!-- Specifications -->
+        <div class="details-tab-content" id="tab-specifications">
+            {% if product.specs_dict %}
+            <table class="spec-table">
+                <tbody>
+                    {% for key, val in product.specs_dict.items() %}
+                    <tr>
+                        <th>{{ key }}</th>
+                        <td>{{ val }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="color:var(--text-muted);">No specifications available for this product.</p>
+            {% endif %}
+        </div>
+
+        <!-- Highlights -->
+        <div class="details-tab-content" id="tab-features">
+            {% if product.features_list %}
+            <div class="features-list">
+                {% for feat in product.features_list %}
+                <div class="feature-item">
+                    <i data-lucide="check-circle-2"></i>
+                    <span>{{ feat }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color:var(--text-muted);">No key highlights available for this product.</p>
+            {% endif %}
+        </div>
+
+        <!-- Reviews Box -->
+        <div class="details-tab-content" id="tab-reviews">
+            <div class="reviews-box">
+                <div class="customer-reviews-list">
+                    {% if reviews %}
+                        {% for r in reviews %}
+                        <div class="review-item">
+                            <div class="review-header">
+                                <h4 class="reviewer-name">{{ r.reviewer_name }}</h4>
+                                <span class="review-date">{{ r.created_at[:10] }}</span>
+                            </div>
+                            <div class="testimonial-rating" style="justify-content:flex-start; margin-bottom:8px;">
+                                {% for i in range(5) %}
+                                    {% if i < r.rating %}
+                                    <i data-lucide="star" fill="currentColor" style="width:14px;height:14px;"></i>
+                                    {% else %}
+                                    <i data-lucide="star" style="width:14px;height:14px;"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="review-text">"{{ r.review_text }}"</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <p style="color:var(--text-muted); font-style:italic;">No customer reviews yet. Be the first to leave a review!</p>
+                    {% endif %}
+                </div>
+
+                <!-- Review Form -->
+                <div class="review-form">
+                    <h3 style="font-size:18px; font-weight:700; margin-bottom:15px;">Write a Customer Review</h3>
+                    <form id="reviewSubmitForm">
+                        <input type="hidden" id="revProductId" value="{{ product.id }}">
+                        
+                        <div class="form-group">
+                            <label class="form-label">Your Name</label>
+                            <input type="text" id="revName" class="form-control" placeholder="Enter your name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Rating</label>
+                            <div class="star-rating-select">
+                                <input type="radio" name="revRating" id="rate5" value="5" checked><label for="rate5" class="star"><i data-lucide="star" fill="currentColor"></i></label>
+                                <input type="radio" name="revRating" id="rate4" value="4"><label for="rate4" class="star"><i data-lucide="star" fill="currentColor"></i></label>
+                                <input type="radio" name="revRating" id="rate3" value="3"><label for="rate3" class="star"><i data-lucide="star" fill="currentColor"></i></label>
+                                <input type="radio" name="revRating" id="rate2" value="2"><label for="rate2" class="star"><i data-lucide="star" fill="currentColor"></i></label>
+                                <input type="radio" name="revRating" id="rate1" value="1"><label for="rate1" class="star"><i data-lucide="star" fill="currentColor"></i></label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Review Details</label>
+                            <textarea id="revText" class="form-control" rows="4" placeholder="Write your review here..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-sm">Submit Review</button>
+                    </form>
+                    <div id="reviewStatus" style="margin-top:12px; font-size:14px; font-weight:600; display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related %}
+    <div style="margin-top: 80px;">
+        <div class="section-title-wrapper" style="text-align: left; margin-bottom: 40px;">
+            <span class="section-subtitle">Specially Curated</span>
+            <h2 class="section-title">Related Products</h2>
+        </div>
+
+        <div class="products-grid">
+            {% for prod in related %}
+            <div class="product-card">
+                <div class="product-badge-container">
+                    {% if prod.offer_badge %}
+                    <span class="badge badge-offer">{{ prod.offer_badge }}</span>
+                    {% endif %}
+                </div>
+                <div class="product-card-img-wrapper">
+                    <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy">
+                </div>
+                <div class="product-card-body">
+                    <span class="product-card-category">{{ product.category_name }}</span>
+                    <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
+                    <p class="product-card-description">{{ prod.short_description }}</p>
+                    <div class="product-card-pricing">
+                        <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
+                        {% if prod.offer_price %}
+                        <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="product-card-actions" style="display: flex; gap: 8px; width: 100%;">
+                        {% if settings.cart_enabled %}
+                        <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="flex: 1;">
+                            <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
+                        </button>
+                        <a href="/product/{{ prod.slug }}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>
+                        {% else %}
+                        <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Global variable values for variant dynamic pricing
+    {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
+    const basePrice = 0;
+    {% elif session.get('dealer_logged_in') %}
+    const basePrice = {{ product.wholesale_price }};
+    {% else %}
+    const basePrice = {{ product.offer_price or product.price }};
+    {% endif %}
+    
+    function updateVariantPrice() {
+        let adjustment = 0;
+        const selectedRadios = document.querySelectorAll('.variant-options input[type="radio"]:checked');
+        
+        selectedRadios.forEach(radio => {
+            adjustment += parseFloat(radio.dataset.adjust || 0);
+        });
+        
+        const finalPrice = basePrice + adjustment;
+        document.getElementById('dynamicPrice').innerText = '₹' + finalPrice.toLocaleString('en-IN', {maximumFractionDigits: 0});
+    }
+
+    function getSelectedVariant() {
+        const selectedRadios = document.querySelectorAll('.variant-options input[type="radio"]:checked');
+        let selectedVals = [];
+        selectedRadios.forEach(radio => {
+            selectedVals.push(radio.value);
+        });
+        return selectedVals.join(" | ");
+    }
+
+    function handleAddToCartClick() {
+        const productId = "{{ product.id }}";
+        const variantId = getSelectedVariant();
+        if (window.mseCart && typeof window.mseCart.add === 'function') {
+            window.mseCart.add(productId, 1, variantId);
+        } else {
+            console.error("Cart function not available.");
+        }
+    }
+
+    function handleBuyNowClick() {
+        const productId = "{{ product.id }}";
+        const variantId = getSelectedVariant();
+        
+        // Show loading state
+        const buyNowBtn = document.querySelector('button[onclick="handleBuyNowClick()"]');
+        if (buyNowBtn) {
+            buyNowBtn.disabled = true;
+            buyNowBtn.innerText = "Processing...";
+        }
+        
+        fetch('/api/cart/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: productId, quantity: 1, variant_id: variantId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Sync the global cart badges
+                if (window.mseCart && typeof window.mseCart.sync === 'function') {
+                    window.mseCart.sync();
+                }
+                window.location.href = "/checkout";
+            } else {
+                alert("Failed to proceed: " + data.message);
+                if (buyNowBtn) {
+                    buyNowBtn.disabled = false;
+                    buyNowBtn.innerHTML = '<i data-lucide="shopping-bag"></i> Buy Now';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            }
+        })
+        .catch(err => {
+            console.error("Buy Now failed:", err);
+            alert("An error occurred. Please try again.");
+            if (buyNowBtn) {
+                buyNowBtn.disabled = false;
+                buyNowBtn.innerHTML = '<i data-lucide="shopping-bag"></i> Buy Now';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        });
+    }
+
+    function copyProductLink() {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert("Product link copied to clipboard!");
+        }).catch(err => {
+            console.error("Failed to copy link:", err);
+        });
+    }
+
+    // Tab switcher
+    function switchDetailsTab(evt, tabId) {
+        const contents = document.querySelectorAll('.details-tab-content');
+        contents.forEach(content => content.classList.remove('active'));
+        
+        const buttons = document.querySelectorAll('.details-tab-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        evt.currentTarget.classList.add('active');
+    }
+
+    // Thumbnail gallery changer
+    function changeMainImage(imgSrc, btn) {
+        document.getElementById('mainProductImg').src = imgSrc;
+        
+        const thumbnails = document.querySelectorAll('.thumbnail-btn');
+        thumbnails.forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Reset zoom lens if magnifying
+        const lens = document.getElementById('zoomLens');
+        if (lens) lens.style.display = "none";
+    }
+
+    // Initialize variant price trigger and track recently viewed
+    document.addEventListener("DOMContentLoaded", function() {
+        updateVariantPrice();
+        
+        const productId = {{ product.id }};
+        if (productId) {
+            fetch('/api/recently_viewed/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: productId })
+            }).catch(e => console.error("Error adding to recently viewed:", e));
+        }
+    });
+</script>
+{% endblock %}
