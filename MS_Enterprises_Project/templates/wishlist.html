@@ -167,26 +167,6 @@
                 });
         }
 
-        // Intercept remove click to update view immediately
-        document.body.addEventListener("click", function(e) {
-            const btn = e.target.closest(".wishlist-toggle-btn");
-            if (btn && document.getElementById("wishlistGrid").contains(btn)) {
-                e.preventDefault();
-                const id = String(btn.dataset.id);
-                window.mseWishlist.toggle(id);
-                const card = btn.closest(".product-card");
-                if (card) {
-                    card.remove();
-                }
-                const activeCards = gridEl.querySelectorAll(".product-card");
-                if (activeCards.length === 0) {
-                    emptyState.style.display = "block";
-                    gridEl.style.display = "none";
-                    addAllBtn.style.display = "none";
-                }
-            }
-        });
-
         // Add all items in wishlist to cart
         addAllBtn.addEventListener("click", function() {
             if (loadedProducts.length === 0) return;
@@ -195,11 +175,15 @@
                 window.mseCart.add(prod.id, 1);
             });
             
-            alert("All wishlist products added to your cart!");
+            if (typeof showCartToast === 'function') {
+                showCartToast("All wishlist products added to your cart!");
+            }
         });
 
         renderWishlist();
-        window.addEventListener('wishlistUpdated', renderWishlist);
+        window.addEventListener('wishlistUpdated', function() {
+            renderWishlist();
+        });
     });
 </script>
 {% endblock %}

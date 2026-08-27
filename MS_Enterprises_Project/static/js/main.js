@@ -551,19 +551,41 @@ function initMainApp() {
     // 9. Customer Review Form API submit
     const reviewForm = document.getElementById('reviewSubmitForm');
     const reviewStatus = document.getElementById('reviewStatus');
+    const reviewSubmitBtn = document.getElementById('revSubmitBtn') || (reviewForm ? reviewForm.querySelector('button[type="submit"]') : null);
+    
     if (reviewForm && reviewStatus) {
         reviewForm.addEventListener('submit', function (e) {
             e.preventDefault();
             
-            const product_id = document.getElementById('revProductId').value;
-            const reviewer_name = document.getElementById('revName').value.trim();
-            const rating = document.querySelector('input[name="revRating"]:checked').value;
-            const review_text = document.getElementById('revText').value.trim();
+            const product_id = document.getElementById('revProductId') ? document.getElementById('revProductId').value : '';
+            const reviewer_name = document.getElementById('revName') ? document.getElementById('revName').value.trim() : '';
+            const ratingRadio = document.querySelector('input[name="revRating"]:checked');
+            const rating = ratingRadio ? parseInt(ratingRadio.value) : 5;
+            const review_text = document.getElementById('revText') ? document.getElementById('revText').value.trim() : '';
+            
+            if (!reviewer_name || !review_text) {
+                reviewStatus.style.display = 'block';
+                reviewStatus.style.color = '#b91c1c';
+                reviewStatus.style.backgroundColor = '#fef2f2';
+                reviewStatus.style.border = '1px solid #fecaca';
+                reviewStatus.style.padding = '10px 14px';
+                reviewStatus.style.borderRadius = '6px';
+                reviewStatus.innerText = 'Please provide both your name and review details.';
+                return;
+            }
+            
+            if (reviewSubmitBtn) {
+                reviewSubmitBtn.disabled = true;
+                reviewSubmitBtn.innerText = 'Submitting...';
+            }
             
             reviewStatus.style.display = 'block';
-            reviewStatus.className = '';
-            reviewStatus.style.color = '#C5A028';
-            reviewStatus.innerText = 'Submitting review...';
+            reviewStatus.style.color = '#b45309';
+            reviewStatus.style.backgroundColor = '#fffbeb';
+            reviewStatus.style.border = '1px solid #fde68a';
+            reviewStatus.style.padding = '10px 14px';
+            reviewStatus.style.borderRadius = '6px';
+            reviewStatus.innerText = 'Submitting your review...';
             
             fetch('/api/reviews', {
                 method: 'POST',
@@ -573,21 +595,36 @@ function initMainApp() {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    reviewStatus.style.color = '#25D366';
-                    reviewStatus.innerText = data.message;
+                    reviewStatus.style.display = 'block';
+                    reviewStatus.style.color = '#065f46';
+                    reviewStatus.style.backgroundColor = '#d1fae5';
+                    reviewStatus.style.border = '1px solid #a7f3d0';
+                    reviewStatus.innerText = 'Thank you! Your review has been submitted and is pending admin approval.';
                     reviewForm.reset();
-                    // Reset star select view
                     const defaultStar = document.getElementById('rate5');
                     if (defaultStar) defaultStar.checked = true;
+                    showCartToast("Thank you! Review submitted for approval.");
                 } else {
-                    reviewStatus.style.color = '#E74C3C';
-                    reviewStatus.innerText = data.message;
+                    reviewStatus.style.display = 'block';
+                    reviewStatus.style.color = '#b91c1c';
+                    reviewStatus.style.backgroundColor = '#fef2f2';
+                    reviewStatus.style.border = '1px solid #fecaca';
+                    reviewStatus.innerText = data.message || 'Failed to submit review.';
                 }
             })
             .catch(err => {
                 console.error("Review submission error:", err);
-                reviewStatus.style.color = '#E74C3C';
+                reviewStatus.style.display = 'block';
+                reviewStatus.style.color = '#b91c1c';
+                reviewStatus.style.backgroundColor = '#fef2f2';
+                reviewStatus.style.border = '1px solid #fecaca';
                 reviewStatus.innerText = 'Failed to submit review. Please try again.';
+            })
+            .finally(() => {
+                if (reviewSubmitBtn) {
+                    reviewSubmitBtn.disabled = false;
+                    reviewSubmitBtn.innerText = 'Submit Review';
+                }
             });
         });
     }
@@ -617,19 +654,22 @@ function initMainApp() {
     }
 
     function toggleWishlist(id) {
+        if (!id) return;
         id = String(id);
         const index = cachedWishlist.indexOf(id);
-        let added = false;
-        if (index > -1) {
-            cachedWishlist.splice(index, 1);
-        } else {
+        const currentlyInWishlist = index > -1;
+        const willBeInWishlist = !currentlyInWishlist;
+
+        if (willBeInWishlist) {
             cachedWishlist.push(id);
-            added = true;
+        } else {
+            cachedWishlist.splice(index, 1);
         }
         
-        // Optimistically update the UI
-        updateWishlistHeartUI(id, added);
-        updateBadges();
+        // Optimistically update the UI & badges
+        updateWishlistHeartUI(id, willBeInWishlist);
+        updateBadges(undefined, cachedWishlist.length);
+        showCartToast(willBeInWishlist ? "Added to Wishlist!" : "Removed from Wishlist.");
 
         // Update in the database
         fetch('/api/wishlist/toggle', {
@@ -640,7 +680,6 @@ function initMainApp() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // Ensure we are synced with the server response
                 if (data.is_in_wishlist) {
                     if (cachedWishlist.indexOf(id) === -1) cachedWishlist.push(id);
                 } else {
@@ -648,14 +687,19 @@ function initMainApp() {
                     if (idx > -1) cachedWishlist.splice(idx, 1);
                 }
                 updateWishlistHeartUI(id, data.is_in_wishlist);
-                updateBadges();
-                window.dispatchEvent(new CustomEvent('wishlistUpdated'));
+                const finalCount = typeof data.wishlist_count !== 'undefined' ? data.wishlist_count : cachedWishlist.length;
+                updateBadges(undefined, finalCount);
+                window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { productId: id, isInWishlist: data.is_in_wishlist } }));
             }
         })
-        .catch(err => console.error("Error toggling wishlist:", err));
+        .catch(err => {
+            console.error("Error toggling wishlist:", err);
+            // Revert state on error
+            syncStatesWithDatabase();
+        });
 
         // Report stats
-        if (added) {
+        if (willBeInWishlist) {
             fetch('/api/stats/wishlist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -663,7 +707,7 @@ function initMainApp() {
             }).catch(e => console.error("Stats error:", e));
         }
 
-        return added;
+        return willBeInWishlist;
     }
 
     function getCart() {
@@ -671,9 +715,14 @@ function initMainApp() {
     }
 
     function addToCart(id, qty = 1, variantId = null) {
+        if (!id) return;
         id = String(id);
+        qty = parseInt(qty) || 1;
         cachedCart[id] = (cachedCart[id] || 0) + qty;
-        updateBadges();
+        
+        // Optimistic badge update
+        const totalItems = Object.values(cachedCart).reduce((a, b) => a + b, 0);
+        updateBadges(totalItems);
 
         // Save in database
         fetch('/api/cart/add', {
@@ -684,11 +733,18 @@ function initMainApp() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                syncStatesWithDatabase();
-                showCartToast("Product added to cart!");
+                const finalCount = typeof data.cart_count !== 'undefined' ? data.cart_count : Object.values(cachedCart).reduce((a, b) => a + b, 0);
+                updateBadges(finalCount);
+                showCartToast(data.message || "Product added to cart!");
+                window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { productId: id, quantity: qty } }));
+            } else {
+                showCartToast(data.message || "Failed to add to cart.");
             }
         })
-        .catch(err => console.error("Error adding to cart:", err));
+        .catch(err => {
+            console.error("Error adding to cart:", err);
+            showCartToast("Error adding product to cart.");
+        });
 
         // Report stats
         fetch('/api/stats/cart', {
@@ -699,9 +755,11 @@ function initMainApp() {
     }
 
     function removeFromCart(id) {
+        if (!id) return;
         id = String(id);
         delete cachedCart[id];
-        updateBadges();
+        const totalItems = Object.values(cachedCart).reduce((a, b) => a + b, 0);
+        updateBadges(totalItems);
 
         // Remove from database
         fetch('/api/cart/remove', {
@@ -712,20 +770,25 @@ function initMainApp() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                syncStatesWithDatabase();
+                const finalCount = typeof data.cart_count !== 'undefined' ? data.cart_count : Object.values(cachedCart).reduce((a, b) => a + b, 0);
+                updateBadges(finalCount);
+                window.dispatchEvent(new CustomEvent('cartUpdated'));
             }
         })
         .catch(err => console.error("Error removing from cart:", err));
     }
 
     function updateCartQty(id, qty) {
+        if (!id) return;
         id = String(id);
+        qty = parseInt(qty) || 0;
         if (qty <= 0) {
             delete cachedCart[id];
         } else {
             cachedCart[id] = qty;
         }
-        updateBadges();
+        const totalItems = Object.values(cachedCart).reduce((a, b) => a + b, 0);
+        updateBadges(totalItems);
 
         // Update in database
         fetch('/api/cart/update', {
@@ -736,15 +799,17 @@ function initMainApp() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                syncStatesWithDatabase();
+                const finalCount = typeof data.cart_count !== 'undefined' ? data.cart_count : Object.values(cachedCart).reduce((a, b) => a + b, 0);
+                updateBadges(finalCount);
+                window.dispatchEvent(new CustomEvent('cartUpdated'));
             }
         })
         .catch(err => console.error("Error updating cart quantity:", err));
     }
 
-    function updateBadges() {
-        const wishlistCount = cachedWishlist.length;
-        const cartCount = Object.keys(cachedCart).length;
+    function updateBadges(cartCountOverride, wishlistCountOverride) {
+        const wishlistCount = typeof wishlistCountOverride !== 'undefined' ? wishlistCountOverride : cachedWishlist.length;
+        const cartCount = typeof cartCountOverride !== 'undefined' ? cartCountOverride : Object.values(cachedCart).reduce((a, b) => a + b, 0);
 
         document.querySelectorAll('.wishlist-badge').forEach(badge => {
             badge.innerText = wishlistCount;
@@ -759,19 +824,30 @@ function initMainApp() {
 
     function updateWishlistHeartUI(id, isAdded) {
         document.querySelectorAll(`.wishlist-toggle-btn[data-id="${id}"]`).forEach(btn => {
+            const heartIcon = btn.querySelector('svg, i, [data-lucide="heart"]');
             if (isAdded) {
                 btn.classList.add('active');
-                const heartIcon = btn.querySelector('i');
                 if (heartIcon) {
-                    heartIcon.setAttribute('fill', 'currentColor');
-                    heartIcon.style.color = '#E74C3C'; // Red heart
+                    heartIcon.setAttribute('fill', '#E74C3C');
+                    heartIcon.setAttribute('stroke', '#E74C3C');
+                    heartIcon.style.color = '#E74C3C';
+                    heartIcon.style.fill = '#E74C3C';
+                }
+                const btnText = btn.querySelector('.wishlist-btn-text');
+                if (btnText) {
+                    btnText.innerText = 'In Wishlist';
                 }
             } else {
                 btn.classList.remove('active');
-                const heartIcon = btn.querySelector('i');
                 if (heartIcon) {
                     heartIcon.removeAttribute('fill');
+                    heartIcon.setAttribute('stroke', 'currentColor');
                     heartIcon.style.color = '';
+                    heartIcon.style.fill = 'none';
+                }
+                const btnText = btn.querySelector('.wishlist-btn-text');
+                if (btnText) {
+                    btnText.innerText = 'Add to Wishlist';
                 }
             }
         });
@@ -784,29 +860,35 @@ function initMainApp() {
             toast.id = 'cartToast';
             toast.style.cssText = `
                 position: fixed;
-                bottom: 100px;
+                bottom: 80px;
                 left: 50%;
                 transform: translateX(-50%);
-                background-color: var(--primary-color);
-                color: var(--bg-warm);
+                background-color: #1e293b;
+                color: #ffffff;
                 padding: 12px 24px;
-                border-radius: var(--border-radius);
-                border: 1px solid var(--accent-color);
-                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-                z-index: 10000;
-                font-family: var(--font-heading);
+                border-radius: 8px;
+                border: 1px solid #c5a028;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+                z-index: 99999;
+                font-family: inherit;
                 font-size: 14px;
                 font-weight: 600;
                 display: none;
-                animation: fadeInUp 0.3s ease;
+                text-align: center;
+                pointer-events: none;
+                transition: opacity 0.3s ease, transform 0.3s ease;
             `;
             document.body.appendChild(toast);
         }
         toast.innerText = msg;
         toast.style.display = 'block';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 2000);
+        toast.style.opacity = '1';
+        
+        if (window.__cartToastTimeout) clearTimeout(window.__cartToastTimeout);
+        window.__cartToastTimeout = setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => { toast.style.display = 'none'; }, 300);
+        }, 2500);
     }
 
     // Set active hearts on page load
@@ -824,10 +906,14 @@ function initMainApp() {
             .then(data => {
                 if (data.success) {
                     cachedCart = {};
-                    data.items.forEach(item => {
-                        cachedCart[item.product_id] = item.quantity;
-                    });
-                    updateBadges();
+                    let totalCount = 0;
+                    if (data.items && Array.isArray(data.items)) {
+                        data.items.forEach(item => {
+                            cachedCart[item.product_id] = item.quantity;
+                            totalCount += item.quantity;
+                        });
+                    }
+                    updateBadges(totalCount);
                     window.dispatchEvent(new CustomEvent('cartUpdated'));
                 }
             })
@@ -838,8 +924,8 @@ function initMainApp() {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    cachedWishlist = data.items.map(item => item.product_id);
-                    updateBadges();
+                    cachedWishlist = (data.items || []).map(item => String(item.product_id));
+                    updateBadges(undefined, cachedWishlist.length);
                     initWishlistHearts();
                     window.dispatchEvent(new CustomEvent('wishlistUpdated'));
                 }
@@ -852,15 +938,19 @@ function initMainApp() {
         const toggleBtn = e.target.closest('.wishlist-toggle-btn');
         if (toggleBtn) {
             e.preventDefault();
+            e.stopPropagation();
             const id = toggleBtn.dataset.id;
-            toggleWishlist(id);
+            if (id) toggleWishlist(id);
         }
 
         const addCartBtn = e.target.closest('.add-to-cart-btn');
         if (addCartBtn) {
             e.preventDefault();
+            e.stopPropagation();
             const id = addCartBtn.dataset.id;
-            addToCart(id);
+            const qty = parseInt(addCartBtn.dataset.qty) || 1;
+            const variant = addCartBtn.dataset.variant || null;
+            if (id) addToCart(id, qty, variant);
         }
     });
 
@@ -868,6 +958,7 @@ function initMainApp() {
     window.mseWishlist = { get: getWishlist, toggle: toggleWishlist, init: initWishlistHearts, sync: syncStatesWithDatabase };
     window.mseCart = { get: getCart, add: addToCart, remove: removeFromCart, updateQty: updateCartQty, sync: syncStatesWithDatabase };
     window.mseBadges = { update: updateBadges };
+    window.showCartToast = showCartToast;
 
     // Mobile Search Bar Toggle
     const searchMobileToggle = document.getElementById('searchMobileToggle');

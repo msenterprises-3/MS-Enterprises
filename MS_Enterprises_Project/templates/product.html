@@ -109,6 +109,18 @@
             </div>
             {% endif %}
 
+            <!-- Quantity Selector -->
+            {% if not (session.get('user_role') == 'dealer' and not session.get('dealer_logged_in')) %}
+            <div class="product-quantity-wrapper" style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                <label for="productQtyInput" style="font-size: 14px; font-weight: 700; color: var(--text-dark); text-transform: uppercase; letter-spacing: 0.5px;">Quantity:</label>
+                <div class="qty-selector" style="display: inline-flex; align-items: center; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; background: #ffffff;">
+                    <button type="button" class="qty-btn" onclick="decrementProductQty()" style="width: 38px; height: 38px; border: none; background: transparent; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-dark); transition: background 0.2s;" aria-label="Decrease quantity">-</button>
+                    <input type="number" id="productQtyInput" value="1" min="1" max="99" style="width: 50px; height: 38px; border: none; text-align: center; font-size: 15px; font-weight: 700; color: var(--text-dark); -moz-appearance: textfield; outline: none;" onchange="if(this.value < 1) this.value = 1;">
+                    <button type="button" class="qty-btn" onclick="incrementProductQty()" style="width: 38px; height: 38px; border: none; background: transparent; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-dark); transition: background 0.2s;" aria-label="Increase quantity">+</button>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Order Trigger Buttons (Add to Cart / Buy Now / Wishlist) -->
             <div class="details-actions" style="display: grid; gap: 15px; grid-template-columns: 1fr 1fr; width: 100%;">
                 {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
@@ -116,13 +128,13 @@
                     <i data-lucide="lock" style="width:20px; height:20px; margin-right: 8px;"></i> Login to Order B2B Wholesale
                 </a>
                 {% else %}
-                <button onclick="handleAddToCartClick()" class="btn btn-dark" style="padding: 16px 20px; font-size:16px; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer;">
+                <button type="button" id="addToCartBtn" onclick="handleAddToCartClick()" class="btn btn-dark" style="padding: 16px 20px; font-size:16px; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer;">
                     <i data-lucide="shopping-cart"></i> Add to Cart
                 </button>
-                <button onclick="handleBuyNowClick()" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer;">
+                <button type="button" id="buyNowBtn" onclick="handleBuyNowClick()" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer;">
                     <i data-lucide="shopping-bag"></i> Buy Now
                 </button>
-                <button onclick="toggleProductWishlist('{{ product.id }}')" class="btn btn-secondary wishlist-toggle-btn" data-id="{{ product.id }}" style="padding: 14px 20px; font-size:15px; font-weight: 600; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer; grid-column: span 2; background: var(--bg-white);">
+                <button type="button" id="productWishlistBtn" onclick="toggleProductWishlist('{{ product.id }}')" class="btn btn-secondary wishlist-toggle-btn" data-id="{{ product.id }}" style="padding: 14px 20px; font-size:15px; font-weight: 600; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer; grid-column: span 2; background: var(--bg-white);">
                     <i data-lucide="heart" class="wishlist-icon-elem" style="width: 18px; height: 18px;"></i> <span class="wishlist-btn-text">Add to Wishlist</span>
                 </button>
                 {% endif %}
@@ -198,14 +210,14 @@
                         <div class="review-item">
                             <div class="review-header">
                                 <h4 class="reviewer-name">{{ r.reviewer_name }}</h4>
-                                <span class="review-date">{{ r.created_at[:10] }}</span>
+                                <span class="review-date">{{ r.created_at[:10] if r.created_at else '' }}</span>
                             </div>
-                            <div class="testimonial-rating" style="justify-content:flex-start; margin-bottom:8px;">
+                            <div class="testimonial-rating" style="justify-content:flex-start; margin-bottom:8px; display:flex; gap:3px;">
                                 {% for i in range(5) %}
                                     {% if i < r.rating %}
-                                    <i data-lucide="star" fill="currentColor" style="width:14px;height:14px;"></i>
+                                    <i data-lucide="star" fill="#F59E0B" style="width:14px;height:14px; color:#F59E0B;"></i>
                                     {% else %}
-                                    <i data-lucide="star" style="width:14px;height:14px;"></i>
+                                    <i data-lucide="star" style="width:14px;height:14px; color:#D1D5DB;"></i>
                                     {% endif %}
                                 {% endfor %}
                             </div>
@@ -244,7 +256,7 @@
                             <textarea id="revText" class="form-control" rows="4" placeholder="Write your review here..." required></textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-sm">Submit Review</button>
+                        <button type="submit" id="revSubmitBtn" class="btn btn-primary btn-sm">Submit Review</button>
                     </form>
                     <div id="reviewStatus" style="margin-top:12px; font-size:14px; font-weight:600; display:none;"></div>
                 </div>
@@ -335,22 +347,100 @@
         return selectedVals.join(" | ");
     }
 
+    function decrementProductQty() {
+        const input = document.getElementById('productQtyInput');
+        if (input) {
+            let val = parseInt(input.value) || 1;
+            if (val > 1) input.value = val - 1;
+        }
+    }
+
+    function incrementProductQty() {
+        const input = document.getElementById('productQtyInput');
+        if (input) {
+            let val = parseInt(input.value) || 1;
+            if (val < 99) input.value = val + 1;
+        }
+    }
+
     function handleAddToCartClick() {
         const productId = "{{ product.id }}";
         const variantId = getSelectedVariant();
+        const qtyInput = document.getElementById('productQtyInput');
+        const quantity = qtyInput ? (parseInt(qtyInput.value) || 1) : 1;
+        
+        const addBtn = document.getElementById('addToCartBtn') || document.querySelector('button[onclick="handleAddToCartClick()"]');
+        if (addBtn) {
+            addBtn.disabled = true;
+            addBtn.innerHTML = '<i data-lucide="shopping-cart"></i> Adding...';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
         if (window.mseCart && typeof window.mseCart.add === 'function') {
-            window.mseCart.add(productId, 1, variantId);
+            window.mseCart.add(productId, quantity, variantId);
+            setTimeout(() => {
+                if (addBtn) {
+                    addBtn.disabled = false;
+                    addBtn.innerHTML = '<i data-lucide="check"></i> Added!';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                    setTimeout(() => {
+                        addBtn.innerHTML = '<i data-lucide="shopping-cart"></i> Add to Cart';
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }, 1500);
+                }
+            }, 300);
         } else {
-            console.error("Cart function not available.");
+            fetch('/api/cart/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: productId, quantity: quantity, variant_id: variantId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (window.mseBadges && typeof window.mseBadges.update === 'function') {
+                        window.mseBadges.update(data.cart_count);
+                    }
+                    if (typeof showCartToast === 'function') {
+                        showCartToast(data.message || "Product added to cart!");
+                    }
+                    if (addBtn) {
+                        addBtn.disabled = false;
+                        addBtn.innerHTML = '<i data-lucide="check"></i> Added!';
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                        setTimeout(() => {
+                            addBtn.innerHTML = '<i data-lucide="shopping-cart"></i> Add to Cart';
+                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                        }, 1500);
+                    }
+                } else {
+                    alert(data.message || "Failed to add to cart.");
+                    if (addBtn) {
+                        addBtn.disabled = false;
+                        addBtn.innerHTML = '<i data-lucide="shopping-cart"></i> Add to Cart';
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }
+                }
+            })
+            .catch(err => {
+                console.error("Error adding to cart:", err);
+                if (addBtn) {
+                    addBtn.disabled = false;
+                    addBtn.innerHTML = '<i data-lucide="shopping-cart"></i> Add to Cart';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            });
         }
     }
 
     function handleBuyNowClick() {
         const productId = "{{ product.id }}";
         const variantId = getSelectedVariant();
+        const qtyInput = document.getElementById('productQtyInput');
+        const quantity = qtyInput ? (parseInt(qtyInput.value) || 1) : 1;
         
         // Show loading state
-        const buyNowBtn = document.querySelector('button[onclick="handleBuyNowClick()"]');
+        const buyNowBtn = document.getElementById('buyNowBtn') || document.querySelector('button[onclick="handleBuyNowClick()"]');
         if (buyNowBtn) {
             buyNowBtn.disabled = true;
             buyNowBtn.innerText = "Processing...";
@@ -359,7 +449,7 @@
         fetch('/api/cart/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ product_id: productId, quantity: 1, variant_id: variantId })
+            body: JSON.stringify({ product_id: productId, quantity: quantity, variant_id: variantId })
         })
         .then(res => res.json())
         .then(data => {
