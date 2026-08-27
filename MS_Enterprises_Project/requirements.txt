@@ -3,8 +3,6 @@ Werkzeug>=2.3.0
 gunicorn>=21.2.0
 waitress>=2.1.2
 python-dotenv>=1.0.0
-firebase-admin>=6.2.0
 supabase>=2.3.0
 certifi>=2023.7.22
 requests>=2.31.0
-

@@ -4,10 +4,10 @@ import json
 import uuid
 from datetime import datetime
 
-try:
-    from firebase_admin import firestore
-except ImportError:
-    firestore = None
+class Increment:
+    """Atomic field increment representation."""
+    def __init__(self, value=1):
+        self.value = value
 
 # Helper to clean ID formats between integer and string database primary keys
 def clean_id(doc_id):
@@ -54,7 +54,7 @@ def map_document_data(collection_name, data):
             
     return mapped
 
-class SQLiteFirestoreMock:
+class SQLiteDBAdapter:
     def __init__(self):
         self.db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance', 'catalogue.db')
         
@@ -63,6 +63,9 @@ class SQLiteFirestoreMock:
         
     def batch(self):
         return LocalWriteBatch(self.db_path)
+
+# Backwards compatibility alias
+SQLiteFirestoreMock = SQLiteDBAdapter
 
 class LocalCollectionRef:
     def __init__(self, db_path, name):
@@ -78,7 +81,6 @@ class LocalCollectionRef:
         doc_id = uuid.uuid4().hex
         doc_ref = LocalDocumentRef(self.db_path, self.name, doc_id)
         doc_ref.set(data)
-        # Returns a tuple of (write_time, doc_ref)
         return None, doc_ref
         
     def where(self, field, op, value):
@@ -100,7 +102,6 @@ class LocalCollectionRef:
         return LocalQuery(self.db_path, self.name).stream()
         
     def on_snapshot(self, callback):
-        print(f"[SQLite Mock] on_snapshot listener ignored for collection '{self.name}'.")
         return None
 
 class LocalDocumentRef:
@@ -147,7 +148,7 @@ class LocalDocumentRef:
         for k, v in list(insert_data.items()):
             if k not in columns:
                 insert_data.pop(k)  # Filter out non-existing schema columns
-            elif firestore and isinstance(v, firestore.Increment):
+            elif isinstance(v, Increment):
                 insert_data[k] = v.value
             elif isinstance(v, (dict, list)):
                 insert_data[k] = json.dumps(v)
@@ -157,6 +158,10 @@ class LocalDocumentRef:
                 insert_data[k] = v.strftime('%Y-%m-%d %H:%M:%S')
                 
         fields = list(insert_data.keys())
+        if not fields:
+            conn.close()
+            return
+            
         placeholders = ', '.join(['?'] * len(fields))
         field_list = ', '.join(fields)
         
@@ -178,8 +183,7 @@ class LocalDocumentRef:
         for k, v in list(update_data.items()):
             if k not in columns:
                 update_data.pop(k)
-            elif firestore and isinstance(v, firestore.Increment):
-                # Don't serialize Increment object yet, it is handled during sets generation below
+            elif isinstance(v, Increment):
                 pass
             elif isinstance(v, (dict, list)):
                 update_data[k] = json.dumps(v)
@@ -195,7 +199,7 @@ class LocalDocumentRef:
         sets_list = []
         params = []
         for k, v in update_data.items():
-            if firestore and isinstance(v, firestore.Increment):
+            if isinstance(v, Increment):
                 sets_list.append(f"{k} = COALESCE({k}, 0) + ?")
                 params.append(v.value)
             else:
@@ -239,7 +243,7 @@ class LocalQuery:
         return self
         
     def order_by(self, field, direction="ASCENDING"):
-        direction_clause = "DESC" if "DESC" in direction.upper() else "ASC"
+        direction_clause = "DESC" if "DESC" in str(direction).upper() else "ASC"
         self.orders.append((field, direction_clause))
         return self
         
@@ -276,7 +280,6 @@ class LocalQuery:
             cursor.execute(sql, params)
             rows = cursor.fetchall()
         except sqlite3.OperationalError as e:
-            # Handle situations where FTS or special fields are queried by fallback
             print(f"[LocalQuery] Query warning on {self.collection_name}: {e}")
             rows = []
             
@@ -354,7 +357,7 @@ class LocalWriteBatch:
                     for k, v in list(insert_data.items()):
                         if k not in columns:
                             insert_data.pop(k)
-                        elif firestore and isinstance(v, firestore.Increment):
+                        elif isinstance(v, Increment):
                             insert_data[k] = v.value
                         elif isinstance(v, (dict, list)):
                             insert_data[k] = json.dumps(v)
@@ -364,6 +367,8 @@ class LocalWriteBatch:
                             insert_data[k] = v.strftime('%Y-%m-%d %H:%M:%S')
                             
                     fields = list(insert_data.keys())
+                    if not fields:
+                        continue
                     placeholders = ', '.join(['?'] * len(fields))
                     field_list = ', '.join(fields)
                     sql = f"INSERT OR REPLACE INTO {doc_ref.collection_name} ({field_list}) VALUES ({placeholders})"
@@ -376,7 +381,7 @@ class LocalWriteBatch:
                     for k, v in list(update_data.items()):
                         if k not in columns:
                             update_data.pop(k)
-                        elif firestore and isinstance(v, firestore.Increment):
+                        elif isinstance(v, Increment):
                             pass
                         elif isinstance(v, (dict, list)):
                             update_data[k] = json.dumps(v)
@@ -389,7 +394,7 @@ class LocalWriteBatch:
                         sets_list = []
                         params = []
                         for k, v in update_data.items():
-                            if firestore and isinstance(v, firestore.Increment):
+                            if isinstance(v, Increment):
                                 sets_list.append(f"{k} = COALESCE({k}, 0) + ?")
                                 params.append(v.value)
                             else:
@@ -410,5 +415,4 @@ class LocalWriteBatch:
             conn.close()
 
 # Export single global client adapter instance
-db = SQLiteFirestoreMock()
-
+db = SQLiteDBAdapter()

@@ -1,7 +1,7 @@
 import os
+import json
 import threading
 from datetime import datetime
-import certifi
 
 try:
     from dotenv import load_dotenv
@@ -9,60 +9,16 @@ try:
 except ImportError:
     pass
 
-def configure_grpc_ssl():
-    import ssl
-    pem_certs = ""
-    try:
-        with open(certifi.where(), "r", encoding="utf-8") as f:
-            pem_certs = f.read()
-    except Exception as e:
-        print(f"Warning reading certifi CA bundle: {e}")
-        
-    try:
-        if hasattr(ssl, 'enum_certificates'):
-            win_count = 0
-            for store_name in ["ROOT", "CA", "MY"]:
-                for cert, encoding, trust in ssl.enum_certificates(store_name):
-                    if encoding == "x509_asn":
-                        try:
-                            pem_certs += "\n" + ssl.DER_cert_to_PEM_cert(cert)
-                            win_count += 1
-                        except Exception:
-                            pass
-            if win_count > 0:
-                print(f"Appended {win_count} Windows certificate store roots.")
-    except Exception as e:
-        print(f"Notice on certificate enumeration: {e}")
-        
-    project_dir = os.path.dirname(os.path.abspath(__file__))
-    cert_path = os.path.join(project_dir, "wincerts.pem").replace("\\", "/")
-    try:
-        with open(cert_path, "w", encoding="utf-8") as f:
-            f.write(pem_certs)
-        os.environ["GRPC_DEFAULT_SSL_ROOTS_FILE_PATH"] = cert_path
-    except Exception:
-        os.environ["GRPC_DEFAULT_SSL_ROOTS_FILE_PATH"] = certifi.where()
-
-configure_grpc_ssl()
-
-import json
-
-# Lock for thread-safety in Flask
+# Thread safety lock for in-memory cache
 _cache_lock = threading.Lock()
 
-# Global cache variables
+# Global in-memory cache variables
 _cache = {}
 _last_update_check = None
+_last_check_time = None
 
-from supabase_db import db
-
-def clean_id(doc_id):
-    try:
-        if str(doc_id).isdigit():
-            return int(doc_id)
-    except Exception:
-        pass
-    return doc_id
+# Import primary Supabase database adapter and Increment class
+from supabase_db import db, Increment, clean_id
 
 DEFAULT_SETTINGS = {
     'about_mission': 'Our mission is to provide premium quality furniture.',
@@ -158,19 +114,18 @@ def load_from_sqlite():
                 try:
                     specs = json.loads(specs)
                     d['specifications'] = specs
-                except:
+                except Exception:
                     pass
             
             w_price = 0.0
             if isinstance(specs, dict) and '_wholesale_price' in specs:
                 try:
                     w_price = float(specs.pop('_wholesale_price'))
-                except:
+                except Exception:
                     pass
 
             d['dealer_prices'] = {'default': w_price}
             d['wholesale_price'] = w_price
-
             d['dealer_status'] = d.get('dealer_status', 'visible')
 
             if 'created_at' in d and hasattr(d['created_at'], 'isoformat'):
@@ -294,7 +249,7 @@ def force_reload_cache():
                 if bool_key in settings and settings[bool_key] is not None:
                     settings[bool_key] = bool(settings[bool_key])
         except Exception as e:
-            print(f"[Firebase Cache] Settings load error: {e}")
+            print(f"[Database Cache] Settings load error: {e}")
             
         # 2. Categories
         categories = []
@@ -305,7 +260,7 @@ def force_reload_cache():
                 categories.append(d)
             categories.sort(key=lambda x: x.get('display_order', 0))
         except Exception as e:
-            print(f"[Firebase Cache] Categories load error: {e}")
+            print(f"[Database Cache] Categories load error: {e}")
             
         # 3. Subcategories
         subcategories = []
@@ -316,7 +271,7 @@ def force_reload_cache():
                 subcategories.append(d)
             subcategories.sort(key=lambda x: x.get('display_order', 0))
         except Exception as e:
-            print(f"[Firebase Cache] Subcategories load error: {e}")
+            print(f"[Database Cache] Subcategories load error: {e}")
             
         # 4. Products
         products = []
@@ -332,19 +287,18 @@ def force_reload_cache():
                     try:
                         specs = json.loads(specs)
                         d['specifications'] = specs
-                    except:
+                    except Exception:
                         pass
                 
                 w_price = 0.0
                 if isinstance(specs, dict) and '_wholesale_price' in specs:
                     try:
                         w_price = float(specs.pop('_wholesale_price'))
-                    except:
+                    except Exception:
                         pass
 
                 d['dealer_prices'] = {'default': w_price}
                 d['wholesale_price'] = w_price
-
                 d['dealer_status'] = d.get('dealer_status', 'visible')
 
                 if 'created_at' in d and hasattr(d['created_at'], 'isoformat'):
@@ -352,7 +306,7 @@ def force_reload_cache():
                 products.append(d)
             products.sort(key=lambda x: (x.get('display_order', 0), x.get('created_at', '')), reverse=True)
         except Exception as e:
-            print(f"[Firebase Cache] Products load error: {e}")
+            print(f"[Database Cache] Products load error: {e}")
             
         # 5. Hero Banners
         hero_banners = []
@@ -363,7 +317,7 @@ def force_reload_cache():
                 hero_banners.append(d)
             hero_banners.sort(key=lambda x: x.get('display_order', 0))
         except Exception as e:
-            print(f"[Firebase Cache] Hero banners load error: {e}")
+            print(f"[Database Cache] Hero banners load error: {e}")
             
         # 6. Offer Banners
         offer_banners = []
@@ -374,7 +328,7 @@ def force_reload_cache():
                 offer_banners.append(d)
             offer_banners.sort(key=lambda x: x.get('display_order', 0))
         except Exception as e:
-            print(f"[Firebase Cache] Offer banners load error: {e}")
+            print(f"[Database Cache] Offer banners load error: {e}")
             
         # 7. Trust Badges
         trust_badges = []
@@ -385,7 +339,7 @@ def force_reload_cache():
                 trust_badges.append(d)
             trust_badges.sort(key=lambda x: x.get('display_order', 0))
         except Exception as e:
-            print(f"[Firebase Cache] Trust badges load error: {e}")
+            print(f"[Database Cache] Trust badges load error: {e}")
             
         # 8. Testimonials
         testimonials = []
@@ -396,7 +350,7 @@ def force_reload_cache():
                 testimonials.append(d)
             testimonials.sort(key=lambda x: x.get('display_order', 0))
         except Exception as e:
-            print(f"[Firebase Cache] Testimonials load error: {e}")
+            print(f"[Database Cache] Testimonials load error: {e}")
             
         # 9. Video Testimonials
         video_testimonials = []
@@ -407,7 +361,7 @@ def force_reload_cache():
                 video_testimonials.append(d)
             video_testimonials.sort(key=lambda x: x.get('display_order', 0))
         except Exception as e:
-            print(f"[Firebase Cache] Video testimonials load error: {e}")
+            print(f"[Database Cache] Video testimonials load error: {e}")
 
         # 10. Category Hero Banners
         category_hero_banners = []
@@ -417,7 +371,7 @@ def force_reload_cache():
                 d['id'] = clean_id(doc.id)
                 category_hero_banners.append(d)
         except Exception as e:
-            print(f"[Firebase Cache] Category hero banners load error: {e}")
+            print(f"[Database Cache] Category hero banners load error: {e}")
 
         # 11. Category Offer Banners
         category_offer_banners = []
@@ -427,7 +381,7 @@ def force_reload_cache():
                 d['id'] = clean_id(doc.id)
                 category_offer_banners.append(d)
         except Exception as e:
-            print(f"[Firebase Cache] Category offer banners load error: {e}")
+            print(f"[Database Cache] Category offer banners load error: {e}")
             
         # 12. Reviews
         reviews = []
@@ -437,17 +391,14 @@ def force_reload_cache():
                 d['id'] = clean_id(doc.id)
                 reviews.append(d)
         except Exception as e:
-            print(f"[Firebase Cache] Reviews load error: {e}")
+            print(f"[Database Cache] Reviews load error: {e}")
             
-        # Check if the Firestore load was successful and returned data.
-        # If it returned 0 products or 0 categories, or if there was a load error,
-        # fall back to local SQLite database!
         if not products or not categories:
-            print("[Firebase Cache] Firestore products/categories cache is empty (likely 429 Quota Exceeded). Falling back to local SQLite database...")
+            print("[Database Cache] Supabase products/categories empty. Checking local SQLite database fallback...")
             sqlite_cache = load_from_sqlite()
             if sqlite_cache:
                 _cache = sqlite_cache
-                print("[Firebase Cache] Fallback successful. Loaded from SQLite.")
+                print("[Database Cache] Fallback successful. Loaded from SQLite.")
             else:
                 _cache = {
                     'settings': settings,
@@ -478,12 +429,10 @@ def force_reload_cache():
                 'category_offer_banners': category_offer_banners,
                 'reviews': reviews
             }
-        print(f"[Firebase Cache] Successfully loaded {len(_cache.get('products', []))} products, {len(_cache.get('categories', []))} categories, {len(_cache.get('reviews', []))} reviews, and settings.")
-
-_last_check_time = None
+        print(f"[Database Cache] Successfully cached {len(_cache.get('products', []))} products, {len(_cache.get('categories', []))} categories, {len(_cache.get('reviews', []))} reviews, and settings.")
 
 def check_and_sync_cache():
-    """Compares the local cache timestamp with the firestore catalogue_updates log.
+    """Compares the local cache timestamp with the catalogue_updates log in Supabase.
     Reloads all data if a remote change has occurred."""
     global _last_update_check, _last_check_time
     now = datetime.now()
@@ -502,7 +451,7 @@ def check_and_sync_cache():
             if not _cache:
                 force_reload_cache()
     except Exception as e:
-        print(f"[Firebase Cache] Sync warning: {e}. Falling back to default force load.")
+        print(f"[Database Cache] Sync warning: {e}. Falling back to default force load.")
         if not _cache:
             force_reload_cache()
 
@@ -514,7 +463,6 @@ def get_cache(key):
 def get_settings():
     """Safely retrieves global settings dict with defaults for all keys."""
     check_and_sync_cache()
-    # Merge loaded settings on top of default settings
     merged = dict(DEFAULT_SETTINGS)
     loaded = _cache.get('settings', {})
     if loaded:
@@ -530,7 +478,7 @@ def get_last_update_time():
     return _last_update_check or ""
 
 def touch_catalogue_update():
-    """Modifies the firestore last_updated timestamp to alert all server cache instances and clients."""
+    """Modifies the catalogue_updates last_updated timestamp to alert all cache instances."""
     try:
         now = datetime.utcnow().isoformat()
         db.collection('catalogue_updates').document('1').set({
@@ -540,85 +488,4 @@ def touch_catalogue_update():
         _last_update_check = now
         force_reload_cache()
     except Exception as e:
-        print(f"[Firebase Admin] Error touching updates log: {e}")
-
-# Real-time synchronization support using Firestore on_snapshot
-import queue
-
-class MessageAnnouncer:
-    def __init__(self):
-        self.listeners = []
-
-    def listen(self):
-        q = queue.Queue(maxsize=10)
-        self.listeners.append(q)
-        return q
-
-    def announce(self, msg):
-        for i in reversed(range(len(self.listeners))):
-            try:
-                self.listeners[i].put_nowait(msg)
-            except queue.Full:
-                pass
-            except Exception:
-                self.listeners.pop(i)
-
-product_announcer = MessageAnnouncer()
-_listener_initialized = False
-
-def start_products_listener():
-    global _listener_initialized
-    if _listener_initialized:
-        return
-    _listener_initialized = True
-    
-    def on_products_snapshot(col_snapshot, changes, read_time):
-        print(f"[Firebase Listener] Snapshot received with {len(col_snapshot)} products.")
-        global _cache
-        with _cache_lock:
-            products = []
-            for doc in col_snapshot:
-                d = doc.to_dict()
-                d['id'] = clean_id(doc.id)
-                d['wishlist_count'] = d.get('wishlist_count', 0)
-                d['cart_count'] = d.get('cart_count', 0)
-                
-                # B2B tier prices
-                specs = d.get('specifications', {})
-                if isinstance(specs, str):
-                    try:
-                        specs = json.loads(specs)
-                        d['specifications'] = specs
-                    except:
-                        pass
-                
-                w_price = 0.0
-                if isinstance(specs, dict) and '_wholesale_price' in specs:
-                    try:
-                        w_price = float(specs.pop('_wholesale_price'))
-                    except:
-                        pass
-
-                d['dealer_prices'] = {'default': w_price}
-                d['wholesale_price'] = w_price
-
-                d['dealer_status'] = d.get('dealer_status', 'visible')
-
-                if 'created_at' in d and hasattr(d['created_at'], 'isoformat'):
-                    d['created_at'] = d['created_at'].isoformat()
-                if 'updated_at' in d and hasattr(d['updated_at'], 'isoformat'):
-                    d['updated_at'] = d['updated_at'].isoformat()
-                products.append(d)
-                
-            # Sort products
-            if products or not _cache.get('products'):
-                _cache['products'] = products
-            
-        print("[Firebase Listener] In-memory products cache updated from snapshot.")
-        product_announcer.announce("update")
-
-    db.collection('products').on_snapshot(on_products_snapshot)
-    print("[Firebase Listener] Firestore products on_snapshot listener active.")
-
-# Start listener on import
-start_products_listener()
+        print(f"[Database Cache] Error touching updates log: {e}")

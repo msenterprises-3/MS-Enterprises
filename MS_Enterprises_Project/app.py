@@ -13,9 +13,8 @@ try:
 except ImportError:
     pass
 
-# Import Firebase Data Layer (which configures the SSL Roots bundle automatically)
-from firebase_db import db, get_cache, get_settings, touch_catalogue_update, get_last_update_time
-from firebase_admin import firestore
+# Import Database & Cache Layer
+from firebase_db import db, get_cache, get_settings, touch_catalogue_update, get_last_update_time, Increment
 
 app = Flask(__name__)
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -158,7 +157,7 @@ def inject_settings():
         'current_year': datetime.now().year
     }
 
-# Memory filtering and sorting engine for Firestore collections
+# Memory filtering and sorting engine for database collections
 def get_filtered_products(q=None, category_slug=None, subcat_slug=None, price_max=None, sort_by='newest',
                           featured=None, new_arrival=None, best_seller=None, premium=None, status='active'):
     products = get_cache('products')
@@ -270,7 +269,7 @@ def index():
     # 1. Curated base testimonials from cache
     base_testimonials = list(get_cache('testimonials'))
     
-    # 2. Approved customer reviews from Supabase / Firestore
+    # 2. Approved customer reviews from Supabase database
     approved_reviews = []
     try:
         reviews_ref = db.collection('reviews').where('status', '==', 'approved').stream()
@@ -500,7 +499,7 @@ def product_details(slug):
             if len(related) >= 4:
                 break
                 
-    # Reviews (Streamed live from Firestore)
+    # Reviews (Streamed live from database)
     reviews_ref = db.collection('reviews')\
                     .where('product_id', '==', str(product['id']))\
                     .where('status', '==', 'approved')\
@@ -839,10 +838,10 @@ def dealer_portal():
     try:
         recent_activities = db.collection('dealer_activities')\
                               .where('dealer_id', '==', str(session.get('dealer_id')))\
-                              .order_by('created_at', direction=firestore.Query.DESCENDING)\
+                              .order_by('created_at', direction='DESCENDING')\
                               .limit(5).get()
     except Exception as e:
-        print(f"Firestore index warning (dealer_activities): {e}. Falling back to in-memory sorting.")
+        print(f"Index notice (dealer_activities): {e}. Falling back to in-memory sorting.")
         try:
             raw_activities = db.collection('dealer_activities')\
                                .where('dealer_id', '==', str(session.get('dealer_id')))\
@@ -981,7 +980,7 @@ def api_dealer_submit_order():
 @login_required
 def api_admin_dealers():
     if request.method == 'GET':
-        dealers_ref = db.collection('dealers').order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+        dealers_ref = db.collection('dealers').order_by('created_at', direction='DESCENDING').stream()
         dealers = []
         for doc in dealers_ref:
             d = doc.to_dict()
@@ -1022,7 +1021,7 @@ def api_admin_dealer_activities():
     q = request.args.get('q', '').strip().lower()
     action_filter = request.args.get('action', '').strip()
     
-    logs_ref = db.collection('dealer_activities').order_by('created_at', direction=firestore.Query.DESCENDING).limit(1000).stream()
+    logs_ref = db.collection('dealer_activities').order_by('created_at', direction='DESCENDING').limit(1000).stream()
     logs = []
     for doc in logs_ref:
         log = doc.to_dict()
@@ -1050,7 +1049,7 @@ def api_admin_dealer_activities():
 @login_required
 def api_admin_dealer_orders():
     if request.method == 'GET':
-        orders_ref = db.collection('dealer_orders').order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+        orders_ref = db.collection('dealer_orders').order_by('created_at', direction='DESCENDING').stream()
         orders = []
         for doc in orders_ref:
             o = doc.to_dict()
@@ -1275,8 +1274,6 @@ def api_admin_products():
             print(f"Failed to add images/variants natively: {e}")
             
         touch_catalogue_update()
-        from firebase_db import product_announcer
-        product_announcer.announce('update')
         return jsonify({'success': True, 'message': 'Product created successfully!', 'id': p_id})
         
     elif request.method == 'PUT':
@@ -1389,8 +1386,6 @@ def api_admin_products():
             print(f"Failed to update images/variants natively: {e}")
             
         touch_catalogue_update()
-        from firebase_db import product_announcer
-        product_announcer.announce('update')
         return jsonify({'success': True, 'message': 'Product updated successfully!'})
         
     elif request.method == 'DELETE':
@@ -1404,8 +1399,6 @@ def api_admin_products():
             return jsonify({'success': False, 'message': f'Database Error: {str(e)}'}), 500
             
         touch_catalogue_update()
-        from firebase_db import product_announcer
-        product_announcer.announce('update')
         return jsonify({'success': True, 'message': 'Product deleted successfully!'})
 
 # DUPLICATE PRODUCT API
@@ -2197,7 +2190,7 @@ def api_admin_orders():
                 order_data['created_at'] = order_data['created_at'].strftime('%Y-%m-%d %H:%M:%S')
             return jsonify(order_data)
             
-        orders_ref = db.collection('orders').order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+        orders_ref = db.collection('orders').order_by('created_at', direction='DESCENDING').stream()
         orders_list = []
         for doc in orders_ref:
             o = doc.to_dict()
@@ -2294,11 +2287,11 @@ def api_get_recently_viewed():
     try:
         rows = db.collection('recently_viewed_items')\
                   .where('session_id', '==', session_id)\
-                  .order_by('viewed_at', direction=firestore.Query.DESCENDING)\
+                  .order_by('viewed_at', direction='DESCENDING')\
                   .limit(6)\
                   .get()
     except Exception as e:
-        print(f"Firestore index warning (recently_viewed_items): {e}. Falling back to in-memory sorting.")
+        print(f"Index notice (recently_viewed_items): {e}. Falling back to in-memory sorting.")
         try:
             raw_rows = db.collection('recently_viewed_items')\
                           .where('session_id', '==', session_id)\
@@ -2438,7 +2431,7 @@ def api_products_batch():
     if not ids:
         return jsonify([])
         
-    # Convert list of IDs to string for matching in Firestore cached IDs
+    # Convert list of IDs to string for matching in cached IDs
     id_strings = [str(i) for i in ids]
     
     results = []
@@ -2464,7 +2457,7 @@ def api_stats_wishlist():
     p_id = data.get('id')
     if p_id:
         db.collection('products').document(str(p_id)).update({
-            'wishlist_count': firestore.Increment(1)
+            'wishlist_count': Increment(1)
         })
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
@@ -2475,7 +2468,7 @@ def api_stats_cart():
     p_id = data.get('id')
     if p_id:
         db.collection('products').document(str(p_id)).update({
-            'cart_count': firestore.Increment(1)
+            'cart_count': Increment(1)
         })
         return jsonify({'success': True})
     return jsonify({'success': False}), 400
@@ -2671,7 +2664,7 @@ def user_profile():
         try:
             activities_ref = db.collection('dealer_activities')\
                                .where('dealer_id', '==', session['dealer_id'])\
-                               .order_by('created_at', direction=firestore.Query.DESCENDING)\
+                               .order_by('created_at', direction='DESCENDING')\
                                .limit(15)
             dealer_activities = [doc.to_dict() for doc in activities_ref.get()]
         except Exception as e:
@@ -2698,7 +2691,7 @@ def user_profile():
         try:
             d_orders_ref = db.collection('dealer_orders')\
                              .where('dealer_id', '==', session['dealer_id'])\
-                             .order_by('created_at', direction=firestore.Query.DESCENDING)
+                             .order_by('created_at', direction='DESCENDING')
             dealer_orders = [doc.to_dict() for doc in d_orders_ref.get()]
         except Exception as e:
             print(f"Failed to fetch dealer orders from index: {e}. Falling back to in-memory stream.")

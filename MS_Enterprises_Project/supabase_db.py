@@ -5,13 +5,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 from supabase import create_client
 
-# Import the existing SQLite firestore mock as the fallback db client
-from sqlite_firestore import db as sqlite_db, clean_id, map_document_data
-
-try:
-    from firebase_admin import firestore
-except ImportError:
-    firestore = None
+# Import the existing SQLite mock as the fallback db client
+from sqlite_firestore import db as sqlite_db, clean_id, map_document_data, Increment
 
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -41,7 +36,7 @@ def get_valid_columns(collection_name):
             return []
     return _columns_cache.get(collection_name, [])
 
-class SupabaseFirestoreMock:
+class SupabaseDBAdapter:
     def __init__(self):
         self.fallback = sqlite_db
         
@@ -53,6 +48,9 @@ class SupabaseFirestoreMock:
         
     def batch(self):
         return SupabaseWriteBatch(self.fallback.batch())
+
+# Alias for backwards compatibility
+SupabaseFirestoreMock = SupabaseDBAdapter
 
 class SupabaseCollectionRef:
     def __init__(self, name, fallback):
@@ -86,8 +84,7 @@ class SupabaseCollectionRef:
         return SupabaseQuery(self.name, self.fallback).stream()
         
     def on_snapshot(self, callback):
-        # Snapshots listener is no-op for Supabase web requests
-        print(f"[Supabase Mock] on_snapshot listener ignored for '{self.name}'.")
+        # Snapshots listener is no-op for serverless Supabase web requests
         return None
 
 class SupabaseDocumentRef:
@@ -103,12 +100,11 @@ class SupabaseDocumentRef:
             self.id = clean_id(doc_id)
             
     def _get_pk_col(self):
-        # Autodetect or define primary keys matching our schema
         if self.collection_name in ('settings', 'categories', 'subcategories', 'products', 'product_images', 
                                     'product_variants', 'trust_badges', 'testimonials', 'video_testimonials', 
                                     'category_hero_banners', 'category_offer_banners', 'catalogue_updates', 'hero_banners', 'offer_banners'):
             return 'id'
-        return 'id'  # For orders, dealers, cart, reviews, etc., 'id' is TEXT primary key.
+        return 'id'
         
     def get(self):
         pk_col = self._get_pk_col()
@@ -149,7 +145,7 @@ class SupabaseDocumentRef:
         insert_data = map_document_data(self.collection_name, data)
         insert_data[pk_col] = self.id
         
-        # Always sync settings to SQLite fallback
+        # Sync settings to SQLite fallback if needed
         if self.collection_name == 'settings':
             try:
                 self.fallback.collection(self.collection_name).document(self.raw_id).set(data, merge)
@@ -161,7 +157,7 @@ class SupabaseDocumentRef:
         for k, v in list(insert_data.items()):
             if k not in columns:
                 insert_data.pop(k)
-            elif firestore and isinstance(v, firestore.Increment):
+            elif isinstance(v, Increment):
                 insert_data[k] = v.value
             elif isinstance(v, (dict, list)):
                 pass # keep as dict/list for jsonb columns in Supabase
@@ -174,7 +170,7 @@ class SupabaseDocumentRef:
             supabase_client.table(self.collection_name).upsert(insert_data).execute()
         except Exception as e:
             print(f"[Supabase Error] Error in document set({self.collection_name}/{self.raw_id}): {e}")
-            if self.collection_name in ('products', 'orders', 'cart_items', 'customers', 'product_images', 'product_variants'):
+            if self.collection_name in ('products', 'orders', 'cart_items', 'product_images', 'product_variants'):
                 raise e
             print("Using SQLite fallback.")
             self.fallback.collection(self.collection_name).document(self.raw_id).set(data, merge)
@@ -183,7 +179,7 @@ class SupabaseDocumentRef:
         pk_col = self._get_pk_col()
         update_data = map_document_data(self.collection_name, data)
         
-        # Always sync settings to SQLite fallback
+        # Sync settings to SQLite fallback if needed
         if self.collection_name == 'settings':
             try:
                 self.fallback.collection(self.collection_name).document(self.raw_id).update(data)
@@ -196,7 +192,7 @@ class SupabaseDocumentRef:
         for k, v in list(update_data.items()):
             if k not in columns:
                 update_data.pop(k)
-            elif firestore and isinstance(v, firestore.Increment):
+            elif isinstance(v, Increment):
                 has_increment = True
                 
         if has_increment:
@@ -206,7 +202,7 @@ class SupabaseDocumentRef:
             except Exception:
                 current_row = {}
             for k, v in list(update_data.items()):
-                if firestore and isinstance(v, firestore.Increment):
+                if isinstance(v, Increment):
                     curr_val = current_row.get(k) or 0
                     update_data[k] = curr_val + v.value
                     
@@ -222,7 +218,7 @@ class SupabaseDocumentRef:
             supabase_client.table(self.collection_name).update(update_data).eq(pk_col, self.id).execute()
         except Exception as e:
             print(f"[Supabase Error] Error in document update({self.collection_name}/{self.raw_id}): {e}")
-            if self.collection_name in ('products', 'orders', 'cart_items', 'customers', 'product_images', 'product_variants'):
+            if self.collection_name in ('products', 'orders', 'cart_items', 'product_images', 'product_variants'):
                 raise e
             print("Using SQLite fallback.")
             self.fallback.collection(self.collection_name).document(self.raw_id).update(data)
@@ -233,7 +229,7 @@ class SupabaseDocumentRef:
             supabase_client.table(self.collection_name).delete().eq(pk_col, self.id).execute()
         except Exception as e:
             print(f"[Supabase Error] Error in document delete({self.collection_name}/{self.raw_id}): {e}")
-            if self.collection_name in ('products', 'orders', 'cart_items', 'customers', 'product_images', 'product_variants'):
+            if self.collection_name in ('products', 'orders', 'cart_items', 'product_images', 'product_variants'):
                 raise e
             print("Using SQLite fallback.")
             self.fallback.collection(self.collection_name).document(self.raw_id).delete()
@@ -251,7 +247,7 @@ class SupabaseQuery:
         return self
         
     def order_by(self, field, direction="ASCENDING"):
-        desc = "DESC" in direction.upper()
+        desc = "DESC" in str(direction).upper()
         self.orders.append((field, desc))
         return self
         
@@ -308,7 +304,6 @@ class SupabaseQuery:
             return [SupabaseDocumentSnapshot(self.collection_name, row.get('id', ''), row) for row in rows]
         except Exception as e:
             print(f"[Supabase Fallback] Error in query on '{self.collection_name}': {e}. Using SQLite fallback.")
-            # Build sqlite fallback query
             sq = self.fallback.collection(self.collection_name)
             for field, op, value in self.filters:
                 sq = sq.where(field, op, value)
@@ -342,7 +337,6 @@ class SupabaseDocumentSnapshot:
     def to_dict(self):
         if not self.exists:
             return {}
-        # Return row dict directly (JSONB fields are already parsed by Supabase SDK!)
         return dict(self._row)
 
 class SupabaseWriteBatch:
@@ -352,19 +346,16 @@ class SupabaseWriteBatch:
         
     def set(self, doc_ref, data, merge=False):
         self.ops.append(('set', doc_ref, data))
-        # Sync to SQLite fallback batch
         fallback_ref = doc_ref.fallback.collection(doc_ref.collection_name).document(doc_ref.raw_id)
         self.fallback_batch.set(fallback_ref, data, merge)
         
     def update(self, doc_ref, data):
         self.ops.append(('update', doc_ref, data))
-        # Sync to SQLite fallback batch
         fallback_ref = doc_ref.fallback.collection(doc_ref.collection_name).document(doc_ref.raw_id)
         self.fallback_batch.update(fallback_ref, data)
         
     def delete(self, doc_ref):
         self.ops.append(('delete', doc_ref, None))
-        # Sync to SQLite fallback batch
         fallback_ref = doc_ref.fallback.collection(doc_ref.collection_name).document(doc_ref.raw_id)
         self.fallback_batch.delete(fallback_ref)
         
@@ -379,7 +370,7 @@ class SupabaseWriteBatch:
                 for k, v in list(insert_data.items()):
                     if k not in columns:
                         insert_data.pop(k)
-                    elif firestore and isinstance(v, firestore.Increment):
+                    elif isinstance(v, Increment):
                         insert_data[k] = v.value
                     elif isinstance(v, (dict, list)):
                         pass
@@ -397,7 +388,7 @@ class SupabaseWriteBatch:
                 for k, v in list(update_data.items()):
                     if k not in columns:
                         update_data.pop(k)
-                    elif firestore and isinstance(v, firestore.Increment):
+                    elif isinstance(v, Increment):
                         has_increment = True
                         
                 if has_increment:
@@ -407,7 +398,7 @@ class SupabaseWriteBatch:
                     except Exception:
                         current_row = {}
                     for k, v in list(update_data.items()):
-                        if firestore and isinstance(v, firestore.Increment):
+                        if isinstance(v, Increment):
                             curr_val = current_row.get(k) or 0
                             update_data[k] = curr_val + v.value
                             
@@ -436,5 +427,4 @@ class SupabaseWriteBatch:
             print(f"[Database Batch] SQLite fallback commit error: {e}")
 
 # Export single global client adapter instance
-db = SupabaseFirestoreMock()
-
+db = SupabaseDBAdapter()

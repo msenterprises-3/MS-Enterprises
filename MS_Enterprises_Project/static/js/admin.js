@@ -477,7 +477,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Set loading state
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i data-lucide="loader" class="animate-spin" style="width:16px;height:16px;display:inline-block;margin-right:8px;"></i> Saving to Firestore...';
+            submitBtn.innerHTML = '<i data-lucide="loader" class="animate-spin" style="width:16px;height:16px;display:inline-block;margin-right:8px;"></i> Saving product...';
             if (typeof lucide !== 'undefined') lucide.createIcons();
 
             fetch('/api/admin/products', {
@@ -488,9 +488,11 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    showAlert('success', data.message || 'Product saved successfully to Firestore!');
+                    showAlert('success', data.message || 'Product saved successfully!');
                     closeProductModal();
-                    // Table will redraw automatically from SSE updates
+                    if (typeof loadProductsAndRedrawTable === 'function') {
+                        loadProductsAndRedrawTable();
+                    }
                 } else {
                     showAlert('error', data.message);
                 }
@@ -590,7 +592,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.duplicateProduct = function(id) {
         if (!confirm("Are you sure you want to duplicate this product? It will create a duplicate record in Draft mode.")) return;
 
-        showAlert('success', 'Duplicating product in Firestore...');
+        showAlert('success', 'Duplicating product...');
         fetch('/api/admin/products/duplicate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -603,7 +605,9 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
             if (data.success) {
                 showAlert('success', data.message || 'Product duplicated successfully!');
-                // Table will redraw automatically from SSE updates
+                if (typeof loadProductsAndRedrawTable === 'function') {
+                    loadProductsAndRedrawTable();
+                }
             } else {
                 showAlert('error', data.message);
             }
@@ -617,7 +621,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.deleteProduct = function(id) {
         if (!confirm("Are you sure you want to delete this product? This action is permanent!")) return;
 
-        showAlert('success', 'Deleting product from Firestore...');
+        showAlert('success', 'Deleting product...');
         fetch(`/api/admin/products?id=${id}`, {
             method: 'DELETE'
         })
@@ -627,8 +631,10 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(data => {
             if (data.success) {
-                showAlert('success', data.message || 'Product deleted from Firestore.');
-                // Table will redraw automatically from SSE updates
+                showAlert('success', data.message || 'Product deleted successfully.');
+                if (typeof loadProductsAndRedrawTable === 'function') {
+                    loadProductsAndRedrawTable();
+                }
             } else {
                 showAlert('error', data.message);
             }
@@ -1872,18 +1878,6 @@ document.addEventListener("DOMContentLoaded", function () {
             .finally(() => {
                 tbody.style.opacity = '1';
             });
-    };
-
-    // Setup real-time listener for Firestore changes streamed via backend
-    const sseConnection = new EventSource('/api/admin/products/stream');
-    sseConnection.onmessage = function(event) {
-        if (event.data === 'update') {
-            console.log("[Realtime Stream] Received products catalog update from Firestore snapshot.");
-            loadProductsAndRedrawTable();
-        }
-    };
-    sseConnection.onerror = function(err) {
-        console.warn("[Realtime Stream] Connection issue. Reconnecting...", err);
     };
 
     // Document ready closing blocks

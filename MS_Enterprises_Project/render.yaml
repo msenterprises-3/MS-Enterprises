@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ms-furniture-gallery
+  - name: ms-furniture-gallery
     env: python
     region: oregon
     plan: free
@@ -18,6 +18,4 @@ services:
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_KEY
-        sync: false
-      - key: FIREBASE_CREDENTIALS_JSON
         sync: false

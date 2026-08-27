@@ -273,6 +273,19 @@ def init_db():
     );
     """)
 
+    # Customers table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS customers (
+        mobile_number TEXT PRIMARY KEY,
+        name TEXT,
+        email TEXT,
+        address TEXT,
+        pincode TEXT,
+        last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
     # B2C Orders table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS orders (

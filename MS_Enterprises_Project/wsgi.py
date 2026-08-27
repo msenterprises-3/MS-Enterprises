@@ -6,10 +6,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app import app
 
+# Vercel WSGI entrypoint export
+app = app
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     
-    # Try using waitress production WSGI server
+    # Try using waitress production WSGI server locally
     try:
         from waitress import serve
         print(f"[WSGI] Starting production server using Waitress on http://0.0.0.0:{port}...")
