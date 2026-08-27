@@ -1,10 +1,11 @@
 services:
   - type: web
-  - name: ms-furniture-gallery
-    env: python
+    name: ms-furniture-gallery
+    runtime: python
     region: oregon
     plan: free
     branch: main
+    rootDir: MS_Enterprises_Project
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn wsgi:app --workers 4 --threads 2 --bind 0.0.0.0:$PORT --timeout 120
     healthCheckPath: /health
