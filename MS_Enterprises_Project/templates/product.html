@@ -109,7 +109,7 @@
             </div>
             {% endif %}
 
-            <!-- Order Trigger Buttons (Add to Cart / Buy Now) -->
+            <!-- Order Trigger Buttons (Add to Cart / Buy Now / Wishlist) -->
             <div class="details-actions" style="display: grid; gap: 15px; grid-template-columns: 1fr 1fr; width: 100%;">
                 {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
                 <a href="/dealer/login" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; grid-column: span 2; text-align: center; justify-content: center; display: flex; align-items: center;">
@@ -121,6 +121,9 @@
                 </button>
                 <button onclick="handleBuyNowClick()" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer;">
                     <i data-lucide="shopping-bag"></i> Buy Now
+                </button>
+                <button onclick="toggleProductWishlist('{{ product.id }}')" class="btn btn-secondary wishlist-toggle-btn" data-id="{{ product.id }}" style="padding: 14px 20px; font-size:15px; font-weight: 600; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer; grid-column: span 2; background: var(--bg-white);">
+                    <i data-lucide="heart" class="wishlist-icon-elem" style="width: 18px; height: 18px;"></i> <span class="wishlist-btn-text">Add to Wishlist</span>
                 </button>
                 {% endif %}
             </div>
@@ -259,7 +262,10 @@
 
         <div class="products-grid">
             {% for prod in related %}
-            <div class="product-card">
+            <div class="product-card" style="position: relative;">
+                <button class="wishlist-toggle-btn" data-id="{{ prod.id }}" aria-label="Toggle Wishlist" style="position: absolute; top: 12px; right: 12px; z-index: 5; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.9); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+                    <i data-lucide="heart" style="width: 16px; height: 16px;"></i>
+                </button>
                 <div class="product-badge-container">
                     {% if prod.offer_badge %}
                     <span class="badge badge-offer">{{ prod.offer_badge }}</span>
@@ -414,6 +420,25 @@
         // Reset zoom lens if magnifying
         const lens = document.getElementById('zoomLens');
         if (lens) lens.style.display = "none";
+    }
+
+    function toggleProductWishlist(productId) {
+        if (window.mseWishlist && typeof window.mseWishlist.toggle === 'function') {
+            window.mseWishlist.toggle(productId);
+        } else {
+            fetch('/api/wishlist/toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: productId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && typeof syncStatesWithDatabase === 'function') {
+                    syncStatesWithDatabase();
+                }
+            })
+            .catch(err => console.error("Wishlist toggle error:", err));
+        }
     }
 
     // Initialize variant price trigger and track recently viewed

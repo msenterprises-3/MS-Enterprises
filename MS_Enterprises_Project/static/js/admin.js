@@ -542,10 +542,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.getElementById('prodFormDesc').value = data.description;
                     document.getElementById('prodFormStatus').value = data.status;
                     
-                    document.getElementById('prodFormFeat').checked = data.is_featured === 1;
-                    document.getElementById('prodFormNew').checked = data.is_new_arrival === 1;
-                    document.getElementById('prodFormBest').checked = data.is_best_seller === 1;
-                    document.getElementById('prodFormPrem').checked = data.is_premium === 1;
+                    document.getElementById('prodFormFeat').checked = Boolean(data.is_featured == 1 || data.is_featured === true || data.is_featured === '1');
+                    document.getElementById('prodFormNew').checked = Boolean(data.is_new_arrival == 1 || data.is_new_arrival === true || data.is_new_arrival === '1');
+                    document.getElementById('prodFormBest').checked = Boolean(data.is_best_seller == 1 || data.is_best_seller === true || data.is_best_seller === '1');
+                    document.getElementById('prodFormPrem').checked = Boolean(data.is_premium == 1 || data.is_premium === true || data.is_premium === '1');
 
                     // Images
                     const imgs = data.images || [];

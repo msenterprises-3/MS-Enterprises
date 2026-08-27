@@ -21,20 +21,107 @@ if SUPABASE_URL and SUPABASE_KEY:
     except Exception as e:
         print(f"[Supabase Client] Initialization error: {e}")
 
-_columns_cache = {}
+# Authoritative Supabase PostgreSQL column definitions (matching supabase_schema.sql and migrations)
+SUPABASE_TABLE_COLUMNS = {
+    'settings': {
+        'id', 'whatsapp_number', 'contact_email', 'contact_phone', 'contact_address',
+        'working_hours', 'google_map_link', 'instagram_url', 'facebook_url',
+        'youtube_url', 'admin_password_hash', 'about_story', 'about_mission',
+        'about_vision', 'seo_meta_title', 'seo_meta_description', 'wishlist_enabled',
+        'cart_enabled', 'cart_min_value', 'whatsapp_cart_prefix', 'whatsapp_wishlist_prefix',
+        'updated_at', 'show_facebook', 'show_instagram', 'show_youtube',
+        'countdown_enabled', 'countdown_end_date', 'upi_id'
+    },
+    'categories': {
+        'id', 'name', 'slug', 'image_url', 'description', 'display_order', 'status'
+    },
+    'subcategories': {
+        'id', 'category_id', 'name', 'slug', 'display_order', 'status'
+    },
+    'products': {
+        'id', 'category_id', 'subcategory_id', 'name', 'slug', 'sku',
+        'short_description', 'description', 'price', 'offer_price', 'offer_badge',
+        'status', 'is_featured', 'is_new_arrival', 'is_best_seller', 'is_premium',
+        'specifications', 'features', 'display_order', 'wishlist_count', 'cart_count',
+        'created_at', 'updated_at', 'dealer_status'
+    },
+    'product_images': {
+        'id', 'product_id', 'image_url', 'display_order'
+    },
+    'product_variants': {
+        'id', 'product_id', 'name', 'value', 'price_adjustment'
+    },
+    'hero_banners': {
+        'id', 'image_url', 'title', 'subtitle', 'link_text', 'link_url',
+        'display_order', 'status'
+    },
+    'offer_banners': {
+        'id', 'image_url', 'title', 'subtitle', 'ending_date', 'button_text',
+        'button_link', 'status', 'display_order'
+    },
+    'trust_badges': {
+        'id', 'icon_svg', 'title', 'description', 'display_order'
+    },
+    'testimonials': {
+        'id', 'customer_name', 'customer_photo', 'city', 'rating', 'review',
+        'status', 'display_order'
+    },
+    'video_testimonials': {
+        'id', 'customer_name', 'video_url', 'thumbnail_url', 'review_text',
+        'status', 'display_order'
+    },
+    'category_hero_banners': {
+        'id', 'category_id', 'image_url', 'title', 'button_text', 'offer_text', 'status'
+    },
+    'category_offer_banners': {
+        'id', 'category_id', 'image_url', 'title', 'product_image_url',
+        'product_price', 'discount', 'status'
+    },
+    'catalogue_updates': {
+        'id', 'last_updated'
+    },
+    'dealers': {
+        'id', 'email', 'password_hash', 'business_name', 'dealer_name',
+        'mobile_number', 'status', 'created_at', 'gst_number', 'business_address',
+        'city', 'state', 'pincode', 'tier'
+    },
+    'orders': {
+        'id', 'session_id', 'mobile_number', 'total_value', 'status',
+        'payment_method', 'items_json', 'customer_name', 'shipping_address',
+        'created_at', 'email', 'pincode', 'order_notes', 'payment_status', 'order_status'
+    },
+    'dealer_orders': {
+        'id', 'dealer_id', 'business_name', 'total_value', 'status',
+        'items_json', 'created_at'
+    },
+    'cart_items': {
+        'id', 'session_id', 'product_id', 'quantity', 'variant_id', 'created_at'
+    },
+    'wishlist_items': {
+        'id', 'session_id', 'product_id', 'created_at'
+    },
+    'recently_viewed_items': {
+        'id', 'session_id', 'product_id', 'viewed_at'
+    },
+    'reviews': {
+        'id', 'product_id', 'reviewer_name', 'rating', 'review_text',
+        'status', 'display_order', 'created_at', 'updated_at'
+    },
+    'dealer_activities': {
+        'id', 'dealer_id', 'dealer_name', 'business_name', 'action',
+        'details', 'device', 'ip_address', 'created_at', 'mobile_number'
+    },
+    'bulk_enquiries': {
+        'id', 'name', 'email', 'phone', 'message', 'created_at', 'company', 'details'
+    },
+    'customers': {
+        'mobile_number', 'name', 'email', 'address', 'pincode', 'last_active', 'updated_at'
+    }
+}
 
 def get_valid_columns(collection_name):
-    if collection_name not in _columns_cache:
-        import sqlite3
-        try:
-            conn = sqlite3.connect(sqlite_db.db_path)
-            cursor = conn.cursor()
-            cursor.execute(f"PRAGMA table_info({collection_name})")
-            _columns_cache[collection_name] = [row[1] for row in cursor.fetchall()]
-            conn.close()
-        except Exception:
-            return []
-    return _columns_cache.get(collection_name, [])
+    """Returns authoritative valid columns for a Supabase table, or None if unconstrained."""
+    return SUPABASE_TABLE_COLUMNS.get(collection_name, None)
 
 class SupabaseDBAdapter:
     def __init__(self):
@@ -84,7 +171,6 @@ class SupabaseCollectionRef:
         return SupabaseQuery(self.name, self.fallback).stream()
         
     def on_snapshot(self, callback):
-        # Snapshots listener is no-op for serverless Supabase web requests
         return None
 
 class SupabaseDocumentRef:
@@ -94,16 +180,16 @@ class SupabaseDocumentRef:
         self.fallback = fallback
         
         # settings document 'global' maps to row ID 1 in Postgres settings table
-        if self.collection_name == 'settings' and doc_id == 'global':
+        if self.collection_name == 'settings' and str(doc_id) in ('global', '1'):
+            self.id = 1
+        elif self.collection_name == 'catalogue_updates' and str(doc_id) == '1':
             self.id = 1
         else:
             self.id = clean_id(doc_id)
             
     def _get_pk_col(self):
-        if self.collection_name in ('settings', 'categories', 'subcategories', 'products', 'product_images', 
-                                    'product_variants', 'trust_badges', 'testimonials', 'video_testimonials', 
-                                    'category_hero_banners', 'category_offer_banners', 'catalogue_updates', 'hero_banners', 'offer_banners'):
-            return 'id'
+        if self.collection_name == 'customers':
+            return 'mobile_number'
         return 'id'
         
     def get(self):
@@ -152,10 +238,10 @@ class SupabaseDocumentRef:
             except Exception as fb_e:
                 print(f"Error syncing settings set to fallback: {fb_e}")
 
-        columns = get_valid_columns(self.collection_name)
+        valid_cols = get_valid_columns(self.collection_name)
         # Serialize nested lists/dicts to match JSONB columns in Supabase
         for k, v in list(insert_data.items()):
-            if k not in columns:
+            if valid_cols is not None and k not in valid_cols:
                 insert_data.pop(k)
             elif isinstance(v, Increment):
                 insert_data[k] = v.value
@@ -170,10 +256,7 @@ class SupabaseDocumentRef:
             supabase_client.table(self.collection_name).upsert(insert_data).execute()
         except Exception as e:
             print(f"[Supabase Error] Error in document set({self.collection_name}/{self.raw_id}): {e}")
-            if self.collection_name in ('products', 'orders', 'cart_items', 'product_images', 'product_variants'):
-                raise e
-            print("Using SQLite fallback.")
-            self.fallback.collection(self.collection_name).document(self.raw_id).set(data, merge)
+            raise e
             
     def update(self, data):
         pk_col = self._get_pk_col()
@@ -186,11 +269,11 @@ class SupabaseDocumentRef:
             except Exception as fb_e:
                 print(f"Error syncing settings update to fallback: {fb_e}")
 
-        columns = get_valid_columns(self.collection_name)
+        valid_cols = get_valid_columns(self.collection_name)
         
         has_increment = False
         for k, v in list(update_data.items()):
-            if k not in columns:
+            if valid_cols is not None and k not in valid_cols:
                 update_data.pop(k)
             elif isinstance(v, Increment):
                 has_increment = True
@@ -214,14 +297,14 @@ class SupabaseDocumentRef:
             elif isinstance(v, datetime):
                 update_data[k] = v.strftime('%Y-%m-%d %H:%M:%S')
                 
+        if not update_data:
+            return
+            
         try:
             supabase_client.table(self.collection_name).update(update_data).eq(pk_col, self.id).execute()
         except Exception as e:
             print(f"[Supabase Error] Error in document update({self.collection_name}/{self.raw_id}): {e}")
-            if self.collection_name in ('products', 'orders', 'cart_items', 'product_images', 'product_variants'):
-                raise e
-            print("Using SQLite fallback.")
-            self.fallback.collection(self.collection_name).document(self.raw_id).update(data)
+            raise e
             
     def delete(self):
         pk_col = self._get_pk_col()
@@ -229,10 +312,7 @@ class SupabaseDocumentRef:
             supabase_client.table(self.collection_name).delete().eq(pk_col, self.id).execute()
         except Exception as e:
             print(f"[Supabase Error] Error in document delete({self.collection_name}/{self.raw_id}): {e}")
-            if self.collection_name in ('products', 'orders', 'cart_items', 'product_images', 'product_variants'):
-                raise e
-            print("Using SQLite fallback.")
-            self.fallback.collection(self.collection_name).document(self.raw_id).delete()
+            raise e
 
 class SupabaseQuery:
     def __init__(self, collection_name, fallback):
@@ -281,7 +361,7 @@ class SupabaseQuery:
                 q = q.limit(self.limit_count)
                 
             res = q.execute()
-            rows = res.data
+            rows = res.data or []
             
             if self.collection_name == 'products' and rows:
                 try:
@@ -289,7 +369,7 @@ class SupabaseQuery:
                     if p_ids:
                         img_res = supabase_client.table('product_images').select('product_id, image_url').in_('product_id', p_ids).execute()
                         img_map = {}
-                        for img in img_res.data:
+                        for img in (img_res.data or []):
                             pid = str(img['product_id'])
                             if pid not in img_map:
                                 img_map[pid] = []
@@ -301,7 +381,7 @@ class SupabaseQuery:
                     for r in rows:
                         r['images'] = []
                         
-            return [SupabaseDocumentSnapshot(self.collection_name, row.get('id', ''), row) for row in rows]
+            return [SupabaseDocumentSnapshot(self.collection_name, row.get('id', row.get('mobile_number', '')), row) for row in rows]
         except Exception as e:
             print(f"[Supabase Fallback] Error in query on '{self.collection_name}': {e}. Using SQLite fallback.")
             sq = self.fallback.collection(self.collection_name)
@@ -330,7 +410,7 @@ class SupabaseDocumentSnapshot:
         
     @property
     def id(self):
-        if self.collection_name == 'settings' and self._id == 1:
+        if self.collection_name == 'settings' and (self._id == 1 or self._id == '1'):
             return 'global'
         return str(self._id) if self._id is not None else ''
         
@@ -363,12 +443,12 @@ class SupabaseWriteBatch:
         # 1. Commit to Supabase
         for op, doc_ref, data in self.ops:
             pk_col = doc_ref._get_pk_col()
-            columns = get_valid_columns(doc_ref.collection_name)
+            valid_cols = get_valid_columns(doc_ref.collection_name)
             if op == 'set':
                 insert_data = map_document_data(doc_ref.collection_name, data)
                 insert_data[pk_col] = doc_ref.id
                 for k, v in list(insert_data.items()):
-                    if k not in columns:
+                    if valid_cols is not None and k not in valid_cols:
                         insert_data.pop(k)
                     elif isinstance(v, Increment):
                         insert_data[k] = v.value
@@ -381,12 +461,13 @@ class SupabaseWriteBatch:
                 try:
                     supabase_client.table(doc_ref.collection_name).upsert(insert_data).execute()
                 except Exception as e:
-                    print(f"[Supabase Batch] Error setting {doc_ref.collection_name}/{doc_ref.id}: {e}")
+                    print(f"[Supabase Batch Error] Error setting {doc_ref.collection_name}/{doc_ref.id}: {e}")
+                    raise e
             elif op == 'update':
                 update_data = map_document_data(doc_ref.collection_name, data)
                 has_increment = False
                 for k, v in list(update_data.items()):
-                    if k not in columns:
+                    if valid_cols is not None and k not in valid_cols:
                         update_data.pop(k)
                     elif isinstance(v, Increment):
                         has_increment = True
@@ -412,19 +493,20 @@ class SupabaseWriteBatch:
                 try:
                     supabase_client.table(doc_ref.collection_name).update(update_data).eq(pk_col, doc_ref.id).execute()
                 except Exception as e:
-                    print(f"[Supabase Batch] Error updating {doc_ref.collection_name}/{doc_ref.id}: {e}")
+                    print(f"[Supabase Batch Error] Error updating {doc_ref.collection_name}/{doc_ref.id}: {e}")
+                    raise e
             elif op == 'delete':
                 try:
                     supabase_client.table(doc_ref.collection_name).delete().eq(pk_col, doc_ref.id).execute()
                 except Exception as e:
-                    print(f"[Supabase Batch] Error deleting {doc_ref.collection_name}/{doc_ref.id}: {e}")
+                    print(f"[Supabase Batch Error] Error deleting {doc_ref.collection_name}/{doc_ref.id}: {e}")
+                    raise e
                     
         # 2. Commit to local SQLite backup in WAL mode
         try:
             self.fallback_batch.commit()
-            print("[Database Batch] Committed batch transactions to SQLite fallback.")
         except Exception as e:
-            print(f"[Database Batch] SQLite fallback commit error: {e}")
+            print(f"[Database Batch] SQLite fallback commit note: {e}")
 
 # Export single global client adapter instance
 db = SupabaseDBAdapter()

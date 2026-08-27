@@ -226,14 +226,17 @@ def get_filtered_products(q=None, category_slug=None, subcat_slug=None, price_ma
             pass
             
     # 6. Flag filters
+    def is_flag_set(val):
+        return val is True or val == 1 or val == '1' or str(val).lower() in ('true', '1', 'yes')
+
     if featured == '1' or featured == 'best-seller':
-        products = [p for p in products if p.get('is_featured')]
+        products = [p for p in products if is_flag_set(p.get('is_featured'))]
     if new_arrival == '1':
-        products = [p for p in products if p.get('is_new_arrival')]
+        products = [p for p in products if is_flag_set(p.get('is_new_arrival'))]
     if best_seller == '1':
-        products = [p for p in products if p.get('is_best_seller')]
+        products = [p for p in products if is_flag_set(p.get('is_best_seller'))]
     if premium == '1':
-        products = [p for p in products if p.get('is_premium')]
+        products = [p for p in products if is_flag_set(p.get('is_premium'))]
         
     # 7. Sorting
     def get_sort_price(p):
@@ -335,18 +338,34 @@ def index():
     else:
         active_products = [p for p in all_products if p.get('status') == 'active' and p.get('dealer_status', 'visible') != 'dealer_only']
     
+    def is_truthy(val):
+        return val is True or val == 1 or val == '1' or str(val).lower() in ('true', '1', 'yes')
+
     def enrich_home_products(prods):
         enriched = []
+        categories_cache = get_cache('categories')
         for p in prods:
             p_dict = dict(p)
             p_dict['image_url'] = p_dict['images'][0] if p_dict.get('images') else '/static/uploads/products/prod_generic_1.webp'
+            cat = next((c for c in categories_cache if str(c['id']) == str(p_dict.get('category_id'))), None)
+            p_dict['category_name'] = cat['name'] if cat else 'Furniture'
             enriched.append(p_dict)
         return sanitize_products_by_role(enriched)
         
-    featured = enrich_home_products([p for p in active_products if p.get('is_featured')][:8])
-    new_arrivals = enrich_home_products([p for p in active_products if p.get('is_new_arrival')][:8])
-    best_sellers = enrich_home_products([p for p in active_products if p.get('is_best_seller')][:8])
-    premium_collection = enrich_home_products([p for p in active_products if p.get('is_premium')][:8])
+    featured = enrich_home_products([p for p in active_products if is_truthy(p.get('is_featured'))][:8])
+    new_arrivals = enrich_home_products([p for p in active_products if is_truthy(p.get('is_new_arrival'))][:8])
+    best_sellers = enrich_home_products([p for p in active_products if is_truthy(p.get('is_best_seller'))][:8])
+    premium_collection = enrich_home_products([p for p in active_products if is_truthy(p.get('is_premium'))][:8])
+
+    # Fallback to general active products if specific flags are not yet assigned
+    if not featured and active_products:
+        featured = enrich_home_products(active_products[:8])
+    if not new_arrivals and active_products:
+        new_arrivals = enrich_home_products(sorted(active_products, key=lambda x: str(x.get('created_at', '')), reverse=True)[:8])
+    if not best_sellers and active_products:
+        best_sellers = enrich_home_products(active_products[:8])
+    if not premium_collection and active_products:
+        premium_collection = enrich_home_products(sorted(active_products, key=lambda x: float(x.get('price') or 0), reverse=True)[:8])
     
     active_offer = dict(offer_banners[0]) if offer_banners else None
     
@@ -646,15 +665,15 @@ def api_search():
             name = p.get('name', '').lower()
             s_desc = p.get('short_description', '').lower()
             if q_lower in name or q_lower in s_desc:
-                cat = next((c for c in categories_cache if c['id'] == p['category_id']), None)
+                cat = next((c for c in categories_cache if str(c['id']) == str(p.get('category_id'))), None)
                 results.append({
                     'id': p['id'],
                     'name': p['name'],
                     'slug': p['slug'],
                     'price': p['price'],
-                    'offer_price': p['offer_price'],
+                    'offer_price': p.get('offer_price'),
                     'category_name': cat['name'] if cat else 'Uncategorized',
-                    'image_url': p['images'][0] if p.get('images') else '/static/uploads/products/prod_generic_1.webp'
+                    'image_url': p['images'][0] if p.get('images') and p['images'][0] else '/static/uploads/products/prod_generic_1.webp'
                 })
                 if len(results) >= 8:
                     break
@@ -663,20 +682,23 @@ def api_search():
 
 @app.route('/api/reviews', methods=['POST'])
 def api_submit_review():
-    data = request.json or request.form
-    product_id = str(data.get('product_id'))
-    reviewer_name = data.get('reviewer_name', '').strip()
-    rating = int(data.get('rating'))
-    review_text = data.get('review_text', '').strip()
+    data = request.json or request.form or {}
+    product_id = str(data.get('product_id', '')).strip()
+    reviewer_name = str(data.get('reviewer_name', '')).strip()
+    try:
+        rating = int(data.get('rating', 5))
+    except (ValueError, TypeError):
+        rating = 5
+    review_text = str(data.get('review_text', '')).strip()
     
-    if not (product_id and reviewer_name and rating and review_text):
+    if not (product_id and reviewer_name and review_text):
         return jsonify({'success': False, 'message': 'All review fields are required.'}), 400
         
     doc_ref = db.collection('reviews').document()
     doc_ref.set({
         'product_id': product_id,
         'reviewer_name': reviewer_name,
-        'rating': rating,
+        'rating': max(1, min(5, rating)),
         'review_text': review_text,
         'status': 'pending',
         'created_at': datetime.utcnow().isoformat()
@@ -1254,22 +1276,26 @@ def api_admin_products():
         try:
             from supabase_db import supabase_client
             for idx, img in enumerate(data.get('images', [])):
-                img_id = str(uuid.uuid4().int)[:8]
-                supabase_client.table('product_images').insert({
-                    'id': int(img_id),
-                    'product_id': int(p_id),
-                    'image_url': img,
-                    'display_order': idx
-                }).execute()
+                if img and str(img).strip():
+                    img_id = str(uuid.uuid4().int)[:8]
+                    supabase_client.table('product_images').insert({
+                        'id': int(img_id),
+                        'product_id': int(p_id),
+                        'image_url': str(img).strip(),
+                        'display_order': idx
+                    }).execute()
             for idx, var in enumerate(data.get('variants', [])):
-                var_id = str(uuid.uuid4().int)[:8]
-                supabase_client.table('product_variants').insert({
-                    'id': int(var_id),
-                    'product_id': int(p_id),
-                    'variant_name': var.get('name', f'Variant {idx}'),
-                    'price_adjustment': float(var.get('price_adjustment', 0)),
-                    'stock': int(var.get('stock', 0))
-                }).execute()
+                var_name = var.get('name', f'Variant {idx}')
+                var_val = var.get('value', '')
+                if var_name or var_val:
+                    var_id = str(uuid.uuid4().int)[:8]
+                    supabase_client.table('product_variants').insert({
+                        'id': int(var_id),
+                        'product_id': int(p_id),
+                        'name': str(var_name),
+                        'value': str(var_val),
+                        'price_adjustment': float(var.get('price_adjustment', 0))
+                    }).execute()
         except Exception as e:
             print(f"Failed to add images/variants natively: {e}")
             
@@ -1366,22 +1392,26 @@ def api_admin_products():
             supabase_client.table('product_images').delete().eq('product_id', int(p_id)).execute()
             supabase_client.table('product_variants').delete().eq('product_id', int(p_id)).execute()
             for idx, img in enumerate(data.get('images', [])):
-                img_id = str(uuid.uuid4().int)[:8]
-                supabase_client.table('product_images').insert({
-                    'id': int(img_id),
-                    'product_id': int(p_id),
-                    'image_url': img,
-                    'display_order': idx
-                }).execute()
+                if img and str(img).strip():
+                    img_id = str(uuid.uuid4().int)[:8]
+                    supabase_client.table('product_images').insert({
+                        'id': int(img_id),
+                        'product_id': int(p_id),
+                        'image_url': str(img).strip(),
+                        'display_order': idx
+                    }).execute()
             for idx, var in enumerate(data.get('variants', [])):
-                var_id = str(uuid.uuid4().int)[:8]
-                supabase_client.table('product_variants').insert({
-                    'id': int(var_id),
-                    'product_id': int(p_id),
-                    'variant_name': var.get('name', f'Variant {idx}'),
-                    'price_adjustment': float(var.get('price_adjustment', 0)),
-                    'stock': int(var.get('stock', 0))
-                }).execute()
+                var_name = var.get('name', f'Variant {idx}')
+                var_val = var.get('value', '')
+                if var_name or var_val:
+                    var_id = str(uuid.uuid4().int)[:8]
+                    supabase_client.table('product_variants').insert({
+                        'id': int(var_id),
+                        'product_id': int(p_id),
+                        'name': str(var_name),
+                        'value': str(var_val),
+                        'price_adjustment': float(var.get('price_adjustment', 0))
+                    }).execute()
         except Exception as e:
             print(f"Failed to update images/variants natively: {e}")
             
@@ -2010,7 +2040,7 @@ def api_cart_update():
         c = c_doc.to_dict()
         qty = c.get('quantity', 0)
         cart_count += qty
-        prod = next((p for p in products_cache if p['id'] == c['product_id']), None)
+        prod = next((p for p in products_cache if str(p['id']) == str(c['product_id'])), None)
         if prod:
             total_amount += (prod.get('offer_price') or prod['price']) * qty
             
@@ -2036,7 +2066,7 @@ def api_cart_remove():
         c = c_doc.to_dict()
         qty = c.get('quantity', 0)
         cart_count += qty
-        prod = next((p for p in products_cache if p['id'] == c['product_id']), None)
+        prod = next((p for p in products_cache if str(p['id']) == str(c['product_id'])), None)
         if prod:
             total_amount += (prod.get('offer_price') or prod['price']) * qty
             
@@ -2055,7 +2085,7 @@ def api_cart_clear():
 @app.route('/checkout', methods=['GET'])
 def checkout():
     session_id = get_user_cart_id()
-    settings = get_cache('settings')
+    settings = get_settings()
     
     # Check if cart has items
     cart_docs = db.collection('cart_items').where('session_id', '==', session_id).get()
@@ -2169,7 +2199,7 @@ def api_order_place():
 @app.route('/order-confirmation', methods=['GET'])
 def order_confirmation():
     order_id = request.args.get('id', '')
-    settings = get_cache('settings')
+    settings = get_settings()
     
     order_doc = db.collection('orders').document(order_id).get()
     order_data = order_doc.to_dict() if order_doc.exists else {}
@@ -2436,10 +2466,13 @@ def api_products_batch():
     
     results = []
     products_cache = get_cache('products')
+    categories_cache = get_cache('categories')
     for p in products_cache:
         if str(p['id']) in id_strings:
             p_dict = dict(p)
             p_dict['image_url'] = p_dict['images'][0] if p_dict.get('images') else '/static/uploads/products/prod_generic_1.webp'
+            cat = next((c for c in categories_cache if str(c['id']) == str(p_dict.get('category_id'))), None)
+            p_dict['category_name'] = cat['name'] if cat else 'Furniture'
             results.append(p_dict)
             
     # Retain the exact order requested in parameters
@@ -2580,13 +2613,22 @@ def api_admin_category_offer_banners():
 @app.route('/bulk-enquiry', methods=['GET', 'POST'])
 def bulk_enquiry():
     if request.method == 'POST':
-        data = request.json or request.form
+        data = request.json or request.form or {}
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        phone = data.get('phone', '').strip()
+        company = data.get('company', '').strip()
+        details = data.get('details', '').strip()
+        message_text = details
+        if company:
+            message_text = f"[{company}] {details}"
         db.collection('bulk_enquiries').document().set({
-            'name': data.get('name', '').strip(),
-            'email': data.get('email', '').strip(),
-            'phone': data.get('phone', '').strip(),
-            'company': data.get('company', '').strip(),
-            'details': data.get('details', '').strip(),
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'company': company,
+            'details': details,
+            'message': message_text,
             'created_at': datetime.utcnow().isoformat()
         })
         return jsonify({'success': True, 'message': 'Bulk enquiry submitted successfully! We will contact you soon.'})
