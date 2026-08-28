@@ -338,34 +338,7 @@
                 {% endif %}
             </div>
 
-            <!-- Customer Saved Wishlist Items -->
-            <div class="profile-wishlist-section" style="margin-top: 35px; border-top: 1px solid var(--border-color); padding-top: 30px;">
-                <h3 style="font-size: 18px; font-weight: 700; color: #111111; margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; font-family: var(--font-heading);">
-                    <i data-lucide="heart" style="color: #ef4444; width: 20px; height: 20px; fill: #ef4444;"></i>
-                    Wishlist (Saved/Paused Items)
-                </h3>
-                
-                {% if customer_wishlist %}
-                <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.01);">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
-                        {% for item in customer_wishlist %}
-                        <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; background: #ffffff;">
-                            <div>
-                                <img src="{{ item.product_image }}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; border: 1px solid #f1f5f9; margin-bottom: 10px;" onerror="this.src='/static/uploads/products/prod_generic_1.webp'">
-                                <strong style="color: #1e293b; font-size: 13px; display: block; height: 36px; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; text-align: left;">{{ item.product_name }}</strong>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-                                <span style="font-weight: 700; color: #0f172a; font-size: 14px;">₹{{ "{:,.0f}".format(item.unit_price) }}</span>
-                                <a href="/product/{{ item.product_id }}" class="btn btn-secondary" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; text-decoration: none; font-weight: 700; background: #f8fafc; border: 1px solid #cbd5e1; color: #334155;">View</a>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% else %}
-                <p style="color: var(--text-muted); text-align: center; margin: 20px 0; font-size: 14px;">Your wishlist is currently empty.</p>
-                {% endif %}
-            </div>
+
 
             <!-- Actions buttons footer -->
             <div style="display: flex; gap: 15px; justify-content: stretch; border-top: 1px solid var(--border-color); padding-top: 30px; margin-top: 30px;">

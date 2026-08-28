@@ -121,7 +121,7 @@
             </div>
             {% endif %}
 
-            <!-- Order Trigger Buttons (Add to Cart / Buy Now / Wishlist) -->
+            <!-- Order Trigger Buttons (Add to Cart / Buy Now) -->
             <div class="details-actions" style="display: grid; gap: 15px; grid-template-columns: 1fr 1fr; width: 100%;">
                 {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
                 <a href="/dealer/login" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; grid-column: span 2; text-align: center; justify-content: center; display: flex; align-items: center;">
@@ -133,9 +133,6 @@
                 </button>
                 <button type="button" id="buyNowBtn" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer;">
                     <i data-lucide="shopping-bag"></i> Buy Now
-                </button>
-                <button type="button" id="productWishlistBtn" class="btn btn-secondary wishlist-toggle-btn" data-id="{{ product.id }}" style="padding: 14px 20px; font-size:15px; font-weight: 600; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer; grid-column: span 2; background: var(--bg-white);">
-                    <i data-lucide="heart" class="wishlist-icon-elem" style="width: 18px; height: 18px;"></i> <span class="wishlist-btn-text">Add to Wishlist</span>
                 </button>
                 {% endif %}
             </div>
@@ -274,18 +271,15 @@
 
         <div class="products-grid">
             {% for prod in related %}
-            <div class="product-card" style="position: relative;">
-                <button class="wishlist-toggle-btn" data-id="{{ prod.id }}" aria-label="Toggle Wishlist" style="position: absolute; top: 12px; right: 12px; z-index: 5; width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.9); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
-                    <i data-lucide="heart" style="width: 16px; height: 16px;"></i>
-                </button>
+            <div class="product-card">
                 <div class="product-badge-container">
                     {% if prod.offer_badge %}
                     <span class="badge badge-offer">{{ prod.offer_badge }}</span>
                     {% endif %}
                 </div>
-                <div class="product-card-img-wrapper">
-                    <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy">
-                </div>
+                <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
+                    <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
+                </a>
                 <div class="product-card-body">
                     <span class="product-card-category">{{ product.category_name }}</span>
                     <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
@@ -296,15 +290,8 @@
                         <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
                         {% endif %}
                     </div>
-                    <div class="product-card-actions" style="display: flex; gap: 8px; width: 100%;">
-                        {% if settings.cart_enabled %}
-                        <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="flex: 1;">
-                            <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
-                        </button>
-                        <a href="/product/{{ prod.slug }}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>
-                        {% else %}
-                        <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>
-                        {% endif %}
+                    <div class="product-card-actions" style="width: 100%;">
+                        <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">View Details</a>
                     </div>
                 </div>
             </div>
@@ -517,26 +504,6 @@
         if (lens) lens.style.display = "none";
     }
 
-    function toggleProductWishlist(productId) {
-        console.log("Button clicked! (Wishlist Toggle: " + productId + ")");
-        if (window.mseWishlist && typeof window.mseWishlist.toggle === 'function') {
-            window.mseWishlist.toggle(productId);
-        } else {
-            fetch('/api/wishlist/toggle', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ product_id: productId })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && typeof syncStatesWithDatabase === 'function') {
-                    syncStatesWithDatabase();
-                }
-            })
-            .catch(err => console.error("Wishlist toggle error:", err));
-        }
-    }
-
     // Attach all event listeners once DOM is ready
     document.addEventListener("DOMContentLoaded", function() {
         // 1. Variant dynamic pricing
@@ -557,16 +524,6 @@
             buyNowBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 handleBuyNowClick();
-            });
-        }
-
-        // 4. Wishlist Button Listener
-        const productWishlistBtn = document.getElementById('productWishlistBtn');
-        if (productWishlistBtn) {
-            productWishlistBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                toggleProductWishlist("{{ product.id }}");
             });
         }
 

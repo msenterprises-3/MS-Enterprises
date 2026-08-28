@@ -745,70 +745,17 @@ function initMainApp() {
         });
     }
 
-    // 11. Wishlist & Cart Client-side State Manager (DB-Backed)
+    // 11. Shopping Cart Client-side State Manager (DB-Backed)
     let cachedCart = {}; // format: { productId: quantity }
     let cachedWishlist = []; // format: [ productId1, productId2, ... ]
 
+    // Wishlist feature removed - safe compatibility stubs
     function getWishlist() {
-        return cachedWishlist;
+        return [];
     }
 
     function toggleWishlist(id) {
-        console.log("Button clicked! (Wishlist Toggle: " + id + ")");
-        if (!id) return;
-        id = String(id);
-        const index = cachedWishlist.indexOf(id);
-        const currentlyInWishlist = index > -1;
-        const willBeInWishlist = !currentlyInWishlist;
-
-        if (willBeInWishlist) {
-            cachedWishlist.push(id);
-        } else {
-            cachedWishlist.splice(index, 1);
-        }
-        
-        // Optimistically update the UI & badges
-        updateWishlistHeartUI(id, willBeInWishlist);
-        updateBadges(undefined, cachedWishlist.length);
-        showCartToast(willBeInWishlist ? "Added to Wishlist!" : "Removed from Wishlist.");
-
-        // Update in the database
-        fetch('/api/wishlist/toggle', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ product_id: id })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                if (data.is_in_wishlist) {
-                    if (cachedWishlist.indexOf(id) === -1) cachedWishlist.push(id);
-                } else {
-                    const idx = cachedWishlist.indexOf(id);
-                    if (idx > -1) cachedWishlist.splice(idx, 1);
-                }
-                updateWishlistHeartUI(id, data.is_in_wishlist);
-                const finalCount = typeof data.wishlist_count !== 'undefined' ? data.wishlist_count : cachedWishlist.length;
-                updateBadges(undefined, finalCount);
-                window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { productId: id, isInWishlist: data.is_in_wishlist } }));
-            }
-        })
-        .catch(err => {
-            console.error("Error toggling wishlist:", err);
-            // Revert state on error
-            syncStatesWithDatabase();
-        });
-
-        // Report stats
-        if (willBeInWishlist) {
-            fetch('/api/stats/wishlist', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id })
-            }).catch(e => console.error("Stats error:", e));
-        }
-
-        return willBeInWishlist;
+        return false;
     }
 
     function getCart() {
@@ -909,13 +856,11 @@ function initMainApp() {
         .catch(err => console.error("Error updating cart quantity:", err));
     }
 
-    function updateBadges(cartCountOverride, wishlistCountOverride) {
-        const wishlistCount = typeof wishlistCountOverride !== 'undefined' ? wishlistCountOverride : cachedWishlist.length;
+    function updateBadges(cartCountOverride) {
         const cartCount = typeof cartCountOverride !== 'undefined' ? cartCountOverride : Object.values(cachedCart).reduce((a, b) => a + b, 0);
 
         document.querySelectorAll('.wishlist-badge').forEach(badge => {
-            badge.innerText = wishlistCount;
-            badge.style.display = wishlistCount > 0 ? 'inline-flex' : 'none';
+            badge.style.display = 'none';
         });
 
         document.querySelectorAll('.cart-badge').forEach(badge => {
@@ -924,36 +869,7 @@ function initMainApp() {
         });
     }
 
-    function updateWishlistHeartUI(id, isAdded) {
-        document.querySelectorAll(`.wishlist-toggle-btn[data-id="${id}"]`).forEach(btn => {
-            const heartIcon = btn.querySelector('svg, i, [data-lucide="heart"]');
-            if (isAdded) {
-                btn.classList.add('active');
-                if (heartIcon) {
-                    heartIcon.setAttribute('fill', '#E74C3C');
-                    heartIcon.setAttribute('stroke', '#E74C3C');
-                    heartIcon.style.color = '#E74C3C';
-                    heartIcon.style.fill = '#E74C3C';
-                }
-                const btnText = btn.querySelector('.wishlist-btn-text');
-                if (btnText) {
-                    btnText.innerText = 'In Wishlist';
-                }
-            } else {
-                btn.classList.remove('active');
-                if (heartIcon) {
-                    heartIcon.removeAttribute('fill');
-                    heartIcon.setAttribute('stroke', 'currentColor');
-                    heartIcon.style.color = '';
-                    heartIcon.style.fill = 'none';
-                }
-                const btnText = btn.querySelector('.wishlist-btn-text');
-                if (btnText) {
-                    btnText.innerText = 'Add to Wishlist';
-                }
-            }
-        });
-    }
+    function updateWishlistHeartUI() {}
 
     function showCartToast(msg) {
         let toast = document.getElementById('cartToast');
@@ -993,16 +909,11 @@ function initMainApp() {
         }, 2500);
     }
 
-    // Set active hearts on page load
-    function initWishlistHearts() {
-        cachedWishlist.forEach(id => {
-            updateWishlistHeartUI(id, true);
-        });
-    }
+    // Wishlist initialization no-op
+    function initWishlistHearts() {}
 
-    // Fetch initial state from database and trigger badge rendering
+    // Fetch initial cart state from database and trigger badge rendering
     function syncStatesWithDatabase() {
-        // Fetch cart
         fetch('/api/cart')
             .then(res => res.json())
             .then(data => {
@@ -1020,41 +931,14 @@ function initMainApp() {
                 }
             })
             .catch(e => console.error("Error syncing cart:", e));
-
-        // Fetch wishlist
-        fetch('/api/wishlist')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    cachedWishlist = (data.items || []).map(item => String(item.product_id));
-                    updateBadges(undefined, cachedWishlist.length);
-                    initWishlistHearts();
-                    window.dispatchEvent(new CustomEvent('wishlistUpdated'));
-                }
-            })
-            .catch(e => console.error("Error syncing wishlist:", e));
     }
 
-    // Bind event listeners for dynamic heart buttons and cart buttons
+    // Bind event listeners for dynamic cart buttons
     if (!window.__mseDelegationBound) {
         window.__mseDelegationBound = true;
         document.addEventListener('click', function(e) {
-            const toggleBtn = e.target.closest('.wishlist-toggle-btn');
-            if (toggleBtn) {
-                // Avoid duplicate trigger if on product page with its own specific listener
-                if (toggleBtn.id === 'productWishlistBtn') {
-                    return;
-                }
-                e.preventDefault();
-                e.stopPropagation();
-                console.log("Button clicked! (Wishlist Card Toggle)");
-                const id = toggleBtn.dataset.id || toggleBtn.getAttribute('data-id');
-                if (id) toggleWishlist(id);
-            }
-
             const addCartBtn = e.target.closest('.add-to-cart-btn');
             if (addCartBtn) {
-                // Avoid duplicate trigger if on product page with its own specific listener
                 if (addCartBtn.id === 'addToCartBtn') {
                     return;
                 }
@@ -1065,7 +949,6 @@ function initMainApp() {
                 const qty = parseInt(addCartBtn.dataset.qty || addCartBtn.getAttribute('data-qty')) || 1;
                 const variant = addCartBtn.dataset.variant || addCartBtn.getAttribute('data-variant') || null;
                 if (id) {
-                    // Button instant feedback
                     const originalHtml = addCartBtn.innerHTML;
                     addCartBtn.disabled = true;
                     addCartBtn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Added!';
@@ -1086,8 +969,8 @@ function initMainApp() {
         });
     }
 
-    // Expose helpers globally for page specific templates (cart.html, wishlist.html)
-    window.mseWishlist = { get: getWishlist, toggle: toggleWishlist, init: initWishlistHearts, sync: syncStatesWithDatabase };
+    // Expose helpers globally for page specific templates
+    window.mseWishlist = { get: () => [], toggle: () => false, init: () => {}, sync: () => {} };
     window.mseCart = { get: getCart, add: addToCart, remove: removeFromCart, updateQty: updateCartQty, sync: syncStatesWithDatabase };
     window.mseBadges = { update: updateBadges };
     window.showCartToast = showCartToast;
@@ -1164,20 +1047,7 @@ function initMainApp() {
                     badgeHtml += `<span class="badge badge-new">New</span>`;
                 }
 
-                const heartClass = getWishlist().includes(prod.id) ? 'heart-filled' : '';
-                const wishlistButton = `
-                    <button class="wishlist-toggle-btn" data-id="${prod.id}" aria-label="Add to Wishlist">
-                        <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
-                    </button>
-                `;
-
-                const priceCurrent = prod.offer_price || prod.price;
-                const priceOriginalHtml = prod.offer_price 
-                    ? `<span class="price-original">₹${prod.price.toLocaleString('en-IN')}</span>` 
-                    : '';
-
                 card.innerHTML = `
-                    ${wishlistButton}
                     <div class="product-badge-container">
                         ${badgeHtml}
                     </div>
@@ -1196,11 +1066,8 @@ function initMainApp() {
                             <span class="price-current">₹${priceCurrent.toLocaleString('en-IN')}</span>
                             ${priceOriginalHtml}
                         </div>
-                        <div class="product-card-actions">
-                            <a href="/product/${prod.slug}" class="btn btn-dark btn-sm">View Details</a>
-                            <a href="https://wa.me/919676667998?text=Hello%20MS%20Enterprises,%20I%20am%20interested%20in%20ordering%20the%20product:%20${encodeURIComponent(prod.name)}%20(SKU:%20${prod.sku})" target="_blank" class="btn btn-whatsapp btn-sm">
-                                <i data-lucide="message-square" style="width:14px;height:14px;"></i> Order
-                            </a>
+                        <div class="product-card-actions" style="width: 100%;">
+                            <a href="/product/${prod.slug}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">View Details</a>
                         </div>
                     </div>
                 `;
@@ -1210,7 +1077,6 @@ function initMainApp() {
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
-            initWishlistHearts();
             recentlyViewedSection.style.display = 'block';
         })
         .catch(err => {
@@ -1372,9 +1238,8 @@ function initMainApp() {
 
     // Initial load
     updateBadges();
-    syncStatesWithDatabase(); // Sync cart/wishlist with database on load
+    syncStatesWithDatabase(); // Sync cart with database on load
     renderRecentlyViewed();
-    setTimeout(initWishlistHearts, 300); // Small timeout to ensure Lucide is initialized
     
     // Check for real-time catalogue updates every 15 seconds
     checkForUpdates();

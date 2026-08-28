@@ -283,13 +283,6 @@
             <div class="products-grid">
                 {% for prod in featured %}
                 <div class="product-card">
-                    <!-- Wishlist Heart Overlay -->
-                    {% if settings.wishlist_enabled %}
-                    <button class="wishlist-toggle-btn" data-id="{{ prod.id }}" aria-label="Add to Wishlist">
-                        <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
-                    </button>
-                    {% endif %}
-
                     <!-- Badges -->
                     <div class="product-badge-container">
                         {% if prod.offer_price %}
@@ -303,11 +296,14 @@
                         {% if prod.is_new_arrival %}
                         <span class="badge badge-new">New</span>
                         {% endif %}
+                        {% if prod.is_featured %}
+                        <span class="badge badge-featured">Featured</span>
+                        {% endif %}
                     </div>
 
                     <!-- Image -->
                     <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
-                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy">
+                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
                     </a>
 
                     <!-- Details body -->
@@ -331,15 +327,8 @@
                         </div>
 
                         <!-- Card Action Buttons -->
-                        <div class="product-card-actions" style="display: flex; gap: 8px;">
-                            {% if settings.cart_enabled %}
-                            <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="flex: 1;">
-                                <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
-                            </button>
-                            <a href="/product/{{ prod.slug }}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>
-                            {% else %}
-                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>
-                            {% endif %}
+                        <div class="product-card-actions" style="width: 100%;">
+                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">View Details</a>
                         </div>
                     </div>
                 </div>
@@ -352,13 +341,6 @@
             <div class="products-grid">
                 {% for prod in new_arrivals %}
                 <div class="product-card">
-                    <!-- Wishlist Heart Overlay -->
-                    {% if settings.wishlist_enabled %}
-                    <button class="wishlist-toggle-btn" data-id="{{ prod.id }}" aria-label="Add to Wishlist">
-                        <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
-                    </button>
-                    {% endif %}
-
                     <!-- Badges -->
                     <div class="product-badge-container">
                         {% if prod.offer_price %}
@@ -374,7 +356,7 @@
 
                     <!-- Image -->
                     <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
-                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy">
+                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
                     </a>
 
                     <!-- Details body -->
@@ -398,15 +380,8 @@
                         </div>
 
                         <!-- Card Action Buttons -->
-                        <div class="product-card-actions" style="display: flex; gap: 8px;">
-                            {% if settings.cart_enabled %}
-                            <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="flex: 1;">
-                                <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
-                            </button>
-                            <a href="/product/{{ prod.slug }}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>
-                            {% else %}
-                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>
-                            {% endif %}
+                        <div class="product-card-actions" style="width: 100%;">
+                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">View Details</a>
                         </div>
                     </div>
                 </div>
@@ -419,13 +394,6 @@
             <div class="products-grid">
                 {% for prod in best_sellers %}
                 <div class="product-card">
-                    <!-- Wishlist Heart Overlay -->
-                    {% if settings.wishlist_enabled %}
-                    <button class="wishlist-toggle-btn" data-id="{{ prod.id }}" aria-label="Add to Wishlist">
-                        <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
-                    </button>
-                    {% endif %}
-
                     <!-- Badges -->
                     <div class="product-badge-container">
                         {% if prod.offer_price %}
@@ -441,7 +409,7 @@
 
                     <!-- Image -->
                     <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
-                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy">
+                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
                     </a>
 
                     <!-- Details body -->
@@ -465,15 +433,8 @@
                         </div>
 
                         <!-- Card Action Buttons -->
-                        <div class="product-card-actions" style="display: flex; gap: 8px;">
-                            {% if settings.cart_enabled %}
-                            <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="flex: 1;">
-                                <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
-                            </button>
-                            <a href="/product/{{ prod.slug }}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>
-                            {% else %}
-                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>
-                            {% endif %}
+                        <div class="product-card-actions" style="width: 100%;">
+                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">View Details</a>
                         </div>
                     </div>
                 </div>
@@ -486,13 +447,6 @@
             <div class="products-grid">
                 {% for prod in premium %}
                 <div class="product-card">
-                    <!-- Wishlist Heart Overlay -->
-                    {% if settings.wishlist_enabled %}
-                    <button class="wishlist-toggle-btn" data-id="{{ prod.id }}" aria-label="Add to Wishlist">
-                        <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
-                    </button>
-                    {% endif %}
-
                     <!-- Badges -->
                     <div class="product-badge-container">
                         {% if prod.offer_price %}
@@ -508,7 +462,7 @@
 
                     <!-- Image -->
                     <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
-                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy">
+                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
                     </a>
 
                     <!-- Details body -->
@@ -532,15 +486,8 @@
                         </div>
 
                         <!-- Card Action Buttons -->
-                        <div class="product-card-actions" style="display: flex; gap: 8px;">
-                            {% if settings.cart_enabled %}
-                            <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="flex: 1;">
-                                <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add to Cart
-                            </button>
-                            <a href="/product/{{ prod.slug }}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 4px; background: transparent;">View Details</a>
-                            {% else %}
-                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center;">View Details</a>
-                            {% endif %}
+                        <div class="product-card-actions" style="width: 100%;">
+                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">View Details</a>
                         </div>
                     </div>
                 </div>
