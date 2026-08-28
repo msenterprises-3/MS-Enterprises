@@ -2,12 +2,12 @@
 
 {% block content %}
 <div class="container section-padding" style="padding-top: 30px;">
-    <div class="section-title-wrapper" style="text-align: left; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
+    <div class="section-title-wrapper wishlist-header-wrapper" style="text-align: left; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
         <div>
             <span class="section-subtitle">Your Saved Items</span>
             <h1 class="section-title">My Wishlist</h1>
         </div>
-        <button id="addAllToCartBtn" class="btn btn-primary" style="display: none; align-items: center; gap: 8px; background: var(--accent-color); color: #111111; font-weight: 700; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer;">
+        <button id="addAllToCartBtn" class="btn btn-primary wishlist-add-all-btn" style="display: none; align-items: center; gap: 8px; background: var(--accent-color); color: #111111; font-weight: 700; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer;">
             <i data-lucide="shopping-cart"></i> Add All to Cart
         </button>
     </div>
@@ -27,7 +27,7 @@
     </div>
 
     <!-- Wishlist Products Grid -->
-    <div id="wishlistGrid" class="products-grid" style="display: none;">
+    <div id="wishlistGrid" class="products-grid wishlist-grid" style="display: none;">
         <!-- Dynamically injected via JS -->
     </div>
 </div>
@@ -36,6 +36,113 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 767px) {
+    .wishlist-header-wrapper {
+        margin-bottom: 20px !important;
+        gap: 12px !important;
+    }
+    .wishlist-header-wrapper .section-title {
+        font-size: 22px !important;
+    }
+    .wishlist-add-all-btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 10px 16px !important;
+        font-size: 13px !important;
+    }
+    .wishlist-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+    .wishlist-grid .product-card {
+        border-radius: 8px !important;
+    }
+    .wishlist-grid .product-card-img-wrapper {
+        aspect-ratio: 1/1 !important;
+        max-height: 140px !important;
+    }
+    .wishlist-grid .product-card-body {
+        padding: 8px !important;
+    }
+    .wishlist-grid .product-card-category {
+        font-size: 10px !important;
+        margin-bottom: 2px !important;
+    }
+    .wishlist-grid .product-card-title {
+        font-size: 12px !important;
+        line-height: 1.3 !important;
+        max-height: 2.6em !important;
+        overflow: hidden !important;
+        margin-bottom: 3px !important;
+    }
+    .wishlist-grid .product-card-description {
+        display: none !important;
+    }
+    .wishlist-grid .product-card-rating {
+        font-size: 10.5px !important;
+        margin-bottom: 4px !important;
+        gap: 3px !important;
+    }
+    .wishlist-grid .product-card-pricing {
+        font-size: 12.5px !important;
+        margin-bottom: 6px !important;
+    }
+    .wishlist-grid .product-card-pricing .price-current {
+        font-size: 12.5px !important;
+        font-weight: 700 !important;
+    }
+    .wishlist-grid .product-card-pricing .price-original {
+        font-size: 10px !important;
+    }
+    .wishlist-grid .product-card-actions {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        width: 100% !important;
+    }
+    .wishlist-grid .product-card-actions .btn {
+        padding: 6px 4px !important;
+        font-size: 11px !important;
+        height: 28px !important;
+        min-height: 28px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        line-height: 1 !important;
+    }
+    .wishlist-grid .product-card-actions .btn i,
+    .wishlist-grid .product-card-actions .btn svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+    .wishlist-grid .wishlist-toggle-btn {
+        width: 28px !important;
+        height: 28px !important;
+        top: 6px !important;
+        right: 6px !important;
+    }
+    .wishlist-grid .wishlist-toggle-btn i,
+    .wishlist-grid .wishlist-toggle-btn svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+    .wishlist-grid .product-badge-container {
+        top: 6px !important;
+        left: 6px !important;
+        gap: 2px !important;
+    }
+    .wishlist-grid .badge {
+        font-size: 7.5px !important;
+        padding: 2px 4px !important;
+    }
+}
+@media (max-width: 360px) {
+    .wishlist-grid {
+        grid-template-columns: 1fr !important;
+    }
 }
 </style>
 {% endblock %}
@@ -87,7 +194,7 @@
                         gridEl.innerHTML = "";
                         products.forEach(prod => {
                             const card = document.createElement("div");
-                            card.className = "product-card";
+                            card.className = "product-card wishlist-card";
                             card.dataset.id = prod.id;
 
                             const priceCurrent = prod.offer_price || prod.price;
@@ -124,7 +231,7 @@
                                     ${prod.is_new_arrival ? '<span class="badge badge-new">New</span>' : ''}
                                 </div>
                                 <a href="/product/${prod.slug}" class="product-card-img-wrapper">
-                                    <img src="${prod.image_url}" alt="${prod.name}" loading="lazy">
+                                    <img src="${prod.image_url}" alt="${prod.name}" loading="lazy" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
                                 </a>
                                 <div class="product-card-body">
                                     <span class="product-card-category">${prod.category_name}</span>

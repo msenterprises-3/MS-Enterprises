@@ -1,6 +1,94 @@
 // Main Interactive Client-Side Logic for MS Enterprises
 
+// Testimonials Public Submission Form helpers (Declared early for immediate availability)
+window.openTestimonialForm = function() {
+    const container = document.getElementById('testimonialFormContainer');
+    if (container) {
+        container.style.display = 'block';
+        container.scrollIntoView({ behavior: 'smooth' });
+    }
+};
+window.openReviewForm = window.openTestimonialForm;
+window.toggleReviewModal = window.openTestimonialForm;
+
+window.closeTestimonialForm = function() {
+    const container = document.getElementById('testimonialFormContainer');
+    if (container) {
+        container.style.display = 'none';
+        const form = document.getElementById('testimonialSubmitForm');
+        if (form) form.reset();
+        const statusDiv = document.getElementById('tFormStatus');
+        if (statusDiv) statusDiv.style.display = 'none';
+    }
+};
+
+window.submitTestimonialReview = function(event) {
+    if (event) event.preventDefault();
+    const nameEl = document.getElementById('tFormName');
+    const cityEl = document.getElementById('tFormCity');
+    const ratingEl = document.getElementById('tFormRating');
+    const reviewEl = document.getElementById('tFormReviewText');
+    const statusDiv = document.getElementById('tFormStatus');
+    
+    const name = nameEl ? nameEl.value.trim() : '';
+    const city = cityEl ? cityEl.value.trim() : '';
+    const rating = ratingEl ? parseInt(ratingEl.value) : 5;
+    const review = reviewEl ? reviewEl.value.trim() : '';
+    
+    if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.color = 'var(--primary-color)';
+        statusDiv.innerText = 'Submitting your review...';
+    }
+    
+    fetch('/api/testimonials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            customer_name: name,
+            city: city,
+            rating: rating,
+            review: review
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (statusDiv) {
+                statusDiv.style.color = '#27AE60';
+                statusDiv.innerText = data.message || 'Thank you! Your review has been submitted for approval.';
+            }
+            if (typeof showCartToast === 'function') {
+                showCartToast("Thank you! Review submitted for approval.");
+            }
+            setTimeout(() => {
+                window.closeTestimonialForm();
+            }, 3000);
+        } else {
+            if (statusDiv) {
+                statusDiv.style.color = '#E74C3C';
+                statusDiv.innerText = data.message || 'Error submitting review.';
+            }
+        }
+    })
+    .catch(err => {
+        console.error("Testimonial submit error:", err);
+        if (statusDiv) {
+            statusDiv.style.color = '#E74C3C';
+            statusDiv.innerText = 'Failed to submit review due to server error.';
+        }
+    });
+};
+
 function initMainApp() {
+    if (window.__mainAppInitialized) {
+        if (typeof lucide !== 'undefined') {
+            try { lucide.createIcons(); } catch (e) {}
+        }
+        return;
+    }
+    window.__mainAppInitialized = true;
+
     // 1. Initialize Lucide Icons
     if (typeof lucide !== 'undefined') {
         try {
@@ -948,35 +1036,55 @@ function initMainApp() {
     }
 
     // Bind event listeners for dynamic heart buttons and cart buttons
-    document.body.addEventListener('click', function(e) {
-        const toggleBtn = e.target.closest('.wishlist-toggle-btn');
-        if (toggleBtn) {
-            // Avoid duplicate trigger if on product page with its own specific listener
-            if (toggleBtn.id === 'productWishlistBtn') {
-                return;
+    if (!window.__mseDelegationBound) {
+        window.__mseDelegationBound = true;
+        document.addEventListener('click', function(e) {
+            const toggleBtn = e.target.closest('.wishlist-toggle-btn');
+            if (toggleBtn) {
+                // Avoid duplicate trigger if on product page with its own specific listener
+                if (toggleBtn.id === 'productWishlistBtn') {
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("Button clicked! (Wishlist Card Toggle)");
+                const id = toggleBtn.dataset.id || toggleBtn.getAttribute('data-id');
+                if (id) toggleWishlist(id);
             }
-            e.preventDefault();
-            e.stopPropagation();
-            console.log("Button clicked! (Wishlist Card Toggle)");
-            const id = toggleBtn.dataset.id;
-            if (id) toggleWishlist(id);
-        }
 
-        const addCartBtn = e.target.closest('.add-to-cart-btn');
-        if (addCartBtn) {
-            // Avoid duplicate trigger if on product page with its own specific listener
-            if (addCartBtn.id === 'addToCartBtn') {
-                return;
+            const addCartBtn = e.target.closest('.add-to-cart-btn');
+            if (addCartBtn) {
+                // Avoid duplicate trigger if on product page with its own specific listener
+                if (addCartBtn.id === 'addToCartBtn') {
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("Button clicked! (Add to Cart Card)");
+                const id = addCartBtn.dataset.id || addCartBtn.getAttribute('data-id');
+                const qty = parseInt(addCartBtn.dataset.qty || addCartBtn.getAttribute('data-qty')) || 1;
+                const variant = addCartBtn.dataset.variant || addCartBtn.getAttribute('data-variant') || null;
+                if (id) {
+                    // Button instant feedback
+                    const originalHtml = addCartBtn.innerHTML;
+                    addCartBtn.disabled = true;
+                    addCartBtn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px;"></i> Added!';
+                    if (typeof lucide !== 'undefined') {
+                        try { lucide.createIcons(); } catch (err) {}
+                    }
+                    setTimeout(() => {
+                        addCartBtn.disabled = false;
+                        addCartBtn.innerHTML = originalHtml;
+                        if (typeof lucide !== 'undefined') {
+                            try { lucide.createIcons(); } catch (err) {}
+                        }
+                    }, 1400);
+
+                    addToCart(id, qty, variant);
+                }
             }
-            e.preventDefault();
-            e.stopPropagation();
-            console.log("Button clicked! (Add to Cart Card)");
-            const id = addCartBtn.dataset.id;
-            const qty = parseInt(addCartBtn.dataset.qty) || 1;
-            const variant = addCartBtn.dataset.variant || null;
-            if (id) addToCart(id, qty, variant);
-        }
-    });
+        });
+    }
 
     // Expose helpers globally for page specific templates (cart.html, wishlist.html)
     window.mseWishlist = { get: getWishlist, toggle: toggleWishlist, init: initWishlistHearts, sync: syncStatesWithDatabase };
