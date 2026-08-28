@@ -128,13 +128,13 @@
                     <i data-lucide="lock" style="width:20px; height:20px; margin-right: 8px;"></i> Login to Order B2B Wholesale
                 </a>
                 {% else %}
-                <button type="button" id="addToCartBtn" onclick="handleAddToCartClick()" class="btn btn-dark" style="padding: 16px 20px; font-size:16px; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer;">
+                <button type="button" id="addToCartBtn" class="btn btn-dark" style="padding: 16px 20px; font-size:16px; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer;">
                     <i data-lucide="shopping-cart"></i> Add to Cart
                 </button>
-                <button type="button" id="buyNowBtn" onclick="handleBuyNowClick()" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer;">
+                <button type="button" id="buyNowBtn" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer;">
                     <i data-lucide="shopping-bag"></i> Buy Now
                 </button>
-                <button type="button" id="productWishlistBtn" onclick="toggleProductWishlist('{{ product.id }}')" class="btn btn-secondary wishlist-toggle-btn" data-id="{{ product.id }}" style="padding: 14px 20px; font-size:15px; font-weight: 600; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer; grid-column: span 2; background: var(--bg-white);">
+                <button type="button" id="productWishlistBtn" class="btn btn-secondary wishlist-toggle-btn" data-id="{{ product.id }}" style="padding: 14px 20px; font-size:15px; font-weight: 600; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer; grid-column: span 2; background: var(--bg-white);">
                     <i data-lucide="heart" class="wishlist-icon-elem" style="width: 18px; height: 18px;"></i> <span class="wishlist-btn-text">Add to Wishlist</span>
                 </button>
                 {% endif %}
@@ -335,7 +335,10 @@
         });
         
         const finalPrice = basePrice + adjustment;
-        document.getElementById('dynamicPrice').innerText = '₹' + finalPrice.toLocaleString('en-IN', {maximumFractionDigits: 0});
+        const priceEl = document.getElementById('dynamicPrice');
+        if (priceEl) {
+            priceEl.innerText = '₹' + finalPrice.toLocaleString('en-IN', {maximumFractionDigits: 0});
+        }
     }
 
     function getSelectedVariant() {
@@ -364,12 +367,13 @@
     }
 
     function handleAddToCartClick() {
+        console.log("Button clicked! (Add to Cart)");
         const productId = "{{ product.id }}";
         const variantId = getSelectedVariant();
         const qtyInput = document.getElementById('productQtyInput');
         const quantity = qtyInput ? (parseInt(qtyInput.value) || 1) : 1;
         
-        const addBtn = document.getElementById('addToCartBtn') || document.querySelector('button[onclick="handleAddToCartClick()"]');
+        const addBtn = document.getElementById('addToCartBtn');
         if (addBtn) {
             addBtn.disabled = true;
             addBtn.innerHTML = '<i data-lucide="shopping-cart"></i> Adding...';
@@ -434,13 +438,14 @@
     }
 
     function handleBuyNowClick() {
+        console.log("Button clicked! (Buy Now)");
         const productId = "{{ product.id }}";
         const variantId = getSelectedVariant();
         const qtyInput = document.getElementById('productQtyInput');
         const quantity = qtyInput ? (parseInt(qtyInput.value) || 1) : 1;
         
         // Show loading state
-        const buyNowBtn = document.getElementById('buyNowBtn') || document.querySelector('button[onclick="handleBuyNowClick()"]');
+        const buyNowBtn = document.getElementById('buyNowBtn');
         if (buyNowBtn) {
             buyNowBtn.disabled = true;
             buyNowBtn.innerText = "Processing...";
@@ -513,6 +518,7 @@
     }
 
     function toggleProductWishlist(productId) {
+        console.log("Button clicked! (Wishlist Toggle: " + productId + ")");
         if (window.mseWishlist && typeof window.mseWishlist.toggle === 'function') {
             window.mseWishlist.toggle(productId);
         } else {
@@ -531,10 +537,134 @@
         }
     }
 
-    // Initialize variant price trigger and track recently viewed
+    // Attach all event listeners once DOM is ready
     document.addEventListener("DOMContentLoaded", function() {
+        // 1. Variant dynamic pricing
         updateVariantPrice();
         
+        // 2. Add to Cart Button Listener
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                handleAddToCartClick();
+            });
+        }
+
+        // 3. Buy Now Button Listener
+        const buyNowBtn = document.getElementById('buyNowBtn');
+        if (buyNowBtn) {
+            buyNowBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                handleBuyNowClick();
+            });
+        }
+
+        // 4. Wishlist Button Listener
+        const productWishlistBtn = document.getElementById('productWishlistBtn');
+        if (productWishlistBtn) {
+            productWishlistBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleProductWishlist("{{ product.id }}");
+            });
+        }
+
+        // 5. Submit Review Form Listener
+        const reviewForm = document.getElementById('reviewSubmitForm');
+        const reviewStatus = document.getElementById('reviewStatus');
+        const reviewSubmitBtn = document.getElementById('revSubmitBtn');
+
+        if (reviewForm) {
+            reviewForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log("Button clicked! (Submit Review)");
+
+                const product_id = document.getElementById('revProductId') ? document.getElementById('revProductId').value : "{{ product.id }}";
+                const reviewer_name = document.getElementById('revName') ? document.getElementById('revName').value.trim() : '';
+                const ratingRadio = document.querySelector('input[name="revRating"]:checked');
+                const rating = ratingRadio ? parseInt(ratingRadio.value) : 5;
+                const review_text = document.getElementById('revText') ? document.getElementById('revText').value.trim() : '';
+
+                if (!reviewer_name || !review_text) {
+                    if (reviewStatus) {
+                        reviewStatus.style.display = 'block';
+                        reviewStatus.style.color = '#b91c1c';
+                        reviewStatus.style.backgroundColor = '#fef2f2';
+                        reviewStatus.style.border = '1px solid #fecaca';
+                        reviewStatus.style.padding = '10px 14px';
+                        reviewStatus.style.borderRadius = '6px';
+                        reviewStatus.innerText = 'Please provide both your name and review details.';
+                    }
+                    return;
+                }
+
+                if (reviewSubmitBtn) {
+                    reviewSubmitBtn.disabled = true;
+                    reviewSubmitBtn.innerText = 'Submitting...';
+                }
+
+                if (reviewStatus) {
+                    reviewStatus.style.display = 'block';
+                    reviewStatus.style.color = '#b45309';
+                    reviewStatus.style.backgroundColor = '#fffbeb';
+                    reviewStatus.style.border = '1px solid #fde68a';
+                    reviewStatus.style.padding = '10px 14px';
+                    reviewStatus.style.borderRadius = '6px';
+                    reviewStatus.innerText = 'Submitting your review...';
+                }
+
+                fetch('/api/reviews', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id, reviewer_name, rating, review_text })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        if (reviewStatus) {
+                            reviewStatus.style.display = 'block';
+                            reviewStatus.style.color = '#065f46';
+                            reviewStatus.style.backgroundColor = '#d1fae5';
+                            reviewStatus.style.border = '1px solid #a7f3d0';
+                            reviewStatus.innerText = 'Thank you! Your review has been submitted and is pending admin approval.';
+                        }
+                        reviewForm.reset();
+                        const defaultStar = document.getElementById('rate5');
+                        if (defaultStar) defaultStar.checked = true;
+                        if (typeof showCartToast === 'function') {
+                            showCartToast("Thank you! Review submitted for approval.");
+                        }
+                    } else {
+                        if (reviewStatus) {
+                            reviewStatus.style.display = 'block';
+                            reviewStatus.style.color = '#b91c1c';
+                            reviewStatus.style.backgroundColor = '#fef2f2';
+                            reviewStatus.style.border = '1px solid #fecaca';
+                            reviewStatus.innerText = data.message || 'Failed to submit review.';
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error("Review submission error:", err);
+                    if (reviewStatus) {
+                        reviewStatus.style.display = 'block';
+                        reviewStatus.style.color = '#b91c1c';
+                        reviewStatus.style.backgroundColor = '#fef2f2';
+                        reviewStatus.style.border = '1px solid #fecaca';
+                        reviewStatus.innerText = 'Failed to submit review. Please try again.';
+                    }
+                })
+                .finally(() => {
+                    if (reviewSubmitBtn) {
+                        reviewSubmitBtn.disabled = false;
+                        reviewSubmitBtn.innerText = 'Submit Review';
+                    }
+                });
+            });
+        }
+
+        // 6. Track recently viewed
         const productId = {{ product.id }};
         if (productId) {
             fetch('/api/recently_viewed/add', {
@@ -542,6 +672,11 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ product_id: productId })
             }).catch(e => console.error("Error adding to recently viewed:", e));
+        }
+
+        // 7. Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
         }
     });
 </script>

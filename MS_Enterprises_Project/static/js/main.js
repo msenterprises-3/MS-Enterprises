@@ -553,24 +553,28 @@ function initMainApp() {
     const reviewStatus = document.getElementById('reviewStatus');
     const reviewSubmitBtn = document.getElementById('revSubmitBtn') || (reviewForm ? reviewForm.querySelector('button[type="submit"]') : null);
     
-    if (reviewForm && reviewStatus) {
+    if (reviewForm) {
         reviewForm.addEventListener('submit', function (e) {
             e.preventDefault();
+            console.log("Button clicked! (Submit Review)");
             
             const product_id = document.getElementById('revProductId') ? document.getElementById('revProductId').value : '';
             const reviewer_name = document.getElementById('revName') ? document.getElementById('revName').value.trim() : '';
             const ratingRadio = document.querySelector('input[name="revRating"]:checked');
             const rating = ratingRadio ? parseInt(ratingRadio.value) : 5;
             const review_text = document.getElementById('revText') ? document.getElementById('revText').value.trim() : '';
+            const currentStatus = document.getElementById('reviewStatus') || reviewStatus;
             
             if (!reviewer_name || !review_text) {
-                reviewStatus.style.display = 'block';
-                reviewStatus.style.color = '#b91c1c';
-                reviewStatus.style.backgroundColor = '#fef2f2';
-                reviewStatus.style.border = '1px solid #fecaca';
-                reviewStatus.style.padding = '10px 14px';
-                reviewStatus.style.borderRadius = '6px';
-                reviewStatus.innerText = 'Please provide both your name and review details.';
+                if (currentStatus) {
+                    currentStatus.style.display = 'block';
+                    currentStatus.style.color = '#b91c1c';
+                    currentStatus.style.backgroundColor = '#fef2f2';
+                    currentStatus.style.border = '1px solid #fecaca';
+                    currentStatus.style.padding = '10px 14px';
+                    currentStatus.style.borderRadius = '6px';
+                    currentStatus.innerText = 'Please provide both your name and review details.';
+                }
                 return;
             }
             
@@ -579,13 +583,15 @@ function initMainApp() {
                 reviewSubmitBtn.innerText = 'Submitting...';
             }
             
-            reviewStatus.style.display = 'block';
-            reviewStatus.style.color = '#b45309';
-            reviewStatus.style.backgroundColor = '#fffbeb';
-            reviewStatus.style.border = '1px solid #fde68a';
-            reviewStatus.style.padding = '10px 14px';
-            reviewStatus.style.borderRadius = '6px';
-            reviewStatus.innerText = 'Submitting your review...';
+            if (currentStatus) {
+                currentStatus.style.display = 'block';
+                currentStatus.style.color = '#b45309';
+                currentStatus.style.backgroundColor = '#fffbeb';
+                currentStatus.style.border = '1px solid #fde68a';
+                currentStatus.style.padding = '10px 14px';
+                currentStatus.style.borderRadius = '6px';
+                currentStatus.innerText = 'Submitting your review...';
+            }
             
             fetch('/api/reviews', {
                 method: 'POST',
@@ -595,30 +601,36 @@ function initMainApp() {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    reviewStatus.style.display = 'block';
-                    reviewStatus.style.color = '#065f46';
-                    reviewStatus.style.backgroundColor = '#d1fae5';
-                    reviewStatus.style.border = '1px solid #a7f3d0';
-                    reviewStatus.innerText = 'Thank you! Your review has been submitted and is pending admin approval.';
+                    if (currentStatus) {
+                        currentStatus.style.display = 'block';
+                        currentStatus.style.color = '#065f46';
+                        currentStatus.style.backgroundColor = '#d1fae5';
+                        currentStatus.style.border = '1px solid #a7f3d0';
+                        currentStatus.innerText = 'Thank you! Your review has been submitted and is pending admin approval.';
+                    }
                     reviewForm.reset();
                     const defaultStar = document.getElementById('rate5');
                     if (defaultStar) defaultStar.checked = true;
                     showCartToast("Thank you! Review submitted for approval.");
                 } else {
-                    reviewStatus.style.display = 'block';
-                    reviewStatus.style.color = '#b91c1c';
-                    reviewStatus.style.backgroundColor = '#fef2f2';
-                    reviewStatus.style.border = '1px solid #fecaca';
-                    reviewStatus.innerText = data.message || 'Failed to submit review.';
+                    if (currentStatus) {
+                        currentStatus.style.display = 'block';
+                        currentStatus.style.color = '#b91c1c';
+                        currentStatus.style.backgroundColor = '#fef2f2';
+                        currentStatus.style.border = '1px solid #fecaca';
+                        currentStatus.innerText = data.message || 'Failed to submit review.';
+                    }
                 }
             })
             .catch(err => {
                 console.error("Review submission error:", err);
-                reviewStatus.style.display = 'block';
-                reviewStatus.style.color = '#b91c1c';
-                reviewStatus.style.backgroundColor = '#fef2f2';
-                reviewStatus.style.border = '1px solid #fecaca';
-                reviewStatus.innerText = 'Failed to submit review. Please try again.';
+                if (currentStatus) {
+                    currentStatus.style.display = 'block';
+                    currentStatus.style.color = '#b91c1c';
+                    currentStatus.style.backgroundColor = '#fef2f2';
+                    currentStatus.style.border = '1px solid #fecaca';
+                    currentStatus.innerText = 'Failed to submit review. Please try again.';
+                }
             })
             .finally(() => {
                 if (reviewSubmitBtn) {
@@ -654,6 +666,7 @@ function initMainApp() {
     }
 
     function toggleWishlist(id) {
+        console.log("Button clicked! (Wishlist Toggle: " + id + ")");
         if (!id) return;
         id = String(id);
         const index = cachedWishlist.indexOf(id);
@@ -715,6 +728,7 @@ function initMainApp() {
     }
 
     function addToCart(id, qty = 1, variantId = null) {
+        console.log("Button clicked! (Add to Cart: " + id + ")");
         if (!id) return;
         id = String(id);
         qty = parseInt(qty) || 1;
@@ -937,16 +951,26 @@ function initMainApp() {
     document.body.addEventListener('click', function(e) {
         const toggleBtn = e.target.closest('.wishlist-toggle-btn');
         if (toggleBtn) {
+            // Avoid duplicate trigger if on product page with its own specific listener
+            if (toggleBtn.id === 'productWishlistBtn') {
+                return;
+            }
             e.preventDefault();
             e.stopPropagation();
+            console.log("Button clicked! (Wishlist Card Toggle)");
             const id = toggleBtn.dataset.id;
             if (id) toggleWishlist(id);
         }
 
         const addCartBtn = e.target.closest('.add-to-cart-btn');
         if (addCartBtn) {
+            // Avoid duplicate trigger if on product page with its own specific listener
+            if (addCartBtn.id === 'addToCartBtn') {
+                return;
+            }
             e.preventDefault();
             e.stopPropagation();
+            console.log("Button clicked! (Add to Cart Card)");
             const id = addCartBtn.dataset.id;
             const qty = parseInt(addCartBtn.dataset.qty) || 1;
             const variant = addCartBtn.dataset.variant || null;

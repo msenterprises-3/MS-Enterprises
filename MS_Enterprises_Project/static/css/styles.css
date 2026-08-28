@@ -2425,45 +2425,66 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--bg-white);
+    color: #ffffff;
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     transition: var(--transition);
     border: none;
     cursor: pointer;
+    text-decoration: none;
+    position: relative;
 }
 
 .float-btn:hover {
     transform: scale(1.1) translateY(-4px);
 }
 
-.float-whatsapp {
-    background-color: var(--whatsapp-green);
+.float-btn svg,
+.float-btn i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    pointer-events: none;
 }
 
-.float-whatsapp svg {
-    width: 30px;
-    height: 30px;
+.float-whatsapp {
+    background-color: #25D366;
+    color: #ffffff !important;
+}
+
+.float-whatsapp svg,
+.float-whatsapp i {
+    width: 28px;
+    height: 28px;
+    stroke: #ffffff;
+    color: #ffffff;
 }
 
 .float-call {
     background-color: var(--accent-color);
-    color: var(--primary-color);
+    color: #111827 !important;
 }
 
-.float-call svg {
+.float-call svg,
+.float-call i {
     width: 24px;
     height: 24px;
+    stroke: #111827;
+    color: #111827;
 }
 
 .float-top {
     background-color: var(--primary-color);
-    color: var(--bg-warm);
+    color: #ffffff !important;
     display: none; /* Controlled by JS scroll */
 }
 
-.float-top svg {
-    width: 24px;
-    height: 24px;
+.float-top svg,
+.float-top i {
+    width: 22px;
+    height: 22px;
+    stroke: #ffffff;
+    color: #ffffff;
 }
 
 /* RESPONSIVENESS AND MOBILE ADAPTATION */

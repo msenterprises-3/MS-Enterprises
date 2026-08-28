@@ -14,7 +14,13 @@
     <meta property="og:url" content="{{ request.url }}">
     
     <!-- Premium Style Files -->
-    <link rel="stylesheet" href="/static/css/styles.css?v=20260825_v5">
+    <link rel="stylesheet" href="/static/css/styles.css?v=20260825_v6">
+    
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     
     <!-- Mobile Header Precision Styling (< 992px) -->
     <style id="mobileHeaderStyles">
@@ -1115,17 +1121,20 @@
     <div class="floating-container">
         <!-- Scroll to Top -->
         <button class="float-btn float-top" id="scrollTopBtn" aria-label="Back to Top">
-            <i data-lucide="arrow-up"></i>
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="float-svg-icon"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+            <i data-lucide="arrow-up" style="display:none;"></i>
         </button>
 
         <!-- Direct Phone Call -->
-        <a href="tel:{{ settings.whatsapp_number|replace(' ', '') }}" class="float-btn float-call" aria-label="Call MS Furniture Gallery">
-            <i data-lucide="phone"></i>
+        <a href="tel:{{ (settings.contact_phone or settings.whatsapp_number)|replace(' ', '') }}" class="float-btn float-call" aria-label="Call MS Furniture Gallery">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="float-svg-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            <i data-lucide="phone" style="display:none;"></i>
         </a>
 
         <!-- WhatsApp Floating Chat -->
-        <a href="https://wa.me/{{ settings.whatsapp_number|replace(' ', '')|replace('+', '') }}?text=Hello%20MS%20Furniture%20Gallery,%20I%20am%20visiting%20your%20website%20and%20interested%20in%20discussing%20some%20products." target="_blank" class="float-btn float-whatsapp" aria-label="Order on WhatsApp">
-            <i data-lucide="message-circle"></i>
+        <a href="https://wa.me/{{ (settings.whatsapp_number or settings.contact_phone)|replace(' ', '')|replace('+', '') }}?text=Hello%20MS%20Furniture%20Gallery,%20I%20am%20visiting%20your%20website%20and%20interested%20in%20discussing%20some%20products." target="_blank" class="float-btn float-whatsapp" aria-label="Order on WhatsApp">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="float-svg-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            <i data-lucide="message-circle" style="display:none;"></i>
         </a>
     </div>
 
@@ -1139,10 +1148,17 @@
         <button class="pwa-close-btn" id="pwaCloseBtn" aria-label="Close">&times;</button>
     </div>
 
-
-
+    <!-- Script loading -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="/static/js/main.js?v=20260825_v5"></script>
+    <script src="/static/js/main.js?v=20260825_v6" defer></script>
+    <script>
+        // Trigger icon initialization as soon as DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
