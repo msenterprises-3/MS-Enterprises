@@ -125,73 +125,94 @@
                 </div>
             </div>
 
-            <!-- Products Listing Grid -->
-            {% if products %}
-            <div class="products-grid">
-                {% for prod in products %}
-                <div class="product-card">
-                    <!-- Badges -->
-                    <div class="product-badge-container">
-                        {% if prod.offer_price %}
-                            {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
-                            {% if discount_pct > 0 %}
-                            <span class="badge badge-offer">{{ discount_pct }}% OFF</span>
-                            {% endif %}
-                        {% elif prod.offer_badge %}
-                            <span class="badge badge-offer">{{ prod.offer_badge }}</span>
-                        {% endif %}
-                        {% if prod.is_new_arrival %}
-                        <span class="badge badge-new">New</span>
-                        {% endif %}
-                        {% if prod.is_featured %}
-                        <span class="badge badge-featured">Featured</span>
-                        {% endif %}
+            <!-- Products Listing Grouped by Category -->
+            {% if grouped_products %}
+                {% for category_name, cat_products in grouped_products.items() %}
+                <div class="category-group-section" style="margin-bottom: 45px;">
+                    <div class="category-group-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--accent-color); padding-bottom: 12px; margin-bottom: 24px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="display: inline-block; width: 4px; height: 24px; background: var(--accent-color); border-radius: 2px;"></span>
+                            <h2 style="font-size: 22px; font-weight: 800; color: var(--text-dark); margin: 0; font-family: var(--font-heading);">
+                                {{ category_name }}
+                            </h2>
+                        </div>
+                        <span style="font-size: 13px; font-weight: 700; color: var(--text-muted); background: var(--bg-warm); padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border-color);">
+                            {{ cat_products|length }} {{ 'Item' if cat_products|length == 1 else 'Items' }}
+                        </span>
                     </div>
 
-                    <!-- Image -->
-                    <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
-                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
-                    </a>
+                    <div class="products-grid">
+                        {% for prod in cat_products %}
+                        <div class="product-card">
+                            <!-- Badges -->
+                            <div class="product-badge-container">
+                                {% if prod.offer_price %}
+                                    {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
+                                    {% if discount_pct > 0 %}
+                                    <span class="badge badge-offer">{{ discount_pct }}% OFF</span>
+                                    {% endif %}
+                                {% elif prod.offer_badge %}
+                                    <span class="badge badge-offer">{{ prod.offer_badge }}</span>
+                                {% endif %}
+                                {% if prod.is_new_arrival %}
+                                <span class="badge badge-new">New</span>
+                                {% endif %}
+                                {% if prod.is_featured %}
+                                <span class="badge badge-featured">Featured</span>
+                                {% endif %}
+                            </div>
 
-                    <!-- Details body -->
-                    <div class="product-card-body">
-                        <span class="product-card-category">{{ prod.category_name }}</span>
-                        <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
-                        
-                        <!-- Ratings indicator line -->
-                        <div class="product-card-rating">
-                            <span class="rating-stars">★ {{ "{:.1f}".format(prod.avg_rating or 4.5) }}</span>
-                            <span class="rating-count">({{ prod.reviews_count or 12 }})</span>
-                        </div>
-                        
-                        <p class="product-card-description">{{ prod.short_description }}</p>
-                        
-                        <div class="product-card-pricing">
-                            {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
-                            <span class="price-current" style="font-size: 13px; color: #b45309; font-weight: 600;">Login to view wholesale pricing.</span>
-                            {% elif session.get('dealer_logged_in') %}
-                            <span class="price-current">₹{{ "{:,.0f}".format(prod.wholesale_price) }}</span>
-                            <span style="font-size: 12px; color: var(--accent-color); font-weight: 700; margin-left: 5px;">(Wholesale)</span>
-                            {% else %}
-                            <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
-                            {% if prod.offer_price %}
-                            <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
-                            {% endif %}
-                            {% endif %}
-                        </div>
+                            <!-- Image -->
+                            <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
+                                <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
+                            </a>
 
-                        <!-- Card Action Buttons -->
-                        <div class="product-card-actions" style="width: 100%;">
-                            {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
-                            <a href="/dealer/login" class="btn btn-primary btn-sm" style="width: 100%; text-align: center; justify-content: center; background: var(--accent-color); color: #111111;">Login as Dealer</a>
-                            {% else %}
-                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">View Details</a>
-                            {% endif %}
+                            <!-- Details body -->
+                            <div class="product-card-body">
+                                <span class="product-card-category">{{ prod.category_name }}</span>
+                                <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
+                                
+                                <!-- Ratings indicator line -->
+                                <div class="product-card-rating">
+                                    <span class="rating-stars">★ {{ "{:.1f}".format(prod.avg_rating or 4.5) }}</span>
+                                    <span class="rating-count">({{ prod.reviews_count or 12 }})</span>
+                                </div>
+                                
+                                <p class="product-card-description">{{ prod.short_description }}</p>
+                                
+                                <div class="product-card-pricing">
+                                    {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
+                                    <span class="price-current" style="font-size: 13px; color: #b45309; font-weight: 600;">Login to view wholesale pricing.</span>
+                                    {% elif session.get('dealer_logged_in') %}
+                                    <span class="price-current">₹{{ "{:,.0f}".format(prod.wholesale_price) }}</span>
+                                    <span style="font-size: 12px; color: var(--accent-color); font-weight: 700; margin-left: 5px;">(Wholesale)</span>
+                                    {% else %}
+                                    <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
+                                    {% if prod.offer_price %}
+                                    <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
+                                    {% endif %}
+                                    {% endif %}
+                                </div>
+
+                                <!-- Card Action Buttons -->
+                                <div class="product-card-actions" style="width: 100%;">
+                                    {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
+                                    <a href="/dealer/login" class="btn btn-primary btn-sm" style="width: 100%; text-align: center; justify-content: center; background: var(--accent-color); color: #111111;">Login as Dealer</a>
+                                    {% else %}
+                                    <div style="display: flex; gap: 8px; width: 100%;">
+                                        <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px;">View Details</a>
+                                        <button type="button" class="btn btn-primary btn-sm add-to-cart-btn" data-id="{{ prod.id }}" style="display: flex; align-items: center; justify-content: center; gap: 4px; background: var(--accent-color); color: #111111; font-weight: 700;" title="Add to Cart" aria-label="Add to Cart">
+                                            <i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Add
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
                 {% endfor %}
-            </div>
 
             <!-- Numbered Pagination -->
             {% if total_pages > 1 %}

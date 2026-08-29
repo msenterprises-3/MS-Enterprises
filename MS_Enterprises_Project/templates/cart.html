@@ -248,18 +248,64 @@
         let loadedProducts = [];
         let quantitiesMap = {};
 
+        function updateSummary() {
+            let uniqueItems = 0;
+            let totalQty = 0;
+            let totalAmount = 0;
+
+            loadedProducts.forEach(prod => {
+                const qty = quantitiesMap[String(prod.id)] || 0;
+                if (qty <= 0) return;
+
+                uniqueItems++;
+                totalQty += qty;
+                const unitPrice = parseFloat(prod.offer_price || prod.price || 0);
+                totalAmount += unitPrice * qty;
+            });
+
+            if (summaryItemCount) summaryItemCount.innerText = uniqueItems;
+            if (summaryTotalQty) summaryTotalQty.innerText = totalQty;
+            if (summaryTotalAmount) summaryTotalAmount.innerText = `₹${totalAmount.toLocaleString('en-IN')}`;
+
+            // Check Minimum Order Limit
+            if (minOrderLimit > 0 && totalAmount < minOrderLimit) {
+                if (minOrderLimitSpan) minOrderLimitSpan.innerText = minOrderLimit.toLocaleString('en-IN');
+                if (minOrderWarning) minOrderWarning.style.display = "block";
+                if (checkoutBtn) {
+                    checkoutBtn.removeAttribute("href");
+                    checkoutBtn.style.opacity = "0.5";
+                    checkoutBtn.style.cursor = "not-allowed";
+                }
+            } else {
+                if (minOrderWarning) minOrderWarning.style.display = "none";
+                if (checkoutBtn) {
+                    checkoutBtn.setAttribute("href", "/checkout");
+                    checkoutBtn.style.opacity = "1";
+                    checkoutBtn.style.cursor = "pointer";
+                }
+            }
+
+            if (uniqueItems === 0) {
+                if (emptyState) emptyState.style.display = "block";
+                if (layoutEl) layoutEl.style.display = "none";
+            } else {
+                if (emptyState) emptyState.style.display = "none";
+                if (layoutEl) layoutEl.style.display = "grid";
+            }
+        }
+
         function renderCart() {
-            emptyState.style.display = "none";
-            loadingEl.style.display = "block";
-            layoutEl.style.display = "none";
+            if (emptyState) emptyState.style.display = "none";
+            if (loadingEl) loadingEl.style.display = "block";
+            if (layoutEl) layoutEl.style.display = "none";
 
             fetch('/api/cart')
                 .then(res => res.json())
                 .then(data => {
-                    if (!data.success || data.items.length === 0) {
-                        emptyState.style.display = "block";
-                        loadingEl.style.display = "none";
-                        layoutEl.style.display = "none";
+                    if (!data.success || !data.items || data.items.length === 0) {
+                        if (emptyState) emptyState.style.display = "block";
+                        if (loadingEl) loadingEl.style.display = "none";
+                        if (layoutEl) layoutEl.style.display = "none";
                         return;
                     }
 
@@ -277,49 +323,61 @@
                     })
                     .then(res => res.json())
                     .then(products => {
-                        loadedProducts = products;
-                        loadingEl.style.display = "none";
+                        loadedProducts = products.length > 0 ? products : data.items.map(it => ({
+                            id: it.product_id,
+                            name: it.name,
+                            slug: it.slug,
+                            sku: it.sku,
+                            price: it.price,
+                            offer_price: it.offer_price,
+                            image_url: it.image_url,
+                            category_name: 'Furniture'
+                        }));
+                        if (loadingEl) loadingEl.style.display = "none";
 
-                        if (products.length === 0) {
-                            emptyState.style.display = "block";
+                        if (loadedProducts.length === 0) {
+                            if (emptyState) emptyState.style.display = "block";
                             return;
                         }
 
-                        updateCartUI();
+                        buildCartDOM();
                     })
                     .catch(err => {
-                        console.error("Cart products load error:", err);
-                        loadingEl.style.display = "none";
-                        emptyState.style.display = "block";
+                        console.error("Cart products load error, fallback to items:", err);
+                        loadedProducts = data.items.map(it => ({
+                            id: it.product_id,
+                            name: it.name,
+                            slug: it.slug,
+                            sku: it.sku,
+                            price: it.price,
+                            offer_price: it.offer_price,
+                            image_url: it.image_url,
+                            category_name: 'Furniture'
+                        }));
+                        if (loadingEl) loadingEl.style.display = "none";
+                        buildCartDOM();
                     });
                 })
                 .catch(err => {
                     console.error("Cart api load error:", err);
-                    loadingEl.style.display = "none";
-                    emptyState.style.display = "block";
+                    if (loadingEl) loadingEl.style.display = "none";
+                    if (emptyState) emptyState.style.display = "block";
                 });
         }
 
-        function updateCartUI() {
+        function buildCartDOM() {
             tableBody.innerHTML = "";
-            let uniqueItems = 0;
-            let totalQty = 0;
-            let totalAmount = 0;
 
             loadedProducts.forEach(prod => {
                 const qty = quantitiesMap[String(prod.id)] || 0;
                 if (qty <= 0) return;
 
-                uniqueItems++;
-                totalQty += qty;
-                
-                const unitPrice = prod.offer_price || prod.price;
+                const unitPrice = parseFloat(prod.offer_price || prod.price || 0);
                 const rowTotal = unitPrice * qty;
-                totalAmount += rowTotal;
 
                 const tr = document.createElement("tr");
                 tr.className = "cart-row-item";
-                tr.dataset.id = prod.id;
+                tr.dataset.id = String(prod.id);
 
                 tr.innerHTML = `
                     <td class="cart-col-product">
@@ -327,7 +385,7 @@
                             <img src="${prod.image_url}" alt="${prod.name}" class="cart-item-img" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
                             <div class="cart-item-info">
                                 <h4><a href="/product/${prod.slug}">${prod.name}</a></h4>
-                                <p>Category: ${prod.category_name} | SKU: ${prod.sku}</p>
+                                <p>Category: ${prod.category_name || 'Furniture'} | SKU: ${prod.sku || ''}</p>
                             </div>
                         </div>
                     </td>
@@ -338,9 +396,9 @@
                     <td class="cart-col-qty">
                         <span class="cart-mobile-label">Quantity</span>
                         <div class="cart-qty-controller">
-                            <button class="cart-qty-btn qty-minus" data-id="${prod.id}" aria-label="Decrease Quantity">-</button>
+                            <button type="button" class="cart-qty-btn qty-minus" data-id="${prod.id}" aria-label="Decrease Quantity">-</button>
                             <span class="cart-qty-val">${qty}</span>
-                            <button class="cart-qty-btn qty-plus" data-id="${prod.id}" aria-label="Increase Quantity">+</button>
+                            <button type="button" class="cart-qty-btn qty-plus" data-id="${prod.id}" aria-label="Increase Quantity">+</button>
                         </div>
                     </td>
                     <td class="cart-col-total">
@@ -348,7 +406,7 @@
                         <span class="cart-item-total">₹${rowTotal.toLocaleString('en-IN')}</span>
                     </td>
                     <td class="cart-col-remove">
-                        <button class="cart-item-remove" data-id="${prod.id}" aria-label="Remove Item" title="Remove Item">
+                        <button type="button" class="cart-item-remove" data-id="${prod.id}" aria-label="Remove Item" title="Remove Item">
                             <i data-lucide="trash-2" style="width:18px;height:18px;"></i>
                         </button>
                     </td>
@@ -357,77 +415,96 @@
                 tableBody.appendChild(tr);
             });
 
-            summaryItemCount.innerText = uniqueItems;
-            summaryTotalQty.innerText = totalQty;
-            summaryTotalAmount.innerText = `₹${totalAmount.toLocaleString('en-IN')}`;
-
-            // Check Minimum Order Limit
-            if (minOrderLimit > 0 && totalAmount < minOrderLimit) {
-                minOrderLimitSpan.innerText = minOrderLimit.toLocaleString('en-IN');
-                minOrderWarning.style.display = "block";
-                checkoutBtn.removeAttribute("href");
-                checkoutBtn.style.opacity = "0.5";
-                checkoutBtn.style.cursor = "not-allowed";
-            } else {
-                minOrderWarning.style.display = "none";
-                checkoutBtn.setAttribute("href", "/checkout");
-                checkoutBtn.style.opacity = "1";
-                checkoutBtn.style.cursor = "pointer";
-            }
-
-            if (uniqueItems === 0) {
-                emptyState.style.display = "block";
-                layoutEl.style.display = "none";
-            } else {
-                layoutEl.style.display = "grid";
-            }
+            updateSummary();
 
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
         }
 
-        // Qty and removal click listeners
+        // Qty and removal click listeners with instant DOM updates
         tableBody.addEventListener("click", function (e) {
             const btnMinus = e.target.closest(".qty-minus");
             const btnPlus = e.target.closest(".qty-plus");
             const btnRemove = e.target.closest(".cart-item-remove");
 
-            if (btnMinus) {
-                const id = String(btnMinus.dataset.id);
-                const currentQty = quantitiesMap[id] || 0;
-                if (currentQty > 1) {
-                    window.mseCart.updateQty(id, currentQty - 1);
-                    quantitiesMap[id] = currentQty - 1;
-                } else {
-                    window.mseCart.remove(id);
-                    delete quantitiesMap[id];
-                    loadedProducts = loadedProducts.filter(p => String(p.id) !== id);
-                }
-                updateCartUI();
-            }
-
             if (btnPlus) {
+                e.preventDefault();
                 const id = String(btnPlus.dataset.id);
                 const currentQty = quantitiesMap[id] || 0;
-                window.mseCart.updateQty(id, currentQty + 1);
-                quantitiesMap[id] = currentQty + 1;
-                updateCartUI();
+                const newQty = currentQty + 1;
+                quantitiesMap[id] = newQty;
+
+                const row = btnPlus.closest(".cart-row-item");
+                if (row) {
+                    const qtyValEl = row.querySelector(".cart-qty-val");
+                    if (qtyValEl) qtyValEl.innerText = newQty;
+
+                    const prod = loadedProducts.find(p => String(p.id) === id);
+                    const unitPrice = prod ? parseFloat(prod.offer_price || prod.price || 0) : 0;
+                    const totalEl = row.querySelector(".cart-item-total");
+                    if (totalEl) totalEl.innerText = `₹${(unitPrice * newQty).toLocaleString('en-IN')}`;
+                }
+
+                updateSummary();
+                if (window.mseCart && typeof window.mseCart.updateQty === 'function') {
+                    window.mseCart.updateQty(id, newQty);
+                }
+            }
+
+            if (btnMinus) {
+                e.preventDefault();
+                const id = String(btnMinus.dataset.id);
+                const currentQty = quantitiesMap[id] || 0;
+                const row = btnMinus.closest(".cart-row-item");
+
+                if (currentQty > 1) {
+                    const newQty = currentQty - 1;
+                    quantitiesMap[id] = newQty;
+
+                    if (row) {
+                        const qtyValEl = row.querySelector(".cart-qty-val");
+                        if (qtyValEl) qtyValEl.innerText = newQty;
+
+                        const prod = loadedProducts.find(p => String(p.id) === id);
+                        const unitPrice = prod ? parseFloat(prod.offer_price || prod.price || 0) : 0;
+                        const totalEl = row.querySelector(".cart-item-total");
+                        if (totalEl) totalEl.innerText = `₹${(unitPrice * newQty).toLocaleString('en-IN')}`;
+                    }
+
+                    updateSummary();
+                    if (window.mseCart && typeof window.mseCart.updateQty === 'function') {
+                        window.mseCart.updateQty(id, newQty);
+                    }
+                } else {
+                    delete quantitiesMap[id];
+                    loadedProducts = loadedProducts.filter(p => String(p.id) !== id);
+                    if (row) row.remove();
+
+                    updateSummary();
+                    if (window.mseCart && typeof window.mseCart.remove === 'function') {
+                        window.mseCart.remove(id);
+                    }
+                }
             }
 
             if (btnRemove) {
+                e.preventDefault();
                 const id = String(btnRemove.dataset.id);
-                window.mseCart.remove(id);
+                const row = btnRemove.closest(".cart-row-item");
+
                 delete quantitiesMap[id];
                 loadedProducts = loadedProducts.filter(p => String(p.id) !== id);
-                updateCartUI();
+                if (row) row.remove();
+
+                updateSummary();
+                if (window.mseCart && typeof window.mseCart.remove === 'function') {
+                    window.mseCart.remove(id);
+                }
             }
         });
 
-
-
         renderCart();
-        window.addEventListener('cartUpdated', renderCart);
     });
 </script>
 {% endblock %}

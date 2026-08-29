@@ -178,7 +178,7 @@ def get_filtered_products(q=None, category_slug=None, subcat_slug=None, price_ma
         categories = get_cache('categories')
         cat_id = None
         for c in categories:
-            if c['slug'] == category_slug:
+            if c.get('slug', '').lower() == category_slug.lower() or str(c.get('id', '')) == str(category_slug):
                 cat_id = c['id']
                 break
         if cat_id is not None:
@@ -191,7 +191,7 @@ def get_filtered_products(q=None, category_slug=None, subcat_slug=None, price_ma
         subcategories = get_cache('subcategories')
         subcat_id = None
         for s in subcategories:
-            if s['slug'] == subcat_slug:
+            if s.get('slug', '').lower() == subcat_slug.lower() or str(s.get('id', '')) == str(subcat_slug):
                 subcat_id = s['id']
                 break
         if subcat_id is not None:
@@ -199,17 +199,55 @@ def get_filtered_products(q=None, category_slug=None, subcat_slug=None, price_ma
         else:
             return []
             
-    # 4. Search query (Autosummary search)
+    # 4. Search query (Category-aware & precise search)
     if q:
-        q_lower = q.lower()
+        q_clean = q.strip().lower()
+        q_tokens = [t for t in re.split(r'\s+', q_clean) if t]
+        
+        categories_cache = get_cache('categories')
+        subcategories_cache = get_cache('subcategories')
+        
+        # Identify matching category & subcategory IDs
+        matching_cat_ids = set()
+        for c in categories_cache:
+            c_name = c.get('name', '').lower()
+            c_slug = c.get('slug', '').lower()
+            if q_clean in c_name or c_name in q_clean or q_clean in c_slug:
+                matching_cat_ids.add(str(c['id']))
+            elif any(t in c_name or (len(t) > 3 and t.rstrip('s') in c_name) for t in q_tokens):
+                matching_cat_ids.add(str(c['id']))
+                
+        matching_subcat_ids = set()
+        for s in subcategories_cache:
+            s_name = s.get('name', '').lower()
+            s_slug = s.get('slug', '').lower()
+            if q_clean in s_name or s_name in q_clean or q_clean in s_slug:
+                matching_subcat_ids.add(str(s['id']))
+            elif any(t in s_name or (len(t) > 3 and t.rstrip('s') in s_name) for t in q_tokens):
+                matching_subcat_ids.add(str(s['id']))
+
         filtered = []
         for p in products:
+            p_cat_id = str(p.get('category_id', ''))
+            p_subcat_id = str(p.get('subcategory_id', ''))
             name = p.get('name', '').lower()
             s_desc = p.get('short_description', '').lower()
-            desc = p.get('description', '').lower()
             sku = p.get('sku', '').lower()
-            if q_lower in name or q_lower in s_desc or q_lower in desc or q_lower in sku:
+            
+            # Category / Subcategory direct match
+            if p_cat_id in matching_cat_ids or p_subcat_id in matching_subcat_ids:
                 filtered.append(p)
+                continue
+                
+            # Direct name or SKU match
+            if q_clean in name or q_clean in sku or (len(q_clean) >= 3 and q_clean in s_desc):
+                filtered.append(p)
+                continue
+                
+            # Token match across name and sku
+            if q_tokens and all(t in name or t in sku or t in s_desc for t in q_tokens):
+                filtered.append(p)
+                
         products = filtered
         
     # 5. Price Max filter
@@ -425,16 +463,38 @@ def products():
         subcategories = []
         current_category = None
         if category_slug:
-            current_category = next((c for c in all_categories if c['slug'] == category_slug), None)
+            current_category = next((c for c in all_categories if c['slug'].lower() == category_slug.lower() or str(c['id']) == str(category_slug)), None)
             if current_category:
                 subcategories = [s for s in get_cache('subcategories') if s['category_id'] == current_category['id'] and s['status'] == 'active']
                 
+        sanitized_products = sanitize_products_by_role(enriched_products)
+
+        # Group products by category
+        from collections import OrderedDict
+        grouped_products = OrderedDict()
+
+        if current_category:
+            cat_name = current_category['name']
+            if sanitized_products:
+                grouped_products[cat_name] = sanitized_products
+        else:
+            # Group products maintaining category order from cache
+            for cat in all_categories:
+                cat_prods = [p for p in sanitized_products if str(p.get('category_id')) == str(cat['id'])]
+                if cat_prods:
+                    grouped_products[cat['name']] = cat_prods
+            # Any uncategorized or remaining products
+            uncategorized = [p for p in sanitized_products if not any(str(p.get('category_id')) == str(cat['id']) for cat in all_categories)]
+            if uncategorized:
+                grouped_products['Other Collections'] = uncategorized
+
         # Max price ceiling
         max_db_price = max([p.get('price', 0) for p in get_cache('products')] or [100000])
         total_pages = (total_count + per_page - 1) // per_page
         
         return render_template('products.html',
-                               products=sanitize_products_by_role(enriched_products),
+                               products=sanitized_products,
+                               grouped_products=grouped_products,
                                categories=all_categories,
                                subcategories=subcategories,
                                current_category=current_category,
@@ -845,6 +905,7 @@ def dealer_logout():
 
 
 @app.route('/dealer')
+@app.route('/dealer/portal')
 @role_required('dealer')
 def dealer_portal():
     stats = {

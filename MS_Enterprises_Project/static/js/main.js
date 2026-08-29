@@ -769,7 +769,7 @@ function initMainApp() {
         qty = parseInt(qty) || 1;
         cachedCart[id] = (cachedCart[id] || 0) + qty;
         
-        // Optimistic badge update
+        // Optimistic badge update immediately
         const totalItems = Object.values(cachedCart).reduce((a, b) => a + b, 0);
         updateBadges(totalItems);
 
@@ -785,7 +785,7 @@ function initMainApp() {
                 const finalCount = typeof data.cart_count !== 'undefined' ? data.cart_count : Object.values(cachedCart).reduce((a, b) => a + b, 0);
                 updateBadges(finalCount);
                 showCartToast(data.message || "Product added to cart!");
-                window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { productId: id, quantity: qty } }));
+                window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { productId: id, quantity: qty, cartCount: finalCount } }));
             } else {
                 showCartToast(data.message || "Failed to add to cart.");
             }
@@ -821,7 +821,7 @@ function initMainApp() {
             if (data.success) {
                 const finalCount = typeof data.cart_count !== 'undefined' ? data.cart_count : Object.values(cachedCart).reduce((a, b) => a + b, 0);
                 updateBadges(finalCount);
-                window.dispatchEvent(new CustomEvent('cartUpdated'));
+                window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { productId: id, cartCount: finalCount } }));
             }
         })
         .catch(err => console.error("Error removing from cart:", err));
@@ -850,22 +850,41 @@ function initMainApp() {
             if (data.success) {
                 const finalCount = typeof data.cart_count !== 'undefined' ? data.cart_count : Object.values(cachedCart).reduce((a, b) => a + b, 0);
                 updateBadges(finalCount);
-                window.dispatchEvent(new CustomEvent('cartUpdated'));
+                window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { productId: id, quantity: qty, cartCount: finalCount } }));
             }
         })
         .catch(err => console.error("Error updating cart quantity:", err));
     }
 
     function updateBadges(cartCountOverride) {
-        const cartCount = typeof cartCountOverride !== 'undefined' ? cartCountOverride : Object.values(cachedCart).reduce((a, b) => a + b, 0);
+        let cartCount = 0;
+        if (typeof cartCountOverride !== 'undefined' && cartCountOverride !== null) {
+            cartCount = parseInt(cartCountOverride) || 0;
+        } else {
+            cartCount = Object.values(cachedCart).reduce((a, b) => (parseInt(a) || 0) + (parseInt(b) || 0), 0);
+        }
 
         document.querySelectorAll('.wishlist-badge').forEach(badge => {
-            badge.style.display = 'none';
+            badge.style.setProperty('display', 'none', 'important');
         });
 
-        document.querySelectorAll('.cart-badge').forEach(badge => {
-            badge.innerText = cartCount;
-            badge.style.display = cartCount > 0 ? 'inline-flex' : 'none';
+        const badges = document.querySelectorAll('.cart-badge, .cart-header-link .badge-count, .icon-badge-wrapper .badge-count, [data-cart-badge]');
+        badges.forEach(badge => {
+            if (cartCount > 0) {
+                badge.innerText = String(cartCount);
+                badge.textContent = String(cartCount);
+                badge.style.setProperty('display', 'inline-flex', 'important');
+                
+                // Visual Pulse Indicator
+                badge.classList.remove('badge-pulse');
+                void badge.offsetWidth; // Trigger reflow for re-animation
+                badge.classList.add('badge-pulse');
+            } else {
+                badge.innerText = '0';
+                badge.textContent = '0';
+                badge.style.setProperty('display', 'none', 'important');
+                badge.classList.remove('badge-pulse');
+            }
         });
     }
 
