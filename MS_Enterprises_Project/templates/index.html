@@ -271,18 +271,20 @@
 
         <!-- Tabs -->
         <div class="tabs-container">
-            <button class="tab-btn active" data-tab="tab-bestsellers">Best Sellers</button>
-            <button class="tab-btn" data-tab="tab-newarrivals">New Arrivals</button>
-            <button class="tab-btn" data-tab="tab-trending">Trending Products</button>
-            <button class="tab-btn" data-tab="tab-premium">Premium Collection</button>
+            <button class="tab-btn active" data-tab="bestsellers-grid">Best Sellers</button>
+            <button class="tab-btn" data-tab="newarrivals-grid">New Arrivals</button>
+            <button class="tab-btn" data-tab="trending-grid">Trending Products</button>
+            <button class="tab-btn" data-tab="premium-grid">Premium Collection</button>
         </div>
 
         <!-- Tab Contents -->
         <!-- Tab 1: Best Sellers (is_best_seller) -->
-        <div class="tab-content active" id="tab-bestsellers">
-            {% if best_sellers %}
+        <div class="tab-content active" id="bestsellers-grid">
+            {% set ns = namespace(count=0) %}
             <div class="products-grid">
-                {% for prod in best_sellers %}
+                {% for prod in products %}
+                {% if prod.is_best_seller == true or prod.is_best_seller == 1 or prod.is_best_seller == '1' or prod.is_best_seller|string|lower in ['true', '1', 'yes'] %}
+                {% set ns.count = ns.count + 1 %}
                 <div class="product-card">
                     <!-- Badges -->
                     <div class="product-badge-container">
@@ -328,9 +330,10 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 {% endfor %}
             </div>
-            {% else %}
+            {% if ns.count == 0 %}
             <div class="empty-collection-state" style="text-align: center; padding: 48px 16px; background: #ffffff; border-radius: 12px; border: 1px dashed #d1d5db; margin: 10px 0;">
                 <div style="font-size: 36px; margin-bottom: 12px;">🛋️</div>
                 <h4 style="font-size: 18px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">More Items Coming Soon</h4>
@@ -341,10 +344,12 @@
         </div>
 
         <!-- Tab 2: New Arrivals (is_new_arrival) -->
-        <div class="tab-content" id="tab-newarrivals">
-            {% if new_arrivals %}
+        <div class="tab-content hidden" id="newarrivals-grid">
+            {% set ns = namespace(count=0) %}
             <div class="products-grid">
-                {% for prod in new_arrivals %}
+                {% for prod in products %}
+                {% if prod.is_new_arrival == true or prod.is_new_arrival == 1 or prod.is_new_arrival == '1' or prod.is_new_arrival|string|lower in ['true', '1', 'yes'] %}
+                {% set ns.count = ns.count + 1 %}
                 <div class="product-card">
                     <!-- Badges -->
                     <div class="product-badge-container">
@@ -390,9 +395,10 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 {% endfor %}
             </div>
-            {% else %}
+            {% if ns.count == 0 %}
             <div class="empty-collection-state" style="text-align: center; padding: 48px 16px; background: #ffffff; border-radius: 12px; border: 1px dashed #d1d5db; margin: 10px 0;">
                 <div style="font-size: 36px; margin-bottom: 12px;">✨</div>
                 <h4 style="font-size: 18px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">More Items Coming Soon</h4>
@@ -403,10 +409,12 @@
         </div>
 
         <!-- Tab 3: Trending Products (is_featured) -->
-        <div class="tab-content" id="tab-trending">
-            {% if trending %}
+        <div class="tab-content hidden" id="trending-grid">
+            {% set ns = namespace(count=0) %}
             <div class="products-grid">
-                {% for prod in trending %}
+                {% for prod in products %}
+                {% if prod.is_featured == true or prod.is_featured == 1 or prod.is_featured == '1' or prod.is_featured|string|lower in ['true', '1', 'yes'] %}
+                {% set ns.count = ns.count + 1 %}
                 <div class="product-card">
                     <!-- Badges -->
                     <div class="product-badge-container">
@@ -452,9 +460,10 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 {% endfor %}
             </div>
-            {% else %}
+            {% if ns.count == 0 %}
             <div class="empty-collection-state" style="text-align: center; padding: 48px 16px; background: #ffffff; border-radius: 12px; border: 1px dashed #d1d5db; margin: 10px 0;">
                 <div style="font-size: 36px; margin-bottom: 12px;">🔥</div>
                 <h4 style="font-size: 18px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">More Items Coming Soon</h4>
@@ -465,10 +474,12 @@
         </div>
 
         <!-- Tab 4: Premium Collection (is_premium) -->
-        <div class="tab-content" id="tab-premium">
-            {% if premium %}
+        <div class="tab-content hidden" id="premium-grid">
+            {% set ns = namespace(count=0) %}
             <div class="products-grid">
-                {% for prod in premium %}
+                {% for prod in products %}
+                {% if prod.is_premium == true or prod.is_premium == 1 or prod.is_premium == '1' or prod.is_premium|string|lower in ['true', '1', 'yes'] %}
+                {% set ns.count = ns.count + 1 %}
                 <div class="product-card">
                     <!-- Badges -->
                     <div class="product-badge-container">
@@ -514,9 +525,10 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 {% endfor %}
             </div>
-            {% else %}
+            {% if ns.count == 0 %}
             <div class="empty-collection-state" style="text-align: center; padding: 48px 16px; background: #ffffff; border-radius: 12px; border: 1px dashed #d1d5db; margin: 10px 0;">
                 <div style="font-size: 36px; margin-bottom: 12px;">👑</div>
                 <h4 style="font-size: 18px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">More Items Coming Soon</h4>

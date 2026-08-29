@@ -391,6 +391,7 @@ def index():
         return sanitize_products_by_role(enriched)
         
     # Strictly filter homepage collections based on admin flags (no random fallbacks)
+    all_home_products = enrich_home_products(active_products)
     best_sellers = enrich_home_products([p for p in active_products if is_truthy(p.get('is_best_seller'))][:8])
     new_arrivals = enrich_home_products([p for p in active_products if is_truthy(p.get('is_new_arrival'))][:8])
     trending = enrich_home_products([p for p in active_products if is_truthy(p.get('is_featured'))][:8])
@@ -403,6 +404,7 @@ def index():
                            active_offer=active_offer,
                            trust_badges=trust_badges,
                            categories=categories,
+                           products=all_home_products,
                            featured=trending,
                            trending=trending,
                            new_arrivals=new_arrivals,
