@@ -442,44 +442,7 @@ function initMainApp() {
         startVSlideShow();
     }
 
-    // 4. Featured Collections Tab Switching in Homepage
-    const collectionTabBtns = document.querySelectorAll('.tabs-container .tab-btn');
-    const collectionGridContainers = [
-        document.getElementById('bestsellers-grid'),
-        document.getElementById('newarrivals-grid'),
-        document.getElementById('trending-grid'),
-        document.getElementById('premium-grid')
-    ];
 
-    collectionTabBtns.forEach(btn => {
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            // 1. Update button active states
-            collectionTabBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            // 2. Hide all 4 collection grid containers
-            const targetId = btn.getAttribute('data-tab');
-            collectionGridContainers.forEach(grid => {
-                if (grid) {
-                    grid.classList.remove('active');
-                    grid.classList.add('hidden');
-                    grid.style.display = 'none';
-                }
-            });
-
-            // 3. Show ONLY the selected collection grid container
-            const targetGrid = document.getElementById(targetId);
-            if (targetGrid) {
-                targetGrid.classList.remove('hidden');
-                targetGrid.classList.add('active');
-                targetGrid.style.display = 'block';
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                }
-            }
-        });
-    });
 
     // 5. Testimonial Text Slider Loop
     const testimonialTrack = document.getElementById('testimonialTrack');
