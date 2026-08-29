@@ -271,126 +271,16 @@
 
         <!-- Tabs -->
         <div class="tabs-container">
-            <button class="tab-btn active" data-tab="tab-featured">Best Sellers</button>
-            <button class="tab-btn" data-tab="tab-new">New Arrivals</button>
-            <button class="tab-btn" data-tab="tab-best">Trending Products</button>
+            <button class="tab-btn active" data-tab="tab-bestsellers">Best Sellers</button>
+            <button class="tab-btn" data-tab="tab-newarrivals">New Arrivals</button>
+            <button class="tab-btn" data-tab="tab-trending">Trending Products</button>
             <button class="tab-btn" data-tab="tab-premium">Premium Collection</button>
         </div>
 
         <!-- Tab Contents -->
-        <!-- Tab 1: Featured -->
-        <div class="tab-content active" id="tab-featured">
-            <div class="products-grid">
-                {% for prod in featured %}
-                <div class="product-card">
-                    <!-- Badges -->
-                    <div class="product-badge-container">
-                        {% if prod.offer_price %}
-                            {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
-                            {% if discount_pct > 0 %}
-                            <span class="badge badge-offer">{{ discount_pct }}% OFF</span>
-                            {% endif %}
-                        {% elif prod.offer_badge %}
-                            <span class="badge badge-offer">{{ prod.offer_badge }}</span>
-                        {% endif %}
-                        {% if prod.is_new_arrival %}
-                        <span class="badge badge-new">New</span>
-                        {% endif %}
-                        {% if prod.is_featured %}
-                        <span class="badge badge-featured">Featured</span>
-                        {% endif %}
-                    </div>
-
-                    <!-- Image -->
-                    <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
-                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
-                    </a>
-
-                    <!-- Details body -->
-                    <div class="product-card-body">
-                        <span class="product-card-category">{{ prod.category_name }}</span>
-                        <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
-                        
-                        <!-- Ratings indicator line -->
-                        <div class="product-card-rating">
-                            <span class="rating-stars">★ {{ "{:.1f}".format(((prod.id | int(12)) % 7) / 10 + 4.3) }}</span>
-                            <span class="rating-count">({{ ((prod.id | int(12)) * 13) % 40 + 8 }})</span>
-                        </div>
-                        
-                        <p class="product-card-description">{{ prod.short_description }}</p>
-                        
-                        <div class="product-card-pricing">
-                            <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
-                            {% if prod.offer_price %}
-                            <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
-                            {% endif %}
-                        </div>
-
-                        <!-- Card Action Buttons -->
-                        <div class="product-card-actions" style="width: 100%;">
-                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">View Details</a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Tab 2: New Arrivals -->
-        <div class="tab-content" id="tab-new">
-            <div class="products-grid">
-                {% for prod in new_arrivals %}
-                <div class="product-card">
-                    <!-- Badges -->
-                    <div class="product-badge-container">
-                        {% if prod.offer_price %}
-                            {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
-                            {% if discount_pct > 0 %}
-                            <span class="badge badge-offer">{{ discount_pct }}% OFF</span>
-                            {% endif %}
-                        {% elif prod.offer_badge %}
-                            <span class="badge badge-offer">{{ prod.offer_badge }}</span>
-                        {% endif %}
-                        <span class="badge badge-new">New</span>
-                    </div>
-
-                    <!-- Image -->
-                    <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
-                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
-                    </a>
-
-                    <!-- Details body -->
-                    <div class="product-card-body">
-                        <span class="product-card-category">{{ prod.category_name }}</span>
-                        <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
-                        
-                        <!-- Ratings indicator line -->
-                        <div class="product-card-rating">
-                            <span class="rating-stars">★ {{ "{:.1f}".format(((prod.id | int(12)) % 7) / 10 + 4.3) }}</span>
-                            <span class="rating-count">({{ ((prod.id | int(12)) * 13) % 40 + 8 }})</span>
-                        </div>
-                        
-                        <p class="product-card-description">{{ prod.short_description }}</p>
-                        
-                        <div class="product-card-pricing">
-                            <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
-                            {% if prod.offer_price %}
-                            <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
-                            {% endif %}
-                        </div>
-
-                        <!-- Card Action Buttons -->
-                        <div class="product-card-actions" style="width: 100%;">
-                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">View Details</a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Tab 3: Best Sellers -->
-        <div class="tab-content" id="tab-best">
+        <!-- Tab 1: Best Sellers (is_best_seller) -->
+        <div class="tab-content active" id="tab-bestsellers">
+            {% if best_sellers %}
             <div class="products-grid">
                 {% for prod in best_sellers %}
                 <div class="product-card">
@@ -440,10 +330,143 @@
                 </div>
                 {% endfor %}
             </div>
+            {% else %}
+            <div class="empty-collection-state" style="text-align: center; padding: 48px 16px; background: #ffffff; border-radius: 12px; border: 1px dashed #d1d5db; margin: 10px 0;">
+                <div style="font-size: 36px; margin-bottom: 12px;">🛋️</div>
+                <h4 style="font-size: 18px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">More Items Coming Soon</h4>
+                <p style="font-size: 14px; color: #6b7280; max-width: 420px; margin: 0 auto 18px auto; line-height: 1.5;">We are curating new best seller pieces for this collection. Please check back shortly or explore our full catalog.</p>
+                <a href="/products" class="btn btn-dark btn-sm" style="display: inline-flex; align-items: center; gap: 8px;">Explore All Products</a>
+            </div>
+            {% endif %}
         </div>
 
-        <!-- Tab 4: Premium -->
+        <!-- Tab 2: New Arrivals (is_new_arrival) -->
+        <div class="tab-content" id="tab-newarrivals">
+            {% if new_arrivals %}
+            <div class="products-grid">
+                {% for prod in new_arrivals %}
+                <div class="product-card">
+                    <!-- Badges -->
+                    <div class="product-badge-container">
+                        {% if prod.offer_price %}
+                            {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
+                            {% if discount_pct > 0 %}
+                            <span class="badge badge-offer">{{ discount_pct }}% OFF</span>
+                            {% endif %}
+                        {% elif prod.offer_badge %}
+                            <span class="badge badge-offer">{{ prod.offer_badge }}</span>
+                        {% endif %}
+                        <span class="badge badge-new">New</span>
+                    </div>
+
+                    <!-- Image -->
+                    <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
+                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
+                    </a>
+
+                    <!-- Details body -->
+                    <div class="product-card-body">
+                        <span class="product-card-category">{{ prod.category_name }}</span>
+                        <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
+                        
+                        <!-- Ratings indicator line -->
+                        <div class="product-card-rating">
+                            <span class="rating-stars">★ {{ "{:.1f}".format(((prod.id | int(12)) % 7) / 10 + 4.3) }}</span>
+                            <span class="rating-count">({{ ((prod.id | int(12)) * 13) % 40 + 8 }})</span>
+                        </div>
+                        
+                        <p class="product-card-description">{{ prod.short_description }}</p>
+                        
+                        <div class="product-card-pricing">
+                            <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
+                            {% if prod.offer_price %}
+                            <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Card Action Buttons -->
+                        <div class="product-card-actions" style="width: 100%;">
+                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-collection-state" style="text-align: center; padding: 48px 16px; background: #ffffff; border-radius: 12px; border: 1px dashed #d1d5db; margin: 10px 0;">
+                <div style="font-size: 36px; margin-bottom: 12px;">✨</div>
+                <h4 style="font-size: 18px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">More Items Coming Soon</h4>
+                <p style="font-size: 14px; color: #6b7280; max-width: 420px; margin: 0 auto 18px auto; line-height: 1.5;">Fresh arrivals are being added to our catalog. Please check back shortly or explore our full collection.</p>
+                <a href="/products" class="btn btn-dark btn-sm" style="display: inline-flex; align-items: center; gap: 8px;">Explore All Products</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Tab 3: Trending Products (is_featured) -->
+        <div class="tab-content" id="tab-trending">
+            {% if trending %}
+            <div class="products-grid">
+                {% for prod in trending %}
+                <div class="product-card">
+                    <!-- Badges -->
+                    <div class="product-badge-container">
+                        {% if prod.offer_price %}
+                            {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
+                            {% if discount_pct > 0 %}
+                            <span class="badge badge-offer">{{ discount_pct }}% OFF</span>
+                            {% endif %}
+                        {% elif prod.offer_badge %}
+                            <span class="badge badge-offer">{{ prod.offer_badge }}</span>
+                        {% endif %}
+                        <span class="badge badge-featured">Trending</span>
+                    </div>
+
+                    <!-- Image -->
+                    <a href="/product/{{ prod.slug }}" class="product-card-img-wrapper">
+                        <img src="{{ prod.image_url }}" alt="{{ prod.name }}" loading="lazy" onerror="this.onerror=null;this.src='/static/uploads/products/prod_generic_1.webp';">
+                    </a>
+
+                    <!-- Details body -->
+                    <div class="product-card-body">
+                        <span class="product-card-category">{{ prod.category_name }}</span>
+                        <h3 class="product-card-title"><a href="/product/{{ prod.slug }}">{{ prod.name }}</a></h3>
+                        
+                        <!-- Ratings indicator line -->
+                        <div class="product-card-rating">
+                            <span class="rating-stars">★ {{ "{:.1f}".format(((prod.id | int(12)) % 7) / 10 + 4.3) }}</span>
+                            <span class="rating-count">({{ ((prod.id | int(12)) * 13) % 40 + 8 }})</span>
+                        </div>
+                        
+                        <p class="product-card-description">{{ prod.short_description }}</p>
+                        
+                        <div class="product-card-pricing">
+                            <span class="price-current">₹{{ "{:,.0f}".format(prod.offer_price or prod.price) }}</span>
+                            {% if prod.offer_price %}
+                            <span class="price-original">₹{{ "{:,.0f}".format(prod.price) }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Card Action Buttons -->
+                        <div class="product-card-actions" style="width: 100%;">
+                            <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-collection-state" style="text-align: center; padding: 48px 16px; background: #ffffff; border-radius: 12px; border: 1px dashed #d1d5db; margin: 10px 0;">
+                <div style="font-size: 36px; margin-bottom: 12px;">🔥</div>
+                <h4 style="font-size: 18px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">More Items Coming Soon</h4>
+                <p style="font-size: 14px; color: #6b7280; max-width: 420px; margin: 0 auto 18px auto; line-height: 1.5;">Trending furniture items are currently being updated. Please check back shortly or explore our full catalog.</p>
+                <a href="/products" class="btn btn-dark btn-sm" style="display: inline-flex; align-items: center; gap: 8px;">Explore All Products</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Tab 4: Premium Collection (is_premium) -->
         <div class="tab-content" id="tab-premium">
+            {% if premium %}
             <div class="products-grid">
                 {% for prod in premium %}
                 <div class="product-card">
@@ -493,6 +516,14 @@
                 </div>
                 {% endfor %}
             </div>
+            {% else %}
+            <div class="empty-collection-state" style="text-align: center; padding: 48px 16px; background: #ffffff; border-radius: 12px; border: 1px dashed #d1d5db; margin: 10px 0;">
+                <div style="font-size: 36px; margin-bottom: 12px;">👑</div>
+                <h4 style="font-size: 18px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">More Items Coming Soon</h4>
+                <p style="font-size: 14px; color: #6b7280; max-width: 420px; margin: 0 auto 18px auto; line-height: 1.5;">Our master craftsmen are preparing exclusive premium furniture pieces. Please check back shortly or explore our complete catalog.</p>
+                <a href="/products" class="btn btn-dark btn-sm" style="display: inline-flex; align-items: center; gap: 8px;">Explore All Products</a>
+            </div>
+            {% endif %}
         </div>
     </div>
 </section>

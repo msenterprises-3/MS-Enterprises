@@ -390,20 +390,11 @@ def index():
             enriched.append(p_dict)
         return sanitize_products_by_role(enriched)
         
-    featured = enrich_home_products([p for p in active_products if is_truthy(p.get('is_featured'))][:8])
-    new_arrivals = enrich_home_products([p for p in active_products if is_truthy(p.get('is_new_arrival'))][:8])
+    # Strictly filter homepage collections based on admin flags (no random fallbacks)
     best_sellers = enrich_home_products([p for p in active_products if is_truthy(p.get('is_best_seller'))][:8])
+    new_arrivals = enrich_home_products([p for p in active_products if is_truthy(p.get('is_new_arrival'))][:8])
+    trending = enrich_home_products([p for p in active_products if is_truthy(p.get('is_featured'))][:8])
     premium_collection = enrich_home_products([p for p in active_products if is_truthy(p.get('is_premium'))][:8])
-
-    # Fallback to general active products if specific flags are not yet assigned
-    if not featured and active_products:
-        featured = enrich_home_products(active_products[:8])
-    if not new_arrivals and active_products:
-        new_arrivals = enrich_home_products(sorted(active_products, key=lambda x: str(x.get('created_at', '')), reverse=True)[:8])
-    if not best_sellers and active_products:
-        best_sellers = enrich_home_products(active_products[:8])
-    if not premium_collection and active_products:
-        premium_collection = enrich_home_products(sorted(active_products, key=lambda x: float(x.get('price') or 0), reverse=True)[:8])
     
     active_offer = dict(offer_banners[0]) if offer_banners else None
     
@@ -412,7 +403,8 @@ def index():
                            active_offer=active_offer,
                            trust_badges=trust_badges,
                            categories=categories,
-                           featured=featured,
+                           featured=trending,
+                           trending=trending,
                            new_arrivals=new_arrivals,
                            best_sellers=best_sellers,
                            premium=premium_collection,

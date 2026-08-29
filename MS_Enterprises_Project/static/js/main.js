@@ -455,6 +455,9 @@ function initMainApp() {
             const targetEl = document.getElementById(targetTab);
             if (targetEl) {
                 targetEl.classList.add('active');
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
             }
         });
     });

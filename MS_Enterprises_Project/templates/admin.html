@@ -10,8 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
-    <div class="admin-wrapper">
+<body class="overflow-x-hidden w-full max-w-full bg-gray-50">
+    <div class="admin-wrapper overflow-x-hidden w-full max-w-full">
         <!-- Sidebar Navigation -->
         <aside class="admin-sidebar" id="adminSidebar">
             <div class="admin-logo-area">
@@ -87,14 +87,14 @@
         </aside>
 
         <!-- Main Body -->
-        <main class="admin-content-area w-full">
+        <main class="admin-content-area overflow-x-hidden w-full max-w-full p-2.5 sm:p-4 md:p-6">
             <!-- Header bar -->
-            <header class="admin-header-bar flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-gray-200 mb-6">
-                <div class="flex items-center gap-3">
-                    <button type="button" id="adminSidebarToggle" class="lg:hidden p-2 rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200" aria-label="Toggle Sidebar">
+            <header class="admin-header-bar flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-gray-200 mb-4 md:mb-6">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <button type="button" id="adminSidebarToggle" class="lg:hidden p-1.5 sm:p-2 rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200" aria-label="Toggle Sidebar">
                         <i data-lucide="menu" class="w-5 h-5"></i>
                     </button>
-                    <h2 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-gray-900 m-0">MS Furniture Gallery Management Panel</h2>
+                    <h2 class="text-lg sm:text-xl md:text-3xl font-extrabold text-gray-900 m-0 leading-tight">MS Furniture Gallery Management Panel</h2>
                 </div>
                 <div class="text-xs sm:text-sm font-semibold text-gray-500">
                     Logged in as <span class="text-amber-600 font-bold">Administrator</span>
@@ -632,7 +632,7 @@
                         </div>
 
                         <!-- Editor container (Hidden until category is selected) -->
-                        <div id="catBannersEditor" style="display: none; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div id="catBannersEditor" class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6" style="display: none;">
                             
                             <!-- Left: Category Hero Banner Form -->
                             <form id="catHeroBannerForm" class="admin-panel-card" style="margin-top: 0; box-shadow: none; border: 1px solid var(--border-color);">
@@ -689,13 +689,13 @@
                                         <label class="form-label">Promotion Discount Tag</label>
                                         <input type="text" id="cobDiscount" class="form-control" placeholder="e.g. Flat 40% OFF">
                                     </div>
-                                    <div class="modal-grid" style="grid-template-columns: 2fr 1fr;">
-                                        <div class="form-group">
+                                    <div class="modal-grid grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div class="form-group sm:col-span-2">
                                             <label class="form-label">Featured Product Image URL</label>
                                             <input type="text" id="cobProductImg" class="form-control">
                                             <input type="file" class="form-control" style="margin-top:6px;" onchange="uploadImage(this, 'cobProductImg')">
                                         </div>
-                                        <div class="form-group">
+                                        <div class="form-group sm:col-span-1">
                                             <label class="form-label">Promo Price (₹)</label>
                                             <input type="number" id="cobProductPrice" class="form-control" value="0" min="0">
                                         </div>
@@ -816,7 +816,7 @@
                         </div>
                     </div>
                     
-                    <div style="overflow-x: auto; margin-top: 20px;">
+                    <div class="table-responsive w-full overflow-x-auto mt-4">
                         <table class="admin-table" style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
                             <thead>
                                 <tr style="border-bottom: 2px solid var(--border-color); color: #666; font-weight: 700;">
@@ -845,7 +845,7 @@
             <!-- Tab 11: Settings -->
             <section class="admin-tab-panel" id="tab-settings">
                 <form id="settingsSaveForm">
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:30px;">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                         
                         <!-- Left Block: Global details -->
                         <div class="admin-panel-card">
@@ -913,9 +913,9 @@
                     <!-- Wishlist & Cart Settings Card -->
                     <div class="admin-panel-card" style="margin-top:30px;">
                         <div class="panel-card-header"><h3>Wishlist & Shopping Cart Settings</h3></div>
-                        <div class="panel-card-body" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                        <div class="panel-card-body grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <div class="form-group" style="display:flex; gap:20px; align-items:center; margin-bottom:15px; margin-top:10px;">
+                                <div class="form-group flex flex-wrap gap-4 items-center mb-3 mt-2">
                                     <label class="filter-checkbox-label" style="font-weight:600; display:flex; align-items:center; gap:8px;">
                                         <input type="checkbox" id="settWishlistEnabled" {% if settings.wishlist_enabled %}checked{% endif %}>
                                         <span>Enable Wishlist Feature</span>
@@ -946,9 +946,9 @@
                     <!-- Homepage Offer Countdown Settings Card -->
                     <div class="admin-panel-card" style="margin-top:30px;">
                         <div class="panel-card-header"><h3>Homepage Offer Countdown Settings</h3></div>
-                        <div class="panel-card-body" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                        <div class="panel-card-body grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <div class="form-group" style="display:flex; gap:20px; align-items:center; margin-bottom:15px; margin-top:10px;">
+                                <div class="form-group flex flex-wrap gap-4 items-center mb-3 mt-2">
                                     <label class="filter-checkbox-label" style="font-weight:600; display:flex; align-items:center; gap:8px;">
                                         <input type="checkbox" id="settCountdownEnabled" {% if settings.countdown_enabled %}checked{% endif %}>
                                         <span>Show Countdown Timer on Homepage</span>
@@ -970,12 +970,12 @@
                     <!-- Story Panel Content -->
                     <div class="admin-panel-card" style="margin-top:30px;">
                         <div class="panel-card-header"><h3>Brand Story Content</h3></div>
-                        <div class="panel-card-body" style="display:grid; grid-template-columns:1fr; gap:20px;">
+                        <div class="panel-card-body grid grid-cols-1 gap-4">
                             <div class="form-group">
                                 <label class="form-label">Our Story (Paragraph)</label>
                                 <textarea id="settStory" class="form-control" rows="4">{{ settings.about_story }}</textarea>
                             </div>
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div class="form-group">
                                     <label class="form-label">Mission Statement</label>
                                     <textarea id="settMission" class="form-control" rows="3">{{ settings.about_mission }}</textarea>
@@ -999,8 +999,10 @@
                         </div>
                     </div>
 
-                    <div style="margin-top:30px; text-align:right;">
-                        <button type="submit" class="btn btn-primary" style="padding: 14px 40px;"><i data-lucide="save"></i> Save Global Settings</button>
+                    <div style="margin-top:30px; margin-bottom:50px;">
+                        <button type="submit" class="btn btn-primary" style="padding:12px 30px; font-size:16px;">
+                            <i data-lucide="save"></i> Save Global Settings
+                        </button>
                     </div>
                 </form>
             </section>
@@ -1016,7 +1018,7 @@
                         <h3>Dealer Registration Requests &amp; Profiles</h3>
                     </div>
                     <div class="panel-card-body">
-                        <div style="overflow-x:auto;">
+                        <div class="table-responsive w-full overflow-x-auto">
                             <table class="admin-table" id="dealersAdminTable" style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
                                 <thead>
                                     <tr style="border-bottom:2px solid var(--border-color); color:#555555; background:#fafafa;">
@@ -1043,18 +1045,18 @@
 
             <!-- B2B Activity Logs Panel -->
             <section class="admin-tab-panel" id="tab-dealer-activities">
-                <div class="panel-header-row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
+                <div class="panel-header-row flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <h2>B2B Dealer Activity Logs</h2>
                     <button class="btn btn-secondary" onclick="exportDealerLogs()"><i data-lucide="download"></i> Export Logs to CSV</button>
                 </div>
 
                 <!-- Filters -->
                 <div class="admin-panel-card" style="margin-bottom:20px;">
-                    <div class="panel-card-body" style="display:flex; gap:15px; flex-wrap:wrap; align-items:center;">
-                        <div class="form-group" style="margin:0; flex:1; min-width:200px;">
+                    <div class="panel-card-body flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                        <div class="form-group flex-1 min-w-0" style="margin:0;">
                             <input type="text" id="logSearchInput" class="form-control" placeholder="Search by name, business, or details..." onkeyup="filterLogs()">
                         </div>
-                        <div class="form-group" style="margin:0; width:200px;">
+                        <div class="form-group w-full sm:w-48" style="margin:0;">
                             <select id="logActionFilter" class="form-control" onchange="filterLogs()">
                                 <option value="">Filter by Action</option>
                                 <option value="login">Login</option>
@@ -1070,7 +1072,7 @@
 
                 <div class="admin-panel-card">
                     <div class="panel-card-body">
-                        <div style="overflow-x:auto;">
+                        <div class="table-responsive w-full overflow-x-auto">
                             <table class="admin-table" id="activitiesAdminTable" style="width:100%; border-collapse:collapse; text-align:left; font-size:13px;">
                                 <thead>
                                     <tr style="border-bottom:2px solid var(--border-color); color:#555555; background:#fafafa;">
@@ -1102,7 +1104,7 @@
 
                 <div class="admin-panel-card">
                     <div class="panel-card-body">
-                        <div style="overflow-x:auto;">
+                        <div class="table-responsive w-full overflow-x-auto">
                             <table class="admin-table" id="dealerOrdersAdminTable" style="width:100%; border-collapse:collapse; text-align:left; font-size:14px;">
                                 <thead>
                                     <tr style="border-bottom:2px solid var(--border-color); color:#555555; background:#fafafa;">
@@ -1252,7 +1254,7 @@
                                 <input type="number" id="prodFormWholesalePriceGold" class="form-control" min="0" placeholder="Optional B2B Gold Price">
                             </div>
                         </div>
-                        <div class="modal-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="modal-grid-2 grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                             <div class="form-group" style="margin: 0;">
                                 <label class="form-label" style="font-weight: 600;">Platinum Tier Price (₹)</label>
                                 <input type="number" id="prodFormWholesalePricePlatinum" class="form-control" min="0" placeholder="Optional B2B Platinum Price">
@@ -1284,7 +1286,7 @@
                     <!-- Images Upload Grid -->
                     <div class="form-group">
                         <label class="form-label">Catalog Images (Provide URL or Upload below) *</label>
-                        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px;">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                             <div>
                                 <input type="text" id="prodFormImg1" class="form-control img-url-field" placeholder="Image 1 URL" required>
                                 <input type="file" class="form-control" style="margin-top:6px; font-size:12px;" onchange="uploadImage(this, 'prodFormImg1')">
