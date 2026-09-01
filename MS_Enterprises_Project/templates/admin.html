@@ -216,6 +216,11 @@
                                         </td>
                                         <td>
                                             <span class="status-dot {% if p.status == 'active' %}active{% else %}inactive{% endif %}"></span> {{ p.status|capitalize }}
+                                            {% if p.stock_status == 'out_of_stock' %}
+                                                <div style="font-size:11px; font-weight:700; color:#dc2626; margin-top:2px;">Out of Stock {% if p.allow_preorder %}(Pre-order){% endif %}</div>
+                                            {% else %}
+                                                <div style="font-size:11px; color:#16a34a; margin-top:2px;">In Stock ({{ p.stock_quantity if p.stock_quantity is not none else 10 }})</div>
+                                            {% endif %}
                                         </td>
                                         <td>
                                             <div style="display:flex; gap:6px;">
@@ -1234,6 +1239,30 @@
                         <div class="form-group">
                             <label class="form-label">Offer Badge Text</label>
                             <input type="text" id="prodFormBadge" class="form-control" placeholder="e.g. 15% OFF, Special Offer">
+                        </div>
+                    </div>
+
+                    <!-- Inventory Management Settings -->
+                    <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; border: 1px solid #bbf7d0; margin-bottom: 20px;">
+                        <h4 style="color: #166534; font-weight: 700; margin-top: 0; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">📦 Inventory &amp; Stock Controls</h4>
+                        <div class="modal-grid-3">
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="font-weight: 600;">Stock Status *</label>
+                                <select id="prodFormStockStatus" class="form-control">
+                                    <option value="in_stock">In Stock</option>
+                                    <option value="out_of_stock">Out of Stock</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="font-weight: 600;">Stock Quantity</label>
+                                <input type="number" id="prodFormStockQuantity" class="form-control" min="0" placeholder="Available units" value="10">
+                            </div>
+                            <div class="form-group" style="margin: 0; display: flex; align-items: center; padding-top: 25px;">
+                                <label class="filter-checkbox-label" style="margin: 0; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="prodFormAllowPreorder">
+                                    <span>Allow Pre-order if Out of Stock</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
 

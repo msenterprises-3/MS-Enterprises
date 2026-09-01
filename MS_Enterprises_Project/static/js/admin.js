@@ -383,6 +383,11 @@ document.addEventListener("DOMContentLoaded", function () {
         addSpecRow('Material', 'Premium Teak Wood');
         addFeatureRow('Premium craftsmanship with factory direct price.');
         
+        // Default inventory values
+        if (document.getElementById('prodFormStockStatus')) document.getElementById('prodFormStockStatus').value = 'in_stock';
+        if (document.getElementById('prodFormStockQuantity')) document.getElementById('prodFormStockQuantity').value = '10';
+        if (document.getElementById('prodFormAllowPreorder')) document.getElementById('prodFormAllowPreorder').checked = false;
+
         populateSubcategories();
         prodModal.classList.add('active');
     };
@@ -454,7 +459,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     gold: document.getElementById('prodFormWholesalePriceGold').value.trim() !== '' ? parseFloat(document.getElementById('prodFormWholesalePriceGold').value) : null,
                     platinum: document.getElementById('prodFormWholesalePricePlatinum').value.trim() !== '' ? parseFloat(document.getElementById('prodFormWholesalePricePlatinum').value) : null
                 },
-                dealer_status: document.getElementById('prodFormDealerStatus').value
+                dealer_status: document.getElementById('prodFormDealerStatus').value,
+                stock_status: document.getElementById('prodFormStockStatus') ? document.getElementById('prodFormStockStatus').value : 'in_stock',
+                stock_quantity: document.getElementById('prodFormStockQuantity') ? (parseInt(document.getElementById('prodFormStockQuantity').value) || 0) : 10,
+                allow_preorder: document.getElementById('prodFormAllowPreorder') ? document.getElementById('prodFormAllowPreorder').checked : false
             };
 
             // Validation
@@ -537,6 +545,17 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.getElementById('prodFormWholesalePriceGold').value = dp.gold !== null && dp.gold !== undefined ? dp.gold : '';
                     document.getElementById('prodFormWholesalePricePlatinum').value = dp.platinum !== null && dp.platinum !== undefined ? dp.platinum : '';
                     document.getElementById('prodFormDealerStatus').value = data.dealer_status || 'visible';
+
+                    // Load Inventory attributes
+                    if (document.getElementById('prodFormStockStatus')) {
+                        document.getElementById('prodFormStockStatus').value = data.stock_status || 'in_stock';
+                    }
+                    if (document.getElementById('prodFormStockQuantity')) {
+                        document.getElementById('prodFormStockQuantity').value = data.stock_quantity !== undefined && data.stock_quantity !== null ? data.stock_quantity : 10;
+                    }
+                    if (document.getElementById('prodFormAllowPreorder')) {
+                        document.getElementById('prodFormAllowPreorder').checked = Boolean(data.allow_preorder == 1 || data.allow_preorder === true || data.allow_preorder === '1' || data.allow_preorder === 'true');
+                    }
 
                     document.getElementById('prodFormShortDesc').value = data.short_description;
                     document.getElementById('prodFormDesc').value = data.description;
@@ -1840,9 +1859,15 @@ document.addEventListener("DOMContentLoaded", function () {
                         badgesHtml += `<span class="admin-table-badge" style="background:#E67E22; color:white;">Hot</span>`;
                     }
 
-                    // Format Status dot
+                    // Format Status dot & Stock info
                     const statusClass = p.status === 'active' ? 'active' : 'inactive';
                     const statusText = p.status ? p.status.charAt(0).toUpperCase() + p.status.slice(1) : 'Inactive';
+                    let stockHtml = '';
+                    if (p.stock_status === 'out_of_stock') {
+                        stockHtml = `<div style="font-size:11px; font-weight:700; color:#dc2626; margin-top:2px;">Out of Stock ${p.allow_preorder ? '(Pre-order)' : ''}</div>`;
+                    } else {
+                        stockHtml = `<div style="font-size:11px; color:#16a34a; margin-top:2px;">In Stock (${p.stock_quantity !== undefined && p.stock_quantity !== null ? p.stock_quantity : 10})</div>`;
+                    }
 
                     tr.innerHTML = `
                         <td>${p.id}</td>
@@ -1854,6 +1879,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td>${badgesHtml}</td>
                         <td>
                             <span class="status-dot ${statusClass}"></span> ${statusText}
+                            ${stockHtml}
                         </td>
                         <td>
                             <div style="display:flex; gap:6px;">

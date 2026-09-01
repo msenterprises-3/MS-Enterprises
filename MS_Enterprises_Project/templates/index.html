@@ -109,7 +109,7 @@
             {% for badge in trust_badges %}
             <div class="trust-card">
                 <div class="trust-icon">
-                    <i data-lucide="{{ badge.icon_svg }}"></i>
+                    <i data-lucide="{% if badge.icon_svg in ['dollar-sign', 'dollar', 'circle-dollar-sign'] or 'price' in (badge.title|lower) %}indian-rupee{% else %}{{ badge.icon_svg }}{% endif %}"></i>
                 </div>
                 <h3 class="trust-title">{{ badge.title }}</h3>
                 <p class="trust-desc">{{ badge.description }}</p>

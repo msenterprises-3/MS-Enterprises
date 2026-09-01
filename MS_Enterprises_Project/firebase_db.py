@@ -127,6 +127,9 @@ def load_from_sqlite():
             d['dealer_prices'] = {'default': w_price}
             d['wholesale_price'] = w_price
             d['dealer_status'] = d.get('dealer_status', 'visible')
+            d['stock_status'] = d.get('stock_status', 'in_stock') or 'in_stock'
+            d['stock_quantity'] = int(d.get('stock_quantity') if d.get('stock_quantity') is not None else 10)
+            d['allow_preorder'] = bool(d.get('allow_preorder', False))
 
             if 'created_at' in d and hasattr(d['created_at'], 'isoformat'):
                 d['created_at'] = d['created_at'].isoformat()
@@ -300,6 +303,9 @@ def force_reload_cache():
                 d['dealer_prices'] = {'default': w_price}
                 d['wholesale_price'] = w_price
                 d['dealer_status'] = d.get('dealer_status', 'visible')
+                d['stock_status'] = d.get('stock_status', 'in_stock') or 'in_stock'
+                d['stock_quantity'] = int(d.get('stock_quantity') if d.get('stock_quantity') is not None else 10)
+                d['allow_preorder'] = bool(d.get('allow_preorder', False))
 
                 if 'created_at' in d and hasattr(d['created_at'], 'isoformat'):
                     d['created_at'] = d['created_at'].isoformat()

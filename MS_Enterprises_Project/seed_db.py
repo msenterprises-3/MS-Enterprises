@@ -109,7 +109,7 @@ def seed():
     # Seed Trust Badges
     trust_badges = [
         ("award", "Premium Quality", "Crafted from handpicked premium grade woods and materials."),
-        ("dollar-sign", "Best Prices", "Direct from factory prices, avoiding middlemen commissions."),
+        ("indian-rupee", "Best Prices", "Direct from factory prices, avoiding middlemen commissions."),
         ("grid", "1000+ Products", "A wide variety of designs to suit every style preference."),
         ("truck", "Fast Delivery", "Safe transit and professional assembly at your doorstep."),
         ("smile", "Customer First", "Dedicated customer support and direct updates on WhatsApp."),

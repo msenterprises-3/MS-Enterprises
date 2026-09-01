@@ -43,7 +43,10 @@ SUPABASE_TABLE_COLUMNS = {
         'short_description', 'description', 'price', 'offer_price', 'offer_badge',
         'status', 'is_featured', 'is_new_arrival', 'is_best_seller', 'is_premium',
         'specifications', 'features', 'display_order', 'wishlist_count', 'cart_count',
-        'created_at', 'updated_at', 'dealer_status'
+        'created_at', 'updated_at', 'dealer_status', 'stock_status', 'stock_quantity', 'allow_preorder'
+    },
+    'stock_notifications': {
+        'id', 'product_id', 'contact_info', 'status', 'created_at'
     },
     'product_images': {
         'id', 'product_id', 'image_url', 'display_order'

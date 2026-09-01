@@ -302,6 +302,8 @@ def get_filtered_products(q=None, category_slug=None, subcat_slug=None, price_ma
 
 @app.route('/')
 def index():
+    if 'user_role' not in session:
+        session['user_role'] = 'customer'
     hero_banners = get_cache('hero_banners')
     offer_banners = get_cache('offer_banners')
     trust_badges = get_cache('trust_badges')
@@ -1292,6 +1294,14 @@ def api_admin_products():
         except ValueError:
             subcat_id_int = None
 
+        # Extract Inventory attributes
+        stock_status = data.get('stock_status', 'in_stock') or 'in_stock'
+        try:
+            stock_quantity = int(data.get('stock_quantity') if data.get('stock_quantity') is not None and str(data.get('stock_quantity')).strip() != '' else 10)
+        except (ValueError, TypeError):
+            stock_quantity = 10
+        allow_preorder = bool(data.get('allow_preorder', False))
+
         now = datetime.utcnow()
         doc_ref = db.collection('products').document(p_id)
         try:
@@ -1323,7 +1333,10 @@ def api_admin_products():
             'wishlist_count': 0,
             'cart_count': 0,
             'dealer_prices': dealer_prices,
-            'dealer_status': dealer_status
+            'dealer_status': dealer_status,
+            'stock_status': stock_status,
+            'stock_quantity': stock_quantity,
+            'allow_preorder': allow_preorder
             })
         except Exception as e:
             return jsonify({'success': False, 'message': f'Database Error: {str(e)}'}), 500
@@ -1411,6 +1424,14 @@ def api_admin_products():
         except ValueError:
             subcat_id_int = None
 
+        # Extract Inventory attributes
+        stock_status = data.get('stock_status', 'in_stock') or 'in_stock'
+        try:
+            stock_quantity = int(data.get('stock_quantity') if data.get('stock_quantity') is not None and str(data.get('stock_quantity')).strip() != '' else 10)
+        except (ValueError, TypeError):
+            stock_quantity = 10
+        allow_preorder = bool(data.get('allow_preorder', False))
+
         now = datetime.utcnow()
         try:
             db.collection('products').document(p_id).update({
@@ -1437,7 +1458,10 @@ def api_admin_products():
             'updated_at': now,
             'updatedAt': now.isoformat(),
             'dealer_prices': dealer_prices,
-            'dealer_status': dealer_status
+            'dealer_status': dealer_status,
+            'stock_status': stock_status,
+            'stock_quantity': stock_quantity,
+            'allow_preorder': allow_preorder
             })
         except Exception as e:
             return jsonify({'success': False, 'message': f'Database Error: {str(e)}'}), 500
@@ -1531,7 +1555,10 @@ def api_admin_duplicate_product():
             'display_order': p_dict.get('display_order', 0),
             'created_at': datetime.utcnow(),
             'wishlist_count': 0,
-            'cart_count': 0
+            'cart_count': 0,
+            'stock_status': p_dict.get('stock_status', 'in_stock'),
+            'stock_quantity': p_dict.get('stock_quantity', 10),
+            'allow_preorder': p_dict.get('allow_preorder', False)
         })
     except Exception as e:
         return jsonify({'success': False, 'message': f'Database Error: {str(e)}'}), 500
@@ -2006,6 +2033,8 @@ def ensure_session_id():
     session.permanent = True
     if 'session_id' not in session:
         session['session_id'] = uuid.uuid4().hex
+    if 'user_role' not in session:
+        session['user_role'] = 'customer'
 
 @app.route('/api/updates/check')
 def api_updates_check():
@@ -2729,6 +2758,50 @@ def api_submit_testimonial():
         'created_at': datetime.utcnow().isoformat()
     })
     return jsonify({'success': True, 'message': 'Thank you! Your review has been submitted and will appear on the website once approved.'})
+
+# --- STOCK NOTIFICATIONS API ---
+
+@app.route('/api/notify-stock', methods=['POST'])
+def api_notify_stock():
+    try:
+        data = request.json or {}
+        product_id = data.get('product_id')
+        contact_info = str(data.get('contact_info') or '').strip()
+        
+        if not product_id:
+            return jsonify({'success': False, 'message': 'Product ID is required.'}), 400
+        if not contact_info:
+            return jsonify({'success': False, 'message': 'Please enter a valid email or phone number.'}), 400
+            
+        try:
+            prod_id_val = int(product_id)
+        except (ValueError, TypeError):
+            prod_id_val = product_id
+
+        # Insert into Supabase stock_notifications table
+        try:
+            from supabase_db import supabase_client
+            supabase_client.table('stock_notifications').insert({
+                'product_id': prod_id_val,
+                'contact_info': contact_info,
+                'status': 'pending'
+            }).execute()
+        except Exception as e:
+            print(f"Supabase direct insert error for stock notification, using db collection fallback: {e}")
+            db.collection('stock_notifications').document().set({
+                'product_id': prod_id_val,
+                'contact_info': contact_info,
+                'status': 'pending',
+                'created_at': datetime.utcnow()
+            })
+            
+        return jsonify({
+            'success': True,
+            'message': "We'll notify you when this is back in stock!"
+        })
+    except Exception as e:
+        print(f"Error in api_notify_stock: {e}")
+        return jsonify({'success': False, 'message': 'Failed to save notification request. Please try again.'}), 500
 
 # --- USER PROFILE & LOGOUT ---
 

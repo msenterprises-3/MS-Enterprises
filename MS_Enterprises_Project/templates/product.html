@@ -50,7 +50,29 @@
             </div>
 
             <h1 class="details-title">{{ product.name }}</h1>
-            <span style="font-size:13px; color:var(--text-muted); font-weight:600; margin-bottom:12px; display:block;">SKU: {{ product.sku }}</span>
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                <span style="font-size:13px; color:var(--text-muted); font-weight:600;">SKU: {{ product.sku }}</span>
+                
+                <!-- Dynamic Stock Badge -->
+                {% if product.stock_status == 'out_of_stock' %}
+                    {% if product.allow_preorder %}
+                        <span class="stock-badge preorder" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; background: #eff6ff; color: #1e40af; font-size: 13px; font-weight: 700; border: 1px solid #bfdbfe;">
+                            <i data-lucide="clock" style="width: 14px; height: 14px;"></i>
+                            Available for Pre-Order
+                        </span>
+                    {% else %}
+                        <span class="stock-badge out-of-stock" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; background: #fef2f2; color: #991b1b; font-size: 13px; font-weight: 700; border: 1px solid #fecaca;">
+                            <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                            Out of Stock
+                        </span>
+                    {% endif %}
+                {% else %}
+                    <span class="stock-badge in-stock" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; background: #ecfdf5; color: #065f46; font-size: 13px; font-weight: 700; border: 1px solid #a7f3d0;">
+                        <i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i>
+                        In Stock ({{ product.stock_quantity if product.stock_quantity is not none else 10 }} left)
+                    </span>
+                {% endif %}
+            </div>
 
             <!-- Rating summary -->
             <div class="details-rating">
@@ -111,31 +133,60 @@
 
             <!-- Quantity Selector -->
             {% if not (session.get('user_role') == 'dealer' and not session.get('dealer_logged_in')) %}
-            <div class="product-quantity-wrapper" style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
-                <label for="productQtyInput" style="font-size: 14px; font-weight: 700; color: var(--text-dark); text-transform: uppercase; letter-spacing: 0.5px;">Quantity:</label>
-                <div class="qty-selector" style="display: inline-flex; align-items: center; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; background: #ffffff;">
-                    <button type="button" class="qty-btn" onclick="decrementProductQty()" style="width: 38px; height: 38px; border: none; background: transparent; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-dark); transition: background 0.2s;" aria-label="Decrease quantity">-</button>
-                    <input type="number" id="productQtyInput" value="1" min="1" max="99" style="width: 50px; height: 38px; border: none; text-align: center; font-size: 15px; font-weight: 700; color: var(--text-dark); -moz-appearance: textfield; outline: none;" onchange="if(this.value < 1) this.value = 1;">
-                    <button type="button" class="qty-btn" onclick="incrementProductQty()" style="width: 38px; height: 38px; border: none; background: transparent; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-dark); transition: background 0.2s;" aria-label="Increase quantity">+</button>
+                {% if product.stock_status != 'out_of_stock' or product.allow_preorder %}
+                <div class="product-quantity-wrapper" style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                    <label for="productQtyInput" style="font-size: 14px; font-weight: 700; color: var(--text-dark); text-transform: uppercase; letter-spacing: 0.5px;">Quantity:</label>
+                    <div class="qty-selector" style="display: inline-flex; align-items: center; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; background: #ffffff;">
+                        <button type="button" class="qty-btn" onclick="decrementProductQty()" style="width: 38px; height: 38px; border: none; background: transparent; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-dark); transition: background 0.2s;" aria-label="Decrease quantity">-</button>
+                        <input type="number" id="productQtyInput" value="1" min="1" max="99" style="width: 50px; height: 38px; border: none; text-align: center; font-size: 15px; font-weight: 700; color: var(--text-dark); -moz-appearance: textfield; outline: none;" onchange="if(this.value < 1) this.value = 1;">
+                        <button type="button" class="qty-btn" onclick="incrementProductQty()" style="width: 38px; height: 38px; border: none; background: transparent; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-dark); transition: background 0.2s;" aria-label="Increase quantity">+</button>
+                    </div>
                 </div>
-            </div>
+                {% endif %}
             {% endif %}
 
-            <!-- Order Trigger Buttons (Add to Cart / Buy Now) -->
-            <div class="details-actions" style="display: grid; gap: 15px; grid-template-columns: 1fr 1fr; width: 100%;">
-                {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
-                <a href="/dealer/login" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; grid-column: span 2; text-align: center; justify-content: center; display: flex; align-items: center;">
-                    <i data-lucide="lock" style="width:20px; height:20px; margin-right: 8px;"></i> Login to Order B2B Wholesale
-                </a>
-                {% else %}
-                <button type="button" id="addToCartBtn" class="btn btn-dark" style="padding: 16px 20px; font-size:16px; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer;">
-                    <i data-lucide="shopping-cart"></i> Add to Cart
-                </button>
-                <button type="button" id="buyNowBtn" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer;">
-                    <i data-lucide="shopping-bag"></i> Buy Now
-                </button>
-                {% endif %}
-            </div>
+            <!-- Order Trigger Buttons or Out of Stock Notify Form -->
+            {% if product.stock_status == 'out_of_stock' and not product.allow_preorder %}
+                <!-- Out of Stock: Notify Me Form -->
+                <div class="notify-stock-wrapper" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                    <h4 style="margin-top: 0; margin-bottom: 8px; color: #1e293b; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="bell" style="width: 18px; height: 18px; color: var(--accent-color);"></i>
+                        Notify Me When Available
+                    </h4>
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 14px; line-height: 1.5;">
+                        This item is currently sold out. Enter your email or mobile number below and we'll alert you immediately when it's back in stock.
+                    </p>
+                    <form id="notifyStockForm" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <input type="hidden" id="notifyProductId" value="{{ product.id }}">
+                        <input type="text" id="notifyContactInfo" class="form-control" placeholder="Email address or WhatsApp mobile number" required style="flex: 1; min-width: 220px; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+                        <button type="submit" id="notifySubmitBtn" class="btn btn-primary" style="padding: 12px 20px; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer;">
+                            <i data-lucide="send" style="width: 16px; height: 16px;"></i> Notify Me
+                        </button>
+                    </form>
+                    <div id="notifyStatusMsg" style="display: none; margin-top: 12px; font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: 6px;"></div>
+                </div>
+            {% else %}
+                <!-- Normal In-Stock or Pre-Order Actions -->
+                <div class="details-actions" style="display: grid; gap: 15px; grid-template-columns: 1fr 1fr; width: 100%;">
+                    {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
+                    <a href="/dealer/login" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; grid-column: span 2; text-align: center; justify-content: center; display: flex; align-items: center;">
+                        <i data-lucide="lock" style="width:20px; height:20px; margin-right: 8px;"></i> Login to Order B2B Wholesale
+                    </a>
+                    {% else %}
+                    <button type="button" id="addToCartBtn" class="btn btn-dark" style="padding: 16px 20px; font-size:16px; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer;">
+                        <i data-lucide="shopping-cart"></i>
+                        {% if product.stock_status == 'out_of_stock' and product.allow_preorder %}
+                            Pre-Order
+                        {% else %}
+                            Add to Cart
+                        {% endif %}
+                    </button>
+                    <button type="button" id="buyNowBtn" class="btn btn-primary" style="padding: 16px 20px; font-size:16px; background: var(--accent-color); color: #111111; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer;">
+                        <i data-lucide="shopping-bag"></i> Buy Now
+                    </button>
+                    {% endif %}
+                </div>
+            {% endif %}
 
             <!-- Share Buttons -->
             <div style="display:flex; align-items:center; gap:15px; border-top:1px solid var(--border-color); padding-top:20px;">
@@ -367,6 +418,9 @@
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
+        const isPreorder = "{{ product.stock_status }}" === "out_of_stock" && ("{{ product.allow_preorder }}" === "True" || "{{ product.allow_preorder }}" === "1" || "{{ product.allow_preorder }}" === "true");
+        const defaultBtnHtml = isPreorder ? '<i data-lucide="shopping-cart"></i> Pre-Order' : '<i data-lucide="shopping-cart"></i> Add to Cart';
+
         if (window.mseCart && typeof window.mseCart.add === 'function') {
             window.mseCart.add(productId, quantity, variantId);
             setTimeout(() => {
@@ -375,7 +429,7 @@
                     addBtn.innerHTML = '<i data-lucide="check"></i> Added!';
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                     setTimeout(() => {
-                        addBtn.innerHTML = '<i data-lucide="shopping-cart"></i> Add to Cart';
+                        addBtn.innerHTML = defaultBtnHtml;
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                     }, 1500);
                 }
@@ -400,7 +454,7 @@
                         addBtn.innerHTML = '<i data-lucide="check"></i> Added!';
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                         setTimeout(() => {
-                            addBtn.innerHTML = '<i data-lucide="shopping-cart"></i> Add to Cart';
+                            addBtn.innerHTML = defaultBtnHtml;
                             if (typeof lucide !== 'undefined') lucide.createIcons();
                         }, 1500);
                     }
@@ -408,7 +462,7 @@
                     alert(data.message || "Failed to add to cart.");
                     if (addBtn) {
                         addBtn.disabled = false;
-                        addBtn.innerHTML = '<i data-lucide="shopping-cart"></i> Add to Cart';
+                        addBtn.innerHTML = defaultBtnHtml;
                         if (typeof lucide !== 'undefined') lucide.createIcons();
                     }
                 }
@@ -417,7 +471,7 @@
                 console.error("Error adding to cart:", err);
                 if (addBtn) {
                     addBtn.disabled = false;
-                    addBtn.innerHTML = '<i data-lucide="shopping-cart"></i> Add to Cart';
+                    addBtn.innerHTML = defaultBtnHtml;
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                 }
             });
@@ -524,6 +578,83 @@
             buyNowBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 handleBuyNowClick();
+            });
+        }
+
+        // 4. Notify Me When Available Form Listener
+        const notifyForm = document.getElementById('notifyStockForm');
+        if (notifyForm) {
+            notifyForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const productId = document.getElementById('notifyProductId') ? document.getElementById('notifyProductId').value : "{{ product.id }}";
+                const contactInfo = document.getElementById('notifyContactInfo') ? document.getElementById('notifyContactInfo').value.trim() : '';
+                const submitBtn = document.getElementById('notifySubmitBtn');
+                const statusMsg = document.getElementById('notifyStatusMsg');
+
+                if (!contactInfo) {
+                    if (typeof showCartToast === 'function') {
+                        showCartToast("Please enter your email or phone number.");
+                    }
+                    return;
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = "Submitting...";
+                }
+
+                fetch('/api/notify-stock', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: productId, contact_info: contactInfo })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        notifyForm.reset();
+                        if (statusMsg) {
+                            statusMsg.style.display = 'block';
+                            statusMsg.style.color = '#065f46';
+                            statusMsg.style.backgroundColor = '#d1fae5';
+                            statusMsg.style.border = '1px solid #a7f3d0';
+                            statusMsg.innerText = data.message || "We'll notify you when this is back in stock!";
+                        }
+                        if (typeof showCartToast === 'function') {
+                            showCartToast(data.message || "We'll notify you when this is back in stock!");
+                        }
+                    } else {
+                        if (statusMsg) {
+                            statusMsg.style.display = 'block';
+                            statusMsg.style.color = '#b91c1c';
+                            statusMsg.style.backgroundColor = '#fef2f2';
+                            statusMsg.style.border = '1px solid #fecaca';
+                            statusMsg.innerText = data.message || "Failed to submit request.";
+                        }
+                        if (typeof showCartToast === 'function') {
+                            showCartToast(data.message || "Failed to submit request.");
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error("Notify stock error:", err);
+                    if (statusMsg) {
+                        statusMsg.style.display = 'block';
+                        statusMsg.style.color = '#b91c1c';
+                        statusMsg.style.backgroundColor = '#fef2f2';
+                        statusMsg.style.border = '1px solid #fecaca';
+                        statusMsg.innerText = "Error submitting request. Please try again.";
+                    }
+                    if (typeof showCartToast === 'function') {
+                        showCartToast("Error submitting request. Please try again.");
+                    }
+                })
+                .finally(() => {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i data-lucide="send" style="width: 16px; height: 16px;"></i> Notify Me';
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }
+                });
             });
         }
 
