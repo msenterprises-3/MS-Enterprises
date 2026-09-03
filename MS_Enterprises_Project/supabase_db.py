@@ -30,7 +30,8 @@ SUPABASE_TABLE_COLUMNS = {
         'about_vision', 'seo_meta_title', 'seo_meta_description', 'wishlist_enabled',
         'cart_enabled', 'cart_min_value', 'whatsapp_cart_prefix', 'whatsapp_wishlist_prefix',
         'updated_at', 'show_facebook', 'show_instagram', 'show_youtube',
-        'countdown_enabled', 'countdown_end_date', 'upi_id'
+        'countdown_enabled', 'countdown_end_date', 'upi_id',
+        'standard_delivery_days', 'preorder_delivery_days'
     },
     'categories': {
         'id', 'name', 'slug', 'image_url', 'description', 'display_order', 'status'

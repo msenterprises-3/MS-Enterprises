@@ -43,6 +43,8 @@ DEFAULT_SETTINGS = {
     'whatsapp_cart_prefix': 'Hello MS Enterprises, I would like to order:',
     'whatsapp_number': '919676667998',
     'whatsapp_wishlist_prefix': 'Hello MS Enterprises, here is my wishlist:',
+    'standard_delivery_days': 5,
+    'preorder_delivery_days': 15,
     'wishlist_enabled': True,
     'working_hours': '10:00 AM - 08:30 PM (Mon-Sun)',
     'youtube_url': 'https://youtube.com/@msfurnituregallery?si=J8Hr65D-y4w7G2Uc'

@@ -948,6 +948,23 @@
                         </div>
                     </div>
 
+                    <!-- Estimated Delivery Settings Card -->
+                    <div class="admin-panel-card" style="margin-top:30px;">
+                        <div class="panel-card-header"><h3>Estimated Delivery Settings</h3></div>
+                        <div class="panel-card-body grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="form-label" for="settStandardDeliveryDays" style="font-weight:600;">Standard Delivery Days (In Stock)</label>
+                                <input type="number" id="settStandardDeliveryDays" class="form-control" value="{{ settings.standard_delivery_days if settings.standard_delivery_days is not none else 5 }}" min="1" max="90" required>
+                                <small style="color:var(--text-muted); font-size:12px; display:block; margin-top:4px;">Number of days added for in-stock products.</small>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="settPreorderDeliveryDays" style="font-weight:600;">Pre-order Delivery Days (Out of Stock)</label>
+                                <input type="number" id="settPreorderDeliveryDays" class="form-control" value="{{ settings.preorder_delivery_days if settings.preorder_delivery_days is not none else 15 }}" min="1" max="180" required>
+                                <small style="color:var(--text-muted); font-size:12px; display:block; margin-top:4px;">Number of days added for out-of-stock items available for pre-order.</small>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Homepage Offer Countdown Settings Card -->
                     <div class="admin-panel-card" style="margin-top:30px;">
                         <div class="panel-card-header"><h3>Homepage Offer Countdown Settings</h3></div>

@@ -146,6 +146,13 @@
                         <div class="product-card">
                             <!-- Badges -->
                             <div class="product-badge-container">
+                                {% if prod.stock_status == 'out_of_stock' %}
+                                    {% if prod.allow_preorder %}
+                                    <span class="badge" style="background:#2563eb; color:#ffffff; font-weight:700;">Pre-Order</span>
+                                    {% else %}
+                                    <span class="badge" style="background:#dc2626; color:#ffffff; font-weight:700;">Out of Stock</span>
+                                    {% endif %}
+                                {% endif %}
                                 {% if prod.offer_price %}
                                     {% set discount_pct = ((prod.price - prod.offer_price) / prod.price * 100) | round | int %}
                                     {% if discount_pct > 0 %}
@@ -198,6 +205,10 @@
                                 <div class="product-card-actions" style="width: 100%;">
                                     {% if session.get('user_role') == 'dealer' and not session.get('dealer_logged_in') %}
                                     <a href="/dealer/login" class="btn btn-primary btn-sm" style="width: 100%; text-align: center; justify-content: center; background: var(--accent-color); color: #111111;">Login as Dealer</a>
+                                    {% elif prod.stock_status == 'out_of_stock' and prod.allow_preorder %}
+                                    <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px; background:#2563eb; border-color:#2563eb; color:#ffffff;">Pre-Order</a>
+                                    {% elif prod.stock_status == 'out_of_stock' %}
+                                    <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px;">View Details</a>
                                     {% else %}
                                     <div style="display: flex; gap: 8px; width: 100%;">
                                         <a href="/product/{{ prod.slug }}" class="btn btn-dark btn-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px;">View Details</a>

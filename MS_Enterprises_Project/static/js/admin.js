@@ -145,6 +145,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 wishlist_enabled: document.getElementById('settWishlistEnabled').checked,
                 cart_enabled: document.getElementById('settCartEnabled').checked,
                 cart_min_value: parseFloat(document.getElementById('settCartMinValue').value || 0.0),
+                standard_delivery_days: parseInt(document.getElementById('settStandardDeliveryDays') ? document.getElementById('settStandardDeliveryDays').value : 5, 10) || 5,
+                preorder_delivery_days: parseInt(document.getElementById('settPreorderDeliveryDays') ? document.getElementById('settPreorderDeliveryDays').value : 15, 10) || 15,
                 whatsapp_wishlist_prefix: document.getElementById('settWhatsappWishlistPrefix').value.trim(),
                 whatsapp_cart_prefix: document.getElementById('settWhatsappCartPrefix').value.trim(),
                 countdown_enabled: document.getElementById('settCountdownEnabled').checked,

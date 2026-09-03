@@ -74,6 +74,21 @@
                 {% endif %}
             </div>
 
+            <!-- Pincode Delivery Checker Block -->
+            <div class="delivery-pincode-checker" style="margin-top: 4px; margin-bottom: 16px; padding: 12px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <i data-lucide="truck" style="width: 16px; height: 16px; color: var(--accent-color, #c68a4c);"></i>
+                    <span style="font-size: 13px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px;">Estimated Delivery</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <input type="text" id="deliveryPincodeInput" placeholder="Enter Pincode" maxlength="6" inputmode="numeric" class="form-control" style="max-width: 180px; padding: 7px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff;">
+                    <button type="button" id="checkDeliveryBtn" class="btn btn-secondary" data-product-id="{{ product.id }}" style="padding: 7px 16px; font-size: 13px; font-weight: 700; border-radius: 6px; cursor: pointer;">Check</button>
+                </div>
+                <div style="margin-top: 6px;">
+                    <span id="deliveryResultSpan" style="display: none; font-size: 13px; font-weight: 600;"></span>
+                </div>
+            </div>
+
             <!-- Rating summary -->
             <div class="details-rating">
                 <div class="stars-rating">

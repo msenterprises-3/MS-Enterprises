@@ -1244,7 +1244,67 @@ function initMainApp() {
     updateBadges();
     syncStatesWithDatabase(); // Sync cart with database on load
     renderRecentlyViewed();
-    
+
+    // Real-time Delivery Date Checker
+    const checkDeliveryBtn = document.getElementById('checkDeliveryBtn');
+    const deliveryPincodeInput = document.getElementById('deliveryPincodeInput');
+    const deliveryResultSpan = document.getElementById('deliveryResultSpan');
+
+    if (checkDeliveryBtn && deliveryPincodeInput && deliveryResultSpan) {
+        const handleDeliveryCheck = function() {
+            const pincode = deliveryPincodeInput.value.trim();
+            const productId = checkDeliveryBtn.getAttribute('data-product-id');
+
+            deliveryResultSpan.style.display = 'inline-block';
+
+            if (!/^\d{6}$/.test(pincode)) {
+                deliveryResultSpan.style.color = '#dc2626';
+                deliveryResultSpan.innerText = 'Please enter a valid 6-digit pincode.';
+                return;
+            }
+
+            checkDeliveryBtn.disabled = true;
+            const origText = checkDeliveryBtn.innerText;
+            checkDeliveryBtn.innerText = 'Checking...';
+
+            fetch('/api/check-delivery', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pincode: pincode, product_id: productId })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, data: data })))
+            .then(({ status, ok, data }) => {
+                checkDeliveryBtn.disabled = false;
+                checkDeliveryBtn.innerText = origText;
+                deliveryResultSpan.style.display = 'inline-block';
+
+                if (ok && data.success) {
+                    deliveryResultSpan.style.color = '#16a34a';
+                    deliveryResultSpan.innerText = 'Estimated delivery by ' + data.delivery_date;
+                } else {
+                    deliveryResultSpan.style.color = '#dc2626';
+                    deliveryResultSpan.innerText = data.message || 'Please enter a valid 6-digit pincode.';
+                }
+            })
+            .catch(err => {
+                console.error('Delivery check error:', err);
+                checkDeliveryBtn.disabled = false;
+                checkDeliveryBtn.innerText = origText;
+                deliveryResultSpan.style.display = 'inline-block';
+                deliveryResultSpan.style.color = '#dc2626';
+                deliveryResultSpan.innerText = 'Error checking delivery date. Please try again.';
+            });
+        };
+
+        checkDeliveryBtn.addEventListener('click', handleDeliveryCheck);
+        deliveryPincodeInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleDeliveryCheck();
+            }
+        });
+    }
+
     // Check for real-time catalogue updates every 15 seconds
     checkForUpdates();
     setInterval(checkForUpdates, 15000);

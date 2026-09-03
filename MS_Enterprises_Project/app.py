@@ -1208,6 +1208,18 @@ def api_admin_settings():
             update_data['cart_min_value'] = float(data.get('cart_min_value') or 0.0)
         except ValueError:
             pass
+
+    if 'standard_delivery_days' in data:
+        try:
+            update_data['standard_delivery_days'] = int(data.get('standard_delivery_days') or 5)
+        except (ValueError, TypeError):
+            pass
+
+    if 'preorder_delivery_days' in data:
+        try:
+            update_data['preorder_delivery_days'] = int(data.get('preorder_delivery_days') or 15)
+        except (ValueError, TypeError):
+            pass
             
     new_password = data.get('new_password', '').strip()
     if new_password:
@@ -2802,6 +2814,83 @@ def api_notify_stock():
     except Exception as e:
         print(f"Error in api_notify_stock: {e}")
         return jsonify({'success': False, 'message': 'Failed to save notification request. Please try again.'}), 500
+
+# --- ESTIMATED DELIVERY CHECKER API ---
+
+@app.route('/api/check-delivery', methods=['POST'])
+def api_check_delivery():
+    try:
+        data = request.json or {}
+        pincode = str(data.get('pincode') or '').strip()
+        product_id = data.get('product_id')
+
+        # Validation: Check if the pincode is exactly 6 digits. If not, return error: "Please enter a valid 6-digit pincode."
+        if not pincode.isdigit() or len(pincode) != 6:
+            return jsonify({'success': False, 'message': 'Please enter a valid 6-digit pincode.'}), 400
+
+        if not product_id:
+            return jsonify({'success': False, 'message': 'Product ID is required.'}), 400
+
+        # Fetch standard_delivery_days and preorder_delivery_days from settings table (safe fallbacks 5 and 15)
+        settings = get_settings()
+        try:
+            standard_delivery_days = int(settings.get('standard_delivery_days') if settings.get('standard_delivery_days') is not None else 5)
+        except (ValueError, TypeError):
+            standard_delivery_days = 5
+
+        try:
+            preorder_delivery_days = int(settings.get('preorder_delivery_days') if settings.get('preorder_delivery_days') is not None else 15)
+        except (ValueError, TypeError):
+            preorder_delivery_days = 15
+
+        # Fetch product's stock_status and allow_preorder
+        all_products = get_cache('products')
+        product = next((p for p in all_products if str(p.get('id')) == str(product_id)), None)
+        if not product:
+            doc = db.collection('products').document(str(product_id)).get()
+            if doc.exists:
+                product = doc.to_dict()
+                product['id'] = doc.id
+
+        if not product:
+            return jsonify({'success': False, 'message': 'Product not found.'}), 404
+
+        stock_status = product.get('stock_status', 'in_stock') or 'in_stock'
+        allow_preorder = product.get('allow_preorder', False)
+        if isinstance(allow_preorder, str):
+            allow_preorder = allow_preorder.lower() in ('true', '1', 'yes')
+        else:
+            allow_preorder = bool(allow_preorder)
+
+        current_date = datetime.now()
+
+        if stock_status == 'out_of_stock':
+            if allow_preorder:
+                delivery_date = current_date + timedelta(days=preorder_delivery_days)
+                formatted_date = delivery_date.strftime("%a %d-%b")
+                return jsonify({
+                    'success': True,
+                    'delivery_date': formatted_date,
+                    'message': f"Estimated delivery by {formatted_date} (Pre-order)"
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'message': 'This item is currently unavailable for delivery.'
+                }), 400
+        else:
+            # in_stock
+            delivery_date = current_date + timedelta(days=standard_delivery_days)
+            formatted_date = delivery_date.strftime("%a %d-%b")
+            return jsonify({
+                'success': True,
+                'delivery_date': formatted_date,
+                'message': f"Estimated delivery by {formatted_date}"
+            })
+
+    except Exception as e:
+        print(f"Error in api_check_delivery: {e}")
+        return jsonify({'success': False, 'message': 'Internal error checking delivery date.'}), 500
 
 # --- USER PROFILE & LOGOUT ---
 
