@@ -1,34 +1,42 @@
 // Admin Dashboard Logic & AJAX Controllers for MS Enterprises
 
+// 0. Global Tab Navigation Function (immediately accessible to all HTML onclick handlers)
+window.switchTab = function(tabId) {
+    if (!tabId) return;
+    const navButtons = document.querySelectorAll('.admin-nav-btn');
+    const tabPanels = document.querySelectorAll('.admin-tab-panel');
+    
+    navButtons.forEach(btn => {
+        if (btn.dataset.tab === tabId) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+
+    tabPanels.forEach(panel => {
+        if (panel.id === tabId) panel.classList.add('active');
+        else panel.classList.remove('active');
+    });
+    
+    try {
+        sessionStorage.setItem('admin_active_tab', tabId);
+    } catch (e) {
+        console.error("sessionStorage error:", e);
+    }
+
+    // Automatically trigger tab-specific data loaders when active
+    if (tabId === 'tab-dealers' && typeof window.loadDealers === 'function') window.loadDealers();
+    if (tabId === 'tab-dealer-activities' && typeof window.loadActivityLogs === 'function') window.loadActivityLogs();
+    if (tabId === 'tab-dealer-orders' && typeof window.loadDealerOrders === 'function') window.loadDealerOrders();
+    if (tabId === 'tab-orders' && typeof window.loadCustomerOrders === 'function') window.loadCustomerOrders();
+    if (tabId === 'tab-stock-notifications' && typeof window.loadStockNotifications === 'function') window.loadStockNotifications();
+};
+
 document.addEventListener("DOMContentLoaded", function () {
     // 1. Initialize Lucide Icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
 
-    // 2. Tab Navigation
-    window.switchTab = function(tabId) {
-        const navButtons = document.querySelectorAll('.admin-nav-btn');
-        const tabPanels = document.querySelectorAll('.admin-tab-panel');
-        
-        navButtons.forEach(btn => {
-            if (btn.dataset.tab === tabId) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-
-        tabPanels.forEach(panel => {
-            if (panel.id === tabId) panel.classList.add('active');
-            else panel.classList.remove('active');
-        });
-        
-        try {
-            sessionStorage.setItem('admin_active_tab', tabId);
-        } catch (e) {
-            console.error("sessionStorage error:", e);
-        }
-    };
-
-    // Set initial tab
+    // Set initial tab on load
     const activeTab = sessionStorage.getItem('admin_active_tab') || 'tab-overview';
     window.switchTab(activeTab);
 
@@ -1713,18 +1721,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     };
-    
-    // Automatically trigger B2B and B2C load loops when tabs are active
-    const oldSwitchTab = window.switchTab;
-    window.switchTab = function(tabId) {
-        if (oldSwitchTab) oldSwitchTab(tabId);
-        
-        if (tabId === 'tab-dealers') loadDealers();
-        if (tabId === 'tab-dealer-activities') loadActivityLogs();
-        if (tabId === 'tab-dealer-orders') loadDealerOrders();
-        if (tabId === 'tab-orders') loadCustomerOrders();
-        if (tabId === 'tab-stock-notifications') loadStockNotifications();
-    };
 
     // 19. Quick Dealer Prices Modal & Operations
     const dealerPricesModal = document.getElementById('dealerPricesModal');
@@ -1907,6 +1903,8 @@ document.addEventListener("DOMContentLoaded", function () {
             .finally(() => {
                 tbody.style.opacity = '1';
             });
+    };
+
     // 21. Stock Availability Notifications Operations
     window.loadStockNotifications = function() {
         const tbody = document.getElementById("stockNotificationsBody");

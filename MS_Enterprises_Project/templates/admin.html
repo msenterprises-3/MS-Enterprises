@@ -9,6 +9,28 @@
     <link rel="stylesheet" href="/static/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // Global switchTab immediately defined in head so tab clicks never throw ReferenceError
+        window.switchTab = function(tabId) {
+            if (!tabId) return;
+            const navButtons = document.querySelectorAll('.admin-nav-btn');
+            const tabPanels = document.querySelectorAll('.admin-tab-panel');
+            navButtons.forEach(btn => {
+                if (btn.dataset.tab === tabId) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            tabPanels.forEach(panel => {
+                if (panel.id === tabId) panel.classList.add('active');
+                else panel.classList.remove('active');
+            });
+            try { sessionStorage.setItem('admin_active_tab', tabId); } catch(e){}
+            if (tabId === 'tab-dealers' && typeof window.loadDealers === 'function') window.loadDealers();
+            if (tabId === 'tab-dealer-activities' && typeof window.loadActivityLogs === 'function') window.loadActivityLogs();
+            if (tabId === 'tab-dealer-orders' && typeof window.loadDealerOrders === 'function') window.loadDealerOrders();
+            if (tabId === 'tab-orders' && typeof window.loadCustomerOrders === 'function') window.loadCustomerOrders();
+            if (tabId === 'tab-stock-notifications' && typeof window.loadStockNotifications === 'function') window.loadStockNotifications();
+        };
+    </script>
 </head>
 <body class="overflow-x-hidden w-full max-w-full bg-gray-50">
     <div class="admin-wrapper overflow-x-hidden w-full max-w-full">
@@ -1809,7 +1831,7 @@
 
     <!-- Script loading -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="/static/js/admin.js?v=2.1"></script>
+    <script src="/static/js/admin.js?v=20260903_v3"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const toggleBtn = document.getElementById('adminSidebarToggle');
