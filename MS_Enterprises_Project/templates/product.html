@@ -81,11 +81,11 @@
                     <span style="font-size: 13px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px;">Estimated Delivery</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <input type="text" id="deliveryPincodeInput" placeholder="Enter Pincode" maxlength="6" inputmode="numeric" class="form-control" style="max-width: 180px; padding: 7px 12px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff;">
-                    <button type="button" id="checkDeliveryBtn" class="btn btn-secondary" data-product-id="{{ product.id }}" style="padding: 7px 16px; font-size: 13px; font-weight: 700; border-radius: 6px; cursor: pointer;">Check</button>
+                    <input type="text" id="deliveryPincodeInput" placeholder="Enter Pincode" maxlength="6" inputmode="numeric" class="form-control" style="max-width: 180px; padding: 8px 12px; font-size: 13.5px; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff;">
+                    <button type="button" id="checkDeliveryBtn" class="btn btn-primary" data-product-id="{{ product.id }}" style="padding: 8px 18px; font-size: 13.5px; font-weight: 700; border-radius: 6px; cursor: pointer; background: var(--accent-color, #c68a4c); color: #111111; border: 1px solid var(--accent-color, #c68a4c); display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; transition: all 0.2s ease;">Check</button>
                 </div>
-                <div style="margin-top: 6px;">
-                    <span id="deliveryResultSpan" style="display: none; font-size: 13px; font-weight: 600;"></span>
+                <div style="margin-top: 8px; min-height: 22px;">
+                    <span id="deliveryResultSpan" style="display: none; font-size: 13.5px; font-weight: 600; line-height: 1.5;"></span>
                 </div>
             </div>
 
@@ -777,7 +777,70 @@
             }).catch(e => console.error("Error adding to recently viewed:", e));
         }
 
-        // 7. Initialize Lucide icons
+        // 7. Estimated Delivery Date Checker Listener
+        const checkDeliveryBtn = document.getElementById('checkDeliveryBtn');
+        const deliveryPincodeInput = document.getElementById('deliveryPincodeInput');
+        const deliveryResultSpan = document.getElementById('deliveryResultSpan');
+
+        if (checkDeliveryBtn && deliveryPincodeInput && deliveryResultSpan) {
+            const runDeliveryCheck = function(e) {
+                if (e) e.preventDefault();
+                const pincode = deliveryPincodeInput.value.trim();
+                const pId = checkDeliveryBtn.getAttribute('data-product-id') || "{{ product.id }}";
+
+                deliveryResultSpan.style.display = 'block';
+
+                if (!pincode || !/^\d{6}$/.test(pincode)) {
+                    deliveryResultSpan.style.color = '#dc2626';
+                    deliveryResultSpan.textContent = 'Please enter a valid 6-digit pincode.';
+                    console.error('[Delivery Check] Invalid pincode entered:', pincode);
+                    return;
+                }
+
+                checkDeliveryBtn.disabled = true;
+                const origText = checkDeliveryBtn.innerText;
+                checkDeliveryBtn.innerText = 'Checking...';
+
+                fetch('/api/check-delivery', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pincode: pincode, product_id: pId })
+                })
+                .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, data: data })))
+                .then(({ status, ok, data }) => {
+                    checkDeliveryBtn.disabled = false;
+                    checkDeliveryBtn.innerText = origText;
+                    deliveryResultSpan.style.display = 'block';
+
+                    if (ok && data.success) {
+                        deliveryResultSpan.style.color = '#16a34a';
+                        deliveryResultSpan.textContent = data.message || ('Estimated delivery by ' + data.delivery_date);
+                    } else {
+                        console.error('[Delivery Check] API returned error:', data);
+                        deliveryResultSpan.style.color = '#dc2626';
+                        deliveryResultSpan.textContent = data.message || 'Please enter a valid 6-digit pincode.';
+                    }
+                })
+                .catch(err => {
+                    console.error('[Delivery Check] Fetch exception:', err);
+                    checkDeliveryBtn.disabled = false;
+                    checkDeliveryBtn.innerText = origText;
+                    deliveryResultSpan.style.display = 'block';
+                    deliveryResultSpan.style.color = '#dc2626';
+                    deliveryResultSpan.textContent = 'Error checking delivery date. Please try again.';
+                });
+            };
+
+            checkDeliveryBtn.addEventListener('click', runDeliveryCheck);
+            deliveryPincodeInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    runDeliveryCheck(e);
+                }
+            });
+        }
+
+        // 8. Initialize Lucide icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }

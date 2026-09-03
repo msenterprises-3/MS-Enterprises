@@ -685,6 +685,34 @@ def admin_dashboard():
         reviews.append(r)
     reviews.sort(key=lambda x: (x.get('status', 'pending') != 'pending', x.get('created_at', '')), reverse=True)
     
+    # Stock Notifications
+    stock_notifications = []
+    try:
+        from supabase_db import supabase_client
+        if supabase_client:
+            res = supabase_client.table('stock_notifications').select('*').order('id', desc=True).execute()
+            sn_rows = res.data or []
+        else:
+            sn_rows = [doc.to_dict() for doc in db.collection('stock_notifications').stream()]
+            sn_rows.sort(key=lambda x: str(x.get('created_at', '')), reverse=True)
+
+        for sn in sn_rows:
+            sn_dict = dict(sn)
+            prod = next((p for p in products_cache if str(p.get('id')) == str(sn_dict.get('product_id'))), None)
+            sn_dict['product_name'] = prod['name'] if prod else f"Product #{sn_dict.get('product_id')}"
+            created_at_raw = sn_dict.get('created_at')
+            if created_at_raw:
+                try:
+                    dt = datetime.fromisoformat(str(created_at_raw).replace('Z', '+00:00'))
+                    sn_dict['formatted_date'] = dt.strftime('%d-%b-%Y %I:%M %p')
+                except Exception:
+                    sn_dict['formatted_date'] = str(created_at_raw)[:19].replace('T', ' ')
+            else:
+                sn_dict['formatted_date'] = 'N/A'
+            stock_notifications.append(sn_dict)
+    except Exception as e:
+        print(f"Error loading stock notifications for admin: {e}")
+
     return render_template('admin.html',
                            stats=stats,
                            products=products,
@@ -695,7 +723,8 @@ def admin_dashboard():
                            testimonials=testimonials,
                            videos=videos,
                            reviews=reviews,
-                           trust_badges=trust_badges)
+                           trust_badges=trust_badges,
+                           stock_notifications=stock_notifications)
 
 @app.route('/admin/logout')
 def admin_logout():
@@ -2814,6 +2843,67 @@ def api_notify_stock():
     except Exception as e:
         print(f"Error in api_notify_stock: {e}")
         return jsonify({'success': False, 'message': 'Failed to save notification request. Please try again.'}), 500
+
+@app.route('/api/admin/stock-notifications', methods=['GET'])
+@login_required
+def api_admin_stock_notifications():
+    try:
+        from supabase_db import supabase_client
+        products_cache = get_cache('products')
+        notifications = []
+        if supabase_client:
+            res = supabase_client.table('stock_notifications').select('*').order('id', desc=True).execute()
+            rows = res.data or []
+        else:
+            rows = [doc.to_dict() for doc in db.collection('stock_notifications').stream()]
+            rows.sort(key=lambda x: str(x.get('created_at', '')), reverse=True)
+
+        for r in rows:
+            item = dict(r)
+            prod = next((p for p in products_cache if str(p.get('id')) == str(item.get('product_id'))), None)
+            item['product_name'] = prod['name'] if prod else f"Product #{item.get('product_id')}"
+            item['product_slug'] = prod['slug'] if prod else ''
+            created_at_raw = item.get('created_at')
+            if created_at_raw:
+                try:
+                    dt = datetime.fromisoformat(str(created_at_raw).replace('Z', '+00:00'))
+                    item['formatted_date'] = dt.strftime('%d-%b-%Y %I:%M %p')
+                except Exception:
+                    item['formatted_date'] = str(created_at_raw)[:19].replace('T', ' ')
+            else:
+                item['formatted_date'] = 'N/A'
+            notifications.append(item)
+
+        return jsonify({
+            'success': True,
+            'notifications': notifications
+        })
+    except Exception as e:
+        print(f"Error fetching stock notifications: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/api/admin/stock-notifications/<int:notif_id>', methods=['DELETE', 'PUT'])
+@login_required
+def api_admin_stock_notification_detail(notif_id):
+    try:
+        from supabase_db import supabase_client
+        if request.method == 'DELETE':
+            if supabase_client:
+                supabase_client.table('stock_notifications').delete().eq('id', notif_id).execute()
+            else:
+                db.collection('stock_notifications').document(str(notif_id)).delete()
+            return jsonify({'success': True, 'message': 'Notification deleted successfully.'})
+        elif request.method == 'PUT':
+            data = request.json or {}
+            new_status = data.get('status', 'notified')
+            if supabase_client:
+                supabase_client.table('stock_notifications').update({'status': new_status}).eq('id', notif_id).execute()
+            else:
+                db.collection('stock_notifications').document(str(notif_id)).update({'status': new_status})
+            return jsonify({'success': True, 'message': f'Status updated to {new_status}.'})
+    except Exception as e:
+        print(f"Error managing stock notification: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 # --- ESTIMATED DELIVERY CHECKER API ---
 

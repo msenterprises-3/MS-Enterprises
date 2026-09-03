@@ -1723,6 +1723,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (tabId === 'tab-dealer-activities') loadActivityLogs();
         if (tabId === 'tab-dealer-orders') loadDealerOrders();
         if (tabId === 'tab-orders') loadCustomerOrders();
+        if (tabId === 'tab-stock-notifications') loadStockNotifications();
     };
 
     // 19. Quick Dealer Prices Modal & Operations
@@ -1906,6 +1907,109 @@ document.addEventListener("DOMContentLoaded", function () {
             .finally(() => {
                 tbody.style.opacity = '1';
             });
+    // 21. Stock Availability Notifications Operations
+    window.loadStockNotifications = function() {
+        const tbody = document.getElementById("stockNotificationsBody");
+        if (!tbody) return;
+
+        fetch('/api/admin/stock-notifications')
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error("Failed to load stock notifications:", data.message);
+                    return;
+                }
+                const notifs = data.notifications || [];
+                tbody.innerHTML = "";
+                if (notifs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">No stock notification requests found.</td></tr>`;
+                    return;
+                }
+
+                notifs.forEach(notif => {
+                    const isEmail = notif.contact_info && notif.contact_info.includes('@');
+                    const cleanPhone = notif.contact_info ? notif.contact_info.replace(/\D/g, '') : '';
+                    const contactHtml = isEmail 
+                        ? `<a href="mailto:${notif.contact_info}" style="color: var(--accent-color); font-weight: 700; text-decoration: underline; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="mail" style="width: 14px; height: 14px;"></i> ${notif.contact_info}</a>`
+                        : `<a href="https://wa.me/${cleanPhone}?text=Hello,%20we%20are%20pleased%20to%20inform%20you%20that%20the%20product%20you%20inquired%20about%20is%20now%20back%20in%20stock!" target="_blank" style="color: #059669; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="message-circle" style="width: 14px; height: 14px;"></i> ${notif.contact_info}</a>`;
+
+                    const isNotified = notif.status === 'notified' || notif.status === 'resolved';
+                    const statusBadge = `<span style="display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: ${isNotified ? '#ecfdf5' : '#fef3c7'}; color: ${isNotified ? '#065f46' : '#92400e'}; border: 1px solid ${isNotified ? '#a7f3d0' : '#fde68a'};">${notif.status || 'pending'}</span>`;
+
+                    const markBtn = !isNotified 
+                        ? `<button type="button" class="btn btn-sm" onclick="markNotificationStatus(${notif.id}, 'notified')" style="padding: 4px 8px; font-size: 11px; font-weight: 700; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 4px; cursor: pointer;" title="Mark as Notified">Mark Notified</button>`
+                        : '';
+
+                    const tr = document.createElement("tr");
+                    tr.style.borderBottom = "1px solid var(--border-color)";
+                    tr.id = `notifRow_${notif.id}`;
+                    tr.innerHTML = `
+                        <td style="padding: 12px 10px; font-weight: 700; color: var(--text-muted);">#${notif.id}</td>
+                        <td style="padding: 12px 10px;">
+                            <div style="font-weight: 700; color: var(--text-dark); margin-bottom: 2px;">${notif.product_name}</div>
+                            <span style="font-size: 12px; color: var(--text-muted);">Product ID: ${notif.product_id}</span>
+                        </td>
+                        <td style="padding: 12px 10px;">${contactHtml}</td>
+                        <td style="padding: 12px 10px; font-size: 13px; color: var(--text-muted);">${notif.formatted_date || notif.created_at || 'N/A'}</td>
+                        <td style="padding: 12px 10px; text-align: center;">${statusBadge}</td>
+                        <td style="padding: 12px 10px; text-align: right;">
+                            <div style="display: inline-flex; gap: 6px; justify-content: flex-end;">
+                                ${markBtn}
+                                <button type="button" class="btn btn-sm" onclick="deleteStockNotification(${notif.id})" style="padding: 4px 8px; font-size: 11px; font-weight: 700; background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 4px; cursor: pointer;" title="Delete">
+                                    <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            })
+            .catch(err => {
+                console.error("Error loading stock notifications:", err);
+            });
+    };
+
+    window.markNotificationStatus = function(notifId, status) {
+        fetch(`/api/admin/stock-notifications/${notifId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: status })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', data.message || 'Notification updated.');
+                loadStockNotifications();
+            } else {
+                showAlert('error', data.message || 'Failed to update notification.');
+            }
+        })
+        .catch(err => {
+            console.error("Error updating notification status:", err);
+            showAlert('error', 'Server error updating notification.');
+        });
+    };
+
+    window.deleteStockNotification = function(notifId) {
+        if (!confirm("Are you sure you want to delete this stock notification?")) return;
+        fetch(`/api/admin/stock-notifications/${notifId}`, {
+            method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', data.message || 'Notification deleted.');
+                const row = document.getElementById(`notifRow_${notifId}`);
+                if (row) row.remove();
+            } else {
+                showAlert('error', data.message || 'Failed to delete notification.');
+            }
+        })
+        .catch(err => {
+            console.error("Error deleting stock notification:", err);
+            showAlert('error', 'Server error deleting notification.');
+        });
     };
 
     // Document ready closing blocks
